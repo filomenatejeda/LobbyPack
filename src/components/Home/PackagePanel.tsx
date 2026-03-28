@@ -65,27 +65,31 @@ export default function PackagePanel(props: PackagePanelProps) {
       <div className="panelTools">
         <label className="searchField">
           <span>Buscar paquete</span>
-          <input
-            type="search"
-            value={searchTerm}
-            onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Busca por codigo, nombre, depto o compania"
-          />
-        </label>
-
-        <label className="pageSizeField">
-          <span>Mostrar</span>
-          <select
-            className="pageSizeSelect"
-            value={pageSize}
-            onChange={(event) => onPageSizeChange(Number(event.target.value))}
-          >
-            {pageSizeOptions.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
+          <div className="searchInputWrap">
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="searchIcon">
+              <path
+                d="M11 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="m19 19-3.2-3.2"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Busca por codigo, nombre, depto o compania"
+            />
+          </div>
         </label>
 
         <label className="selectAllField">
@@ -191,27 +195,44 @@ export default function PackagePanel(props: PackagePanelProps) {
       {filteredCount === 0 ? (
         <p className="emptyState">No hay paquetes que coincidan con la busqueda.</p>
       ) : (
-        <div className="pagination">
-          <button
-            type="button"
-            className="paginationButton"
-            onClick={onPrevPage}
-            disabled={safePage === 1}
-          >
-            Anterior
-          </button>
-          <span className="paginationInfo">
-            Mostrando {startIndex + 1}-{Math.min(startIndex + pageSize, filteredCount)} de{" "}
-            {filteredCount}
-          </span>
-          <button
-            type="button"
-            className="paginationButton"
-            onClick={onNextPage}
-            disabled={safePage === totalPages}
-          >
-            Siguiente
-          </button>
+        <div className="panelFooter">
+          <label className="pageSizeField">
+            <span>Mostrar</span>
+            <select
+              className="pageSizeSelect"
+              value={pageSize}
+              onChange={(event) => onPageSizeChange(Number(event.target.value))}
+            >
+              {pageSizeOptions.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="pagination">
+            <button
+              type="button"
+              className="paginationButton"
+              onClick={onPrevPage}
+              disabled={safePage === 1}
+            >
+              Anterior
+            </button>
+            <span className="paginationInfo">
+              Mostrando {startIndex + 1}-{Math.min(startIndex + pageSize, filteredCount)} de{" "}
+              {filteredCount}
+            </span>
+            <button
+              type="button"
+              className="paginationButton"
+              onClick={onNextPage}
+              disabled={safePage === totalPages}
+            >
+              Siguiente
+            </button>
+          </div>
         </div>
       )}
     </section>

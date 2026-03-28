@@ -1,6 +1,12 @@
 .navbar {
-  width: min(100%, 1240px);
-  max-width: 100%;
+  width: 100%;
+  max-width: none;
+  padding: 0 24px;
+}
+
+.mobileNavbarBar,
+.mobileMenuOverlay {
+  display: none;
 }
 
 .navList {
@@ -10,12 +16,13 @@
   gap: clamp(20px, 4vw, 48px);
   list-style: none;
   margin: 0;
-  padding: 0 8px;
+  padding: 14px 0;
   width: 100%;
   overflow: visible;
   background: transparent;
   border: none;
   border-radius: 0;
+  box-shadow: none;
   flex-wrap: nowrap;
 }
 
@@ -41,6 +48,27 @@
   height: 52px;
   width: auto;
   object-fit: contain;
+}
+
+.menuToggle {
+  border: none;
+  background: transparent;
+  padding: 0;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.menuToggle span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  border-radius: 999px;
+  background: #603e21;
 }
 
 .link {
@@ -74,29 +102,92 @@
 @media (max-width: 768px) {
   .navbar {
     width: 100%;
+    padding: 0 16px;
   }
 
-  .navList {
-    flex-direction: row;
-    justify-content: center;
-    gap: 12px 18px;
+  .mobileNavbarBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
-    flex-wrap: wrap;
-    padding: 0;
+    padding: 12px 0;
   }
 
-  .navList li,
-  .link {
-    width: auto;
+  .mobileLogoLink {
+    padding: 0;
   }
 
   .navLogo {
     height: 40px;
   }
 
-  .link {
-    min-height: auto;
-    justify-content: center;
-    padding: 6px 0;
+  .navList {
+    display: none;
+  }
+
+  .mobileMenuOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(32, 24, 20, 0.28);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .mobileMenuOverlayOpen {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobileMenuDrawer {
+    width: min(82vw, 320px);
+    height: 100%;
+    padding: 20px 18px;
+    background: #fffdf9;
+    border-right: 1px solid rgba(64, 54, 47, 0.08);
+    box-shadow: 16px 0 32px rgba(32, 24, 20, 0.14);
+    transform: translateX(-100%);
+    transition: transform 0.24s ease;
+  }
+
+  .mobileMenuDrawerOpen {
+    transform: translateX(0);
+  }
+
+  .mobileMenuHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .mobileDrawerLogoLink {
+    padding: 0;
+  }
+
+  .mobileNavList {
+    list-style: none;
+    margin: 28px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .mobileLink {
+    display: block;
+    padding: 12px 0;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 700;
+    border-bottom: 1px solid rgba(64, 54, 47, 0.08);
+  }
+
+  .mobileLink:hover,
+  .mobileLink:focus-visible {
+    color: var(--accent-strong);
+    outline: none;
   }
 }

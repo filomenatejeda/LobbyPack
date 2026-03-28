@@ -43,12 +43,17 @@
 }
 
 .serviceToggle {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
   gap: 12px;
   margin-top: 32px;
+  margin-left: auto;
+  margin-right: auto;
   padding: 8px;
+  width: min(100%, 760px);
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 24px;
   background: #faf7f3;
 }
 
@@ -58,13 +63,16 @@
   color: var(--text-soft);
   font: inherit;
   font-weight: 700;
-  padding: 12px 20px;
+  font-size: clamp(0.92rem, 1.8vw, 1.05rem);
+  padding: 12px 14px;
   border-radius: 999px;
   cursor: pointer;
   transition:
     background-color 0.2s ease,
     color 0.2s ease,
     box-shadow 0.2s ease;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .toggleButton.active {
@@ -112,13 +120,14 @@
   }
 
   .serviceToggle {
-    display: flex;
     width: 100%;
-    flex-direction: column;
-    border-radius: 24px;
+    gap: 10px;
   }
 
   .toggleButton {
     width: 100%;
+    min-height: 48px;
+    font-size: 0.9rem;
+    padding: 10px 8px;
   }
 }
