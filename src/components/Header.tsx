@@ -3,7 +3,7 @@ import Navbar from "./Navbar";
 export default function Header() {
   return (
     <header style={styles.header}>
-      <h2 style={styles.logo}>MyStore</h2>
+      <h2 style={styles.logo}>LobbyPack</h2>
       <Navbar />
     </header>
   );

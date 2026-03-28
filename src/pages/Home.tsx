@@ -1,8 +1,8 @@
 export default function Home() {
   return (
     <main style={styles.main}>
-      <h1>Welcome to MyStore 🚀</h1>
-      <p>Your place to find the best collectibles.</p>
+      <h1>Esto es LobbyPack</h1>
+      <p>Aquí lo recibirás <i>todo.</i></p>
     </main>
   );
 }

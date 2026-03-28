@@ -4,10 +4,10 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { label: "Home", href: "#" },
-  { label: "Products", href: "#" },
-  { label: "About", href: "#" },
-  { label: "Contact", href: "#" },
+  { label: "Inicio", href: "#" },
+  { label: "Productos", href: "#" },
+  { label: "Acerca de", href: "#" },
+  { label: "Contacto", href: "#" },
 ];
 
 export default function Navbar() {
