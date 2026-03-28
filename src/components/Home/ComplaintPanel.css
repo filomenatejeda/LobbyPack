@@ -1,0 +1,175 @@
+.complaintPanel {
+  width: 100%;
+  margin: 32px auto 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fcfaf7;
+  text-align: left;
+}
+
+.complaintHeader h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.complaintTools {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.complaintSearchField {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.complaintSearchField span,
+.complaintPageSizeField span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.complaintSearchField input,
+.complaintPageSizeSelect {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.complaintPageSizeField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.complaintResultsText {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.complaintList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.complaintItem {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 14px;
+}
+
+.complaintMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.complaintMeta strong {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.complaintMeta span {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.complaintBadge {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-weight: 700;
+}
+
+.complaintBadgeIngresado {
+  background: #f5ede2;
+  color: #8a6f60;
+}
+
+.complaintBadgeEnrevision {
+  background: #e9f1f8;
+  color: #2d6a8a;
+}
+
+.complaintBadgeResuelto {
+  background: #e8f5ec;
+  color: #2d6a4f;
+}
+
+.complaintText {
+  margin: 10px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.complaintEmptyState {
+  margin-top: 14px;
+  font-size: 0.88rem;
+  color: var(--text-soft);
+}
+
+.complaintPagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.complaintPaginationButton {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.complaintPaginationButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.complaintPaginationInfo {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+@media (max-width: 768px) {
+  .complaintTools {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .complaintPagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .complaintPaginationInfo {
+    text-align: center;
+  }
+}
