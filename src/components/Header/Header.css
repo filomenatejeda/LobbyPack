@@ -4,7 +4,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0 32px 28px;
+  padding: 0 20px 28px;
   background: #ffffff;
   color: var(--text);
   border-bottom: none;

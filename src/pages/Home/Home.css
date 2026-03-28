@@ -27,6 +27,14 @@
   text-wrap: balance;
 }
 
+.titlePrimary {
+  color: #603e21;
+}
+
+.titleAccent {
+  color: #7c8033;
+}
+
 .lead {
   max-width: none;
   margin: 20px auto 0;

@@ -10,6 +10,7 @@ export type PackageItem = {
   departamento: string;
   nombre: string;
   compania: string;
+  conserje: string;
   hora: string;
   fecha: string;
   estado: PackageStatus;

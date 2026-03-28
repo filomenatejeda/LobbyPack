@@ -148,6 +148,10 @@ export default function PackageRow({
           <dd>{item.compania}</dd>
         </div>
         <div>
+          <dt>Conserje</dt>
+          <dd>{item.conserje}</dd>
+        </div>
+        <div>
           <dt>Hora</dt>
           <dd>{item.hora}</dd>
         </div>

@@ -19,6 +19,7 @@ const recepcionBase: PackageItem[] = [
     departamento: "Torre A 302",
     nombre: "Camila Rojas",
     compania: "Chilexpress",
+    conserje: "Marcos Silva",
     hora: "09:15",
     fecha: "28 Mar 2026",
     estado: "Recepcion",
@@ -28,6 +29,7 @@ const recepcionBase: PackageItem[] = [
     departamento: "Torre B 511",
     nombre: "Matias Soto",
     compania: "Bluexpress",
+    conserje: "Daniela Riquelme",
     hora: "10:02",
     fecha: "28 Mar 2026",
     estado: "Recepcion",
@@ -37,6 +39,7 @@ const recepcionBase: PackageItem[] = [
     departamento: "Torre C 110",
     nombre: "Valentina Diaz",
     compania: "Mercado Envios",
+    conserje: "Marcos Silva",
     hora: "11:28",
     fecha: "28 Mar 2026",
     estado: "Recepcion",
@@ -46,6 +49,7 @@ const recepcionBase: PackageItem[] = [
     departamento: "Torre D 205",
     nombre: "Diego Perez",
     compania: "CorreosChile",
+    conserje: "Paula Muñoz",
     hora: "12:40",
     fecha: "28 Mar 2026",
     estado: "Recepcion",
@@ -55,6 +59,7 @@ const recepcionBase: PackageItem[] = [
     departamento: "Torre B 410",
     nombre: "Antonia Mella",
     compania: "Starken",
+    conserje: "Daniela Riquelme",
     hora: "13:18",
     fecha: "28 Mar 2026",
     estado: "Recepcion",
@@ -67,6 +72,7 @@ const retiroBase: PackageItem[] = [
     departamento: "Torre A 701",
     nombre: "Javiera Leon",
     compania: "Starken",
+    conserje: "Marcos Silva",
     hora: "18:10",
     fecha: "27 Mar 2026",
     estado: "Retiro",
@@ -76,6 +82,7 @@ const retiroBase: PackageItem[] = [
     departamento: "Torre D 205",
     nombre: "Diego Perez",
     compania: "CorreosChile",
+    conserje: "Paula Muñoz",
     hora: "08:42",
     fecha: "28 Mar 2026",
     estado: "Retiro",
@@ -85,6 +92,7 @@ const retiroBase: PackageItem[] = [
     departamento: "Torre B 410",
     nombre: "Antonia Mella",
     compania: "Chilexpress",
+    conserje: "Daniela Riquelme",
     hora: "09:57",
     fecha: "28 Mar 2026",
     estado: "Retiro",
@@ -94,6 +102,7 @@ const retiroBase: PackageItem[] = [
     departamento: "Torre C 608",
     nombre: "Felipe Contreras",
     compania: "Bluexpress",
+    conserje: "Paula Muñoz",
     hora: "11:05",
     fecha: "28 Mar 2026",
     estado: "Retiro",
@@ -103,6 +112,7 @@ const retiroBase: PackageItem[] = [
     departamento: "Torre A 214",
     nombre: "Sofia Araya",
     compania: "Mercado Envios",
+    conserje: "Marcos Silva",
     hora: "14:22",
     fecha: "28 Mar 2026",
     estado: "Retiro",
@@ -216,6 +226,7 @@ export default function Home() {
       item.departamento,
       item.nombre,
       item.compania,
+      item.conserje,
       item.hora,
       item.fecha,
       item.estado,
@@ -288,6 +299,8 @@ export default function Home() {
     if (nombre === null) return;
     const compania = window.prompt("Compania", target.compania);
     if (compania === null) return;
+    const conserje = window.prompt("Conserje", target.conserje);
+    if (conserje === null) return;
     const hora = window.prompt("Hora", target.hora);
     if (hora === null) return;
     const fecha = window.prompt("Fecha", target.fecha);
@@ -298,6 +311,7 @@ export default function Home() {
       departamento,
       nombre,
       compania,
+      conserje,
       hora,
       fecha,
     }));
@@ -405,7 +419,10 @@ export default function Home() {
       <section className="hero" id="inicio">
         <div className="main">
           <p className="eyebrow">Gestion de paquetes</p>
-          <h1>LobbyPack</h1>
+          <h1>
+            <span className="titlePrimary">Lobby</span>
+            <span className="titleAccent">Pack</span>
+          </h1>
           <p className="lead">
             Administra paquetes recepcionados y retirados desde una sola vista.
           </p>
