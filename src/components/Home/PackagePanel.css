@@ -5,7 +5,8 @@
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: #fcfaf7;
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
   text-align: left;
 }
 
@@ -65,7 +66,7 @@
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #ffffff;
+  background: #fbfbf9;
   padding: 8px 10px 8px 34px;
   font: inherit;
   font-size: 0.9rem;
@@ -94,7 +95,7 @@
 .pageSizeSelect {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #ffffff;
+  background: #fbfbf9;
   padding: 8px 10px;
   font: inherit;
   font-size: 0.9rem;
@@ -104,14 +105,14 @@
 .toolbarButton {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #ffffff;
+  background: #fbfbf9;
   width: 34px;
   height: 34px;
   padding: 0;
   font: inherit;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #8a6f60;
+  color: var(--brown-strong);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -176,7 +177,7 @@
 .paginationButton {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #ffffff;
+  background: #fbfbf9;
   padding: 8px 12px;
   font: inherit;
   font-size: 0.88rem;

@@ -15,7 +15,7 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-strong);
 }
 
 .main h1 {
@@ -52,9 +52,10 @@
   margin-right: auto;
   padding: 8px;
   width: min(100%, 760px);
-  border: 1px solid var(--line);
+  border: 1px solid #7c8033;
   border-radius: 24px;
-  background: #faf7f3;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 6px 20px rgba(60, 52, 45, 0.04);
 }
 
 .toggleButton {
@@ -76,20 +77,20 @@
 }
 
 .toggleButton.active {
-  background: #ffffff;
+  background: var(--surface-strong);
   color: var(--text);
-  box-shadow: 0 10px 24px rgba(64, 54, 47, 0.08);
+  box-shadow: 0 4px 14px rgba(60, 52, 45, 0.08);
 }
 
 .addPackageButton {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--accent-strong);
   padding: 8px 12px;
   font: inherit;
   font-size: 0.88rem;
   font-weight: 700;
-  color: var(--text);
+  color: #ffffff;
   cursor: pointer;
 }
 
@@ -100,7 +101,7 @@
   z-index: 20;
   border-radius: 999px;
   padding: 12px 18px;
-  box-shadow: 0 12px 28px rgba(64, 54, 47, 0.16);
+  box-shadow: 0 10px 24px rgba(60, 52, 45, 0.12);
 }
 
 @media (max-width: 768px) {

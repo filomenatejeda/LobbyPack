@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import AddPackageModal from "../../components/Home/AddPackageModal";
 import ComplaintPanel from "../../components/Home/ComplaintPanel";
 import PackagePanel from "../../components/Home/PackagePanel";
 import QrModal from "../../components/Home/QrModal";
@@ -18,6 +19,7 @@ const recepcionBase: PackageItem[] = [
     id: "PK-2041",
     departamento: "Torre A 302",
     nombre: "Camila Rojas",
+    telefono: "+56981234567",
     compania: "Chilexpress",
     conserje: "Marcos Silva",
     hora: "09:15",
@@ -28,6 +30,7 @@ const recepcionBase: PackageItem[] = [
     id: "PK-2042",
     departamento: "Torre B 511",
     nombre: "Matias Soto",
+    telefono: "+56984567890",
     compania: "Bluexpress",
     conserje: "Daniela Riquelme",
     hora: "10:02",
@@ -38,6 +41,7 @@ const recepcionBase: PackageItem[] = [
     id: "PK-2043",
     departamento: "Torre C 110",
     nombre: "Valentina Diaz",
+    telefono: "+56977665544",
     compania: "Mercado Envios",
     conserje: "Marcos Silva",
     hora: "11:28",
@@ -48,6 +52,7 @@ const recepcionBase: PackageItem[] = [
     id: "PK-2044",
     departamento: "Torre D 205",
     nombre: "Diego Perez",
+    telefono: "+56999887766",
     compania: "CorreosChile",
     conserje: "Paula Muñoz",
     hora: "12:40",
@@ -58,6 +63,7 @@ const recepcionBase: PackageItem[] = [
     id: "PK-2045",
     departamento: "Torre B 410",
     nombre: "Antonia Mella",
+    telefono: "+56993456789",
     compania: "Starken",
     conserje: "Daniela Riquelme",
     hora: "13:18",
@@ -71,6 +77,7 @@ const retiroBase: PackageItem[] = [
     id: "PK-1988",
     departamento: "Torre A 701",
     nombre: "Javiera Leon",
+    telefono: "+56972345678",
     compania: "Starken",
     conserje: "Marcos Silva",
     hora: "18:10",
@@ -81,6 +88,7 @@ const retiroBase: PackageItem[] = [
     id: "PK-1994",
     departamento: "Torre D 205",
     nombre: "Diego Perez",
+    telefono: "+56999887766",
     compania: "CorreosChile",
     conserje: "Paula Muñoz",
     hora: "08:42",
@@ -91,6 +99,7 @@ const retiroBase: PackageItem[] = [
     id: "PK-2001",
     departamento: "Torre B 410",
     nombre: "Antonia Mella",
+    telefono: "+56993456789",
     compania: "Chilexpress",
     conserje: "Daniela Riquelme",
     hora: "09:57",
@@ -101,6 +110,7 @@ const retiroBase: PackageItem[] = [
     id: "PK-2007",
     departamento: "Torre C 608",
     nombre: "Felipe Contreras",
+    telefono: "+56971122334",
     compania: "Bluexpress",
     conserje: "Paula Muñoz",
     hora: "11:05",
@@ -111,6 +121,7 @@ const retiroBase: PackageItem[] = [
     id: "PK-2011",
     departamento: "Torre A 214",
     nombre: "Sofia Araya",
+    telefono: "+56970011223",
     compania: "Mercado Envios",
     conserje: "Marcos Silva",
     hora: "14:22",
@@ -210,6 +221,7 @@ export default function Home() {
   });
   const [qrPackage, setQrPackage] = useState<PackageItem | null>(null);
   const [qrScanMessage, setQrScanMessage] = useState("");
+  const [isAddPackageOpen, setIsAddPackageOpen] = useState(false);
 
   const currentPackageView = activeView === "reclamos" ? null : packageViews[activeView];
   const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -225,6 +237,7 @@ export default function Home() {
       item.id,
       item.departamento,
       item.nombre,
+      item.telefono,
       item.compania,
       item.conserje,
       item.hora,
@@ -297,6 +310,8 @@ export default function Home() {
     if (departamento === null) return;
     const nombre = window.prompt("Nombre", target.nombre);
     if (nombre === null) return;
+    const telefono = window.prompt("Telefono", target.telefono);
+    if (telefono === null) return;
     const compania = window.prompt("Compania", target.compania);
     if (compania === null) return;
     const conserje = window.prompt("Conserje", target.conserje);
@@ -310,6 +325,7 @@ export default function Home() {
       ...item,
       departamento,
       nombre,
+      telefono,
       compania,
       conserje,
       hora,
@@ -413,6 +429,51 @@ export default function Home() {
     setCurrentPage(1);
     setTimeout(() => closeQrModal(), 900);
   }, [closeQrModal, packageViews.recepcion.packages, packageViews.retiro.packages]);
+
+  const handleAddPackage = (values: {
+    departamento: string;
+    nombre: string;
+    telefono: string;
+    compania: string;
+    conserje: string;
+  }) => {
+    const timestamp = new Date();
+    const nextId = `REC-${String(timestamp.getTime()).slice(-4)}`;
+    const fecha = timestamp.toLocaleDateString("es-CL", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+    const hora = timestamp.toLocaleTimeString("es-CL", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    const newPackage: PackageItem = {
+      id: nextId,
+      departamento: values.departamento,
+      nombre: values.nombre,
+      telefono: values.telefono,
+      compania: values.compania,
+      conserje: values.conserje,
+      hora,
+      fecha,
+      estado: "Recepcion",
+    };
+
+    setPackageViews((current) => ({
+      ...current,
+      recepcion: {
+        ...current.recepcion,
+        packages: [newPackage, ...current.recepcion.packages],
+      },
+    }));
+    setActiveView("recepcion");
+    setCurrentPage(1);
+    setSearchTerm("");
+    setIsAddPackageOpen(false);
+  };
 
   return (
     <main>
@@ -518,7 +579,11 @@ export default function Home() {
           )}
 
           {activeView === "recepcion" ? (
-            <button type="button" className="addPackageButton floatingAddButton">
+            <button
+              type="button"
+              className="addPackageButton floatingAddButton"
+              onClick={() => setIsAddPackageOpen(true)}
+            >
               + Agregar paquete
             </button>
           ) : null}
@@ -531,6 +596,13 @@ export default function Home() {
           onClose={closeQrModal}
           onConfirm={handleQrScan}
           qrScanMessage={qrScanMessage}
+        />
+      ) : null}
+
+      {isAddPackageOpen ? (
+        <AddPackageModal
+          onClose={() => setIsAddPackageOpen(false)}
+          onSubmit={handleAddPackage}
         />
       ) : null}
     </main>

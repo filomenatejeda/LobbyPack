@@ -10,20 +10,20 @@
   padding: 18px 16px 24px;
   border-top: 1px solid var(--line);
   text-align: left;
-  background: #f4eee8;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .siteFooter p {
   margin: 0;
   font-size: 0.9rem;
   font-weight: 700;
-  color: #5c4a3f;
+  color: var(--brown-strong);
 }
 
 .siteFooter span {
   display: block;
   margin-top: 6px;
   font-size: 0.82rem;
-  color: #6d5a4f;
+  color: var(--text-soft);
   opacity: 0.9;
 }

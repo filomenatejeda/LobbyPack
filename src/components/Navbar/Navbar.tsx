@@ -9,9 +9,9 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { label: "Inicio", href: "#inicio" },
-  { label: "Cuenta", href: "#servicios" },
-  { label: "Configuración", href: "#como-funciona" },
-  { label: "Contacto", href: "#contacto" },
+  { label: "Cuenta", href: "#inicio" },
+  { label: "Configuración", href: "#configuracion" },
+  { label: "Contacto", href: "#inicio" },
 ];
 
 export default function Navbar() {
@@ -81,11 +81,7 @@ export default function Navbar() {
           <ul className="mobileNavList">
             {navItems.map((item) => (
               <li key={item.label}>
-                <a
-                  href={item.href}
-                  className="mobileLink"
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                <a href={item.href} className="mobileLink" onClick={() => setIsMenuOpen(false)}>
                   {item.label}
                 </a>
               </li>

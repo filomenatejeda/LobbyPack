@@ -148,6 +148,10 @@ export default function PackageRow({
           <dd>{item.compania}</dd>
         </div>
         <div>
+          <dt>Telefono</dt>
+          <dd>{item.telefono || "Sin numero"}</dd>
+        </div>
+        <div>
           <dt>Conserje</dt>
           <dd>{item.conserje}</dd>
         </div>

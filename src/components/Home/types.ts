@@ -9,6 +9,7 @@ export type PackageItem = {
   id: string;
   departamento: string;
   nombre: string;
+  telefono: string;
   compania: string;
   conserje: string;
   hora: string;

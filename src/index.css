@@ -1,13 +1,17 @@
 :root {
-  --page-bg: #ffffff;
-  --surface: #ffffff;
+  --page-bg: #f7f8f4;
+  --surface: #f3f1e9;
   --surface-strong: #ffffff;
-  --text: #40362f;
-  --text-soft: #6b5e55;
-  --line: rgba(64, 54, 47, 0.1);
-  --accent: #d46a3f;
-  --accent-strong: #9f4321;
-  --shadow: 0 18px 45px rgba(90, 57, 33, 0.12);
+  --surface-muted: #edf2e5;
+  --text: #3c342d;
+  --text-soft: #6f655c;
+  --line: rgba(95, 86, 74, 0.12);
+  --accent: #8aa57a;
+  --accent-strong: #5f7a53;
+  --accent-soft: #e3edd8;
+  --brown-soft: #d9cab8;
+  --brown-strong: #74614e;
+  --shadow: 0 10px 30px rgba(60, 52, 45, 0.06);
   --radius-xl: 28px;
   --radius-lg: 20px;
   --shell-width: 1200px;
@@ -15,7 +19,7 @@
   line-height: 1.5;
   font-weight: 400;
   color: var(--text);
-  background: #ffffff;
+  background: var(--page-bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -37,7 +41,7 @@ body {
 
 body {
   overflow-x: hidden;
-  background: #ffffff;
+  background: var(--page-bg);
 }
 
 #root {

@@ -1,14 +1,14 @@
 .rowActionButton {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #ffffff;
+  background: #fbfbf9;
   width: 34px;
   height: 34px;
   padding: 0;
   font: inherit;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #8a6f60;
+  color: var(--brown-strong);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -21,8 +21,8 @@
 }
 
 .qrButton {
-  color: #2d6a8a;
-  border-color: rgba(45, 106, 138, 0.2);
+  color: var(--accent-strong);
+  border-color: rgba(111, 132, 86, 0.28);
 }
 
 .actionIcon {
@@ -34,7 +34,7 @@
 .packageItem {
   padding: 10px 12px;
   border-radius: 10px;
-  background: #ffffff;
+  background: #fcfcfa;
   border: 1px solid var(--line);
   color: var(--text);
 }
@@ -99,13 +99,13 @@
 }
 
 .statusValueRecepcion {
-  background: #f5ede2;
-  color: #8a6f60;
+  background: #efe7de;
+  color: #816b56;
 }
 
 .statusValueRetiro {
-  background: #e8f5ec;
-  color: #2d6a4f;
+  background: #e7efdc;
+  color: #5f7450;
 }
 
 .packageDetails {
@@ -143,7 +143,7 @@
   gap: 8px;
   margin-top: 10px;
   padding-top: 8px;
-  border-top: 1px solid rgba(64, 54, 47, 0.08);
+  border-top: 1px solid var(--line);
 }
 
 .inlineActions {

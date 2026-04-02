@@ -4,7 +4,8 @@
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: #fcfaf7;
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
   text-align: left;
 }
 
@@ -55,7 +56,7 @@
 .complaintPageSizeSelect {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #ffffff;
+  background: #fbfbf9;
   padding: 8px 10px;
   font: inherit;
   font-size: 0.9rem;
@@ -91,7 +92,7 @@
 .complaintItem {
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: #ffffff;
+  background: #fcfcfa;
   padding: 14px;
 }
 
@@ -119,18 +120,18 @@
 }
 
 .complaintBadgeIngresado {
-  background: #f5ede2;
-  color: #8a6f60;
+  background: #efe7de;
+  color: #816b56;
 }
 
 .complaintBadgeEnrevision {
-  background: #e9f1f8;
-  color: #2d6a8a;
+  background: #e7efdc;
+  color: #627553;
 }
 
 .complaintBadgeResuelto {
-  background: #e8f5ec;
-  color: #2d6a4f;
+  background: var(--accent-soft);
+  color: #4f6840;
 }
 
 .complaintText {
@@ -167,7 +168,7 @@
 .complaintPaginationButton {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #ffffff;
+  background: #fbfbf9;
   padding: 8px 12px;
   font: inherit;
   font-size: 0.88rem;

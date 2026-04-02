@@ -68,7 +68,7 @@
   width: 24px;
   height: 2px;
   border-radius: 999px;
-  background: #603e21;
+  background: var(--brown-strong);
 }
 
 .link {
@@ -129,7 +129,7 @@
     position: fixed;
     inset: 0;
     z-index: 50;
-    background: rgba(32, 24, 20, 0.28);
+    background: rgba(70, 56, 40, 0.28);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
@@ -145,9 +145,9 @@
     width: min(82vw, 320px);
     height: 100%;
     padding: 20px 18px;
-    background: #fffdf9;
-    border-right: 1px solid rgba(64, 54, 47, 0.08);
-    box-shadow: 16px 0 32px rgba(32, 24, 20, 0.14);
+    background: #faf7f0;
+    border-right: 1px solid var(--line);
+    box-shadow: 16px 0 32px rgba(70, 56, 40, 0.14);
     transform: translateX(-100%);
     transition: transform 0.24s ease;
   }
@@ -182,7 +182,7 @@
     text-decoration: none;
     color: var(--text);
     font-weight: 700;
-    border-bottom: 1px solid rgba(64, 54, 47, 0.08);
+    border-bottom: 1px solid var(--line);
   }
 
   .mobileLink:hover,
