@@ -100,6 +100,7 @@
 }
 
 .cameraPreviewShell {
+  position: relative;
   overflow: hidden;
   margin-top: 16px;
   border: 1px solid var(--line);
@@ -113,6 +114,28 @@
   aspect-ratio: 16 / 9;
   object-fit: cover;
   background: #161616;
+}
+
+.cameraGuideFrame {
+  position: absolute;
+  inset: 12% 8%;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  border: 2px dashed rgba(255, 255, 255, 0.82);
+  border-radius: 18px;
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+}
+
+.cameraGuideText {
+  margin-bottom: 12px;
+  border-radius: 999px;
+  background: rgba(16, 16, 16, 0.62);
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .cameraStatus,
