@@ -40,31 +40,33 @@ export default function PackageRow({
           </div>
 
           <div className="packageActions inlineActions">
-            <button
-              type="button"
-              className="rowActionButton qrButton"
-              onClick={() => onShowQr(item)}
-              aria-label={`Mostrar QR del paquete ${item.id}`}
-              title="Mostrar QR"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true" className="actionIcon">
-                <path
-                  d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M14 14h2v2h-2zM18 14h2v6h-6v-2M14 18h2"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+            {item.estado === "Recepcion" ? (
+              <button
+                type="button"
+                className="rowActionButton qrButton"
+                onClick={() => onShowQr(item)}
+                aria-label={`Mostrar QR del paquete ${item.id}`}
+                title="Mostrar QR"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="actionIcon">
+                  <path
+                    d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M14 14h2v2h-2zM18 14h2v6h-6v-2M14 18h2"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            ) : null}
             <button
               type="button"
               className="rowActionButton"

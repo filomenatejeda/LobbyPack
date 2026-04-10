@@ -8,7 +8,6 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { label: "Inicio", href: "#inicio" },
   { label: "Cuenta", href: "#inicio" },
   { label: "Configuración", href: "#configuracion" },
   { label: "Contacto", href: "#inicio" },
