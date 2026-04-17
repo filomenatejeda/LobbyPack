@@ -1,7 +1,7 @@
 import { type ComponentType } from "react";
 import QRCodeImport from "react-qr-code";
 import "./QrModal.css";
-import type { PackageItem } from "./types";
+import type { PackageItem } from "../../types/home";
 
 type QRCodeModule = {
   default?: ComponentType<{ value: string; size?: number }>;
@@ -60,7 +60,7 @@ export default function QrModal({
           className="simulateScanButton"
           onClick={() => onConfirm(`LobbyPack:${qrPackage.id}`)}
         >
-          Marcar como retiro
+          Marcar como retirado
         </button>
 
         {qrScanMessage ? <p className="qrSuccess">{qrScanMessage}</p> : null}

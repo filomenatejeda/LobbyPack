@@ -1,5 +1,15 @@
 import "./PackageRow.css";
-import type { PackageItem, PackageServiceView } from "./types";
+import type { PackageItem, PackageServiceView } from "../../types/home";
+
+const packageStatusLabels = {
+  Received: "Recepcion",
+  PickedUp: "Retiro",
+} as const;
+
+const packageStatusClassNames = {
+  Received: "Recepcion",
+  PickedUp: "Retiro",
+} as const;
 
 type PackageRowProps = {
   item: PackageItem;
@@ -36,11 +46,13 @@ export default function PackageRow({
         <div className="packageTopActions">
           <div className="statusField">
             <span>Estado</span>
-            <p className={`statusValue statusValue${item.estado}`}>{item.estado}</p>
+            <p className={`statusValue statusValue${packageStatusClassNames[item.status]}`}>
+              {packageStatusLabels[item.status]}
+            </p>
           </div>
 
           <div className="packageActions inlineActions">
-            {item.estado === "Recepcion" ? (
+            {item.status === "Received" ? (
               <button
                 type="button"
                 className="rowActionButton qrButton"
@@ -139,31 +151,31 @@ export default function PackageRow({
       <dl className="packageDetails">
         <div>
           <dt>Departamento</dt>
-          <dd>{item.departamento}</dd>
+          <dd>{item.apartment}</dd>
         </div>
         <div>
           <dt>Nombre</dt>
-          <dd>{item.nombre}</dd>
+          <dd>{item.residentName}</dd>
         </div>
         <div>
           <dt>Compania</dt>
-          <dd>{item.compania}</dd>
+          <dd>{item.company}</dd>
         </div>
         <div>
           <dt>Telefono</dt>
-          <dd>{item.telefono || "Sin numero"}</dd>
+          <dd>{item.phone || "Sin numero"}</dd>
         </div>
         <div>
           <dt>Conserje</dt>
-          <dd>{item.conserje}</dd>
+          <dd>{item.concierge}</dd>
         </div>
         <div>
           <dt>Hora</dt>
-          <dd>{item.hora}</dd>
+          <dd>{item.time}</dd>
         </div>
         <div>
           <dt>Fecha</dt>
-          <dd>{item.fecha}</dd>
+          <dd>{item.date}</dd>
         </div>
       </dl>
     </li>

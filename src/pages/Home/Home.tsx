@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import AddPackageModal from "../../components/Home/AddPackageModal";
+import type { AddPackageFormValues } from "../../components/Home/addPackageTypes";
 import ComplaintPanel from "../../components/Home/ComplaintPanel";
 import PackagePanel from "../../components/Home/PackagePanel";
 import QrModal from "../../components/Home/QrModal";
@@ -7,226 +8,32 @@ import type {
   ComplaintItem,
   PackageItem,
   PackageServiceView,
-  PackageView,
   ServiceView,
-} from "../../components/Home/types";
+} from "../../types/home";
+import { initialComplaints, initialPackageViews, pageSizeOptions } from "../../data/homeData";
+import { createPackageFromForm } from "../../utils/packageUtils";
 import "./Home.css";
 
-const pageSizeOptions = [25, 50, 100] as const;
-
-const recepcionBase: PackageItem[] = [
-  {
-    id: "PK-2041",
-    departamento: "Torre A 302",
-    nombre: "Camila Rojas",
-    telefono: "+56981234567",
-    compania: "Chilexpress",
-    conserje: "Marcos Silva",
-    hora: "09:15",
-    fecha: "28 Mar 2026",
-    estado: "Recepcion",
-  },
-  {
-    id: "PK-2042",
-    departamento: "Torre B 511",
-    nombre: "Matias Soto",
-    telefono: "+56984567890",
-    compania: "Bluexpress",
-    conserje: "Daniela Riquelme",
-    hora: "10:02",
-    fecha: "28 Mar 2026",
-    estado: "Recepcion",
-  },
-  {
-    id: "PK-2043",
-    departamento: "Torre C 110",
-    nombre: "Valentina Diaz",
-    telefono: "+56977665544",
-    compania: "Mercado Envios",
-    conserje: "Marcos Silva",
-    hora: "11:28",
-    fecha: "28 Mar 2026",
-    estado: "Recepcion",
-  },
-  {
-    id: "PK-2044",
-    departamento: "Torre D 205",
-    nombre: "Diego Perez",
-    telefono: "+56999887766",
-    compania: "CorreosChile",
-    conserje: "Paula Muñoz",
-    hora: "12:40",
-    fecha: "28 Mar 2026",
-    estado: "Recepcion",
-  },
-  {
-    id: "PK-2045",
-    departamento: "Torre B 410",
-    nombre: "Antonia Mella",
-    telefono: "+56993456789",
-    compania: "Starken",
-    conserje: "Daniela Riquelme",
-    hora: "13:18",
-    fecha: "28 Mar 2026",
-    estado: "Recepcion",
-  },
-];
-
-const retiroBase: PackageItem[] = [
-  {
-    id: "PK-1988",
-    departamento: "Torre A 701",
-    nombre: "Javiera Leon",
-    telefono: "+56972345678",
-    compania: "Starken",
-    conserje: "Marcos Silva",
-    hora: "18:10",
-    fecha: "27 Mar 2026",
-    estado: "Retiro",
-  },
-  {
-    id: "PK-1994",
-    departamento: "Torre D 205",
-    nombre: "Diego Perez",
-    telefono: "+56999887766",
-    compania: "CorreosChile",
-    conserje: "Paula Muñoz",
-    hora: "08:42",
-    fecha: "28 Mar 2026",
-    estado: "Retiro",
-  },
-  {
-    id: "PK-2001",
-    departamento: "Torre B 410",
-    nombre: "Antonia Mella",
-    telefono: "+56993456789",
-    compania: "Chilexpress",
-    conserje: "Daniela Riquelme",
-    hora: "09:57",
-    fecha: "28 Mar 2026",
-    estado: "Retiro",
-  },
-  {
-    id: "PK-2007",
-    departamento: "Torre C 608",
-    nombre: "Felipe Contreras",
-    telefono: "+56971122334",
-    compania: "Bluexpress",
-    conserje: "Paula Muñoz",
-    hora: "11:05",
-    fecha: "28 Mar 2026",
-    estado: "Retiro",
-  },
-  {
-    id: "PK-2011",
-    departamento: "Torre A 214",
-    nombre: "Sofia Araya",
-    telefono: "+56970011223",
-    compania: "Mercado Envios",
-    conserje: "Marcos Silva",
-    hora: "14:22",
-    fecha: "28 Mar 2026",
-    estado: "Retiro",
-  },
-];
-
-const reclamosBase: ComplaintItem[] = [
-  {
-    nombre: "Camila Rojas",
-    numeroPaquete: "REC-0001",
-    reclamo: "Indica que el paquete figura como recepcionado, pero aun no estaba disponible en conserjeria al momento de consultarlo.",
-    fecha: "28 Mar 2026",
-    estado: "Ingresado",
-    id: "RCL-0001",
-  },
-  {
-    nombre: "Valentina Diaz",
-    numeroPaquete: "REC-0008",
-    reclamo: "Solicita revision porque el numero de departamento asociado al paquete no coincide con su entrega habitual.",
-    fecha: "28 Mar 2026",
-    estado: "En revision",
-    id: "RCL-0002",
-  },
-  {
-    nombre: "Diego Perez",
-    numeroPaquete: "RET-0015",
-    reclamo: "Reporta que el paquete fue marcado como retirado, pero no fue entregado al residente correcto.",
-    fecha: "28 Mar 2026",
-    estado: "Resuelto",
-    id: "RCL-0003",
-  },
-  {
-    nombre: "Antonia Mella",
-    numeroPaquete: "REC-0021",
-    reclamo: "Menciona demora en el aviso de llegada y pide dejar constancia para proximas entregas.",
-    fecha: "28 Mar 2026",
-    estado: "Ingresado",
-    id: "RCL-0004",
-  },
-  {
-    nombre: "Sofia Araya",
-    numeroPaquete: "RET-0009",
-    reclamo: "Solicita confirmar quien retiro el paquete porque no reconoce la firma registrada en recepcion.",
-    fecha: "28 Mar 2026",
-    estado: "En revision",
-    id: "RCL-0005",
-  },
-];
-
-const buildPackages = (base: PackageItem[], total: number, prefix: string): PackageItem[] =>
-  Array.from({ length: total }, (_, index) => {
-    const item = base[index % base.length];
-    return {
-      ...item,
-      id: `${prefix}-${String(index + 1).padStart(4, "0")}`,
-      hora: `${String(8 + (index % 10)).padStart(2, "0")}:${String((index * 7) % 60).padStart(2, "0")}`,
-      fecha: `${String((index % 28) + 1).padStart(2, "0")} Mar 2026`,
-    };
-  });
-
-const buildComplaints = (base: ComplaintItem[], total: number): ComplaintItem[] =>
-  Array.from({ length: total }, (_, index) => {
-    const item = base[index % base.length];
-    return {
-      ...item,
-      id: `RCL-${String(index + 1).padStart(4, "0")}`,
-      numeroPaquete: index % 2 === 0
-        ? `REC-${String(index + 1).padStart(4, "0")}`
-        : `RET-${String(index + 1).padStart(4, "0")}`,
-      fecha: `${String((index % 28) + 1).padStart(2, "0")} Mar 2026`,
-    };
-  });
-
-const initialPackageViews: Record<PackageServiceView, PackageView> = {
-  recepcion: {
-    title: "Paquetes recepcionados",
-    packages: buildPackages(recepcionBase, 68, "REC"),
-  },
-  retiro: {
-    title: "Paquetes retirados",
-    packages: buildPackages(retiroBase, 57, "RET"),
-  },
-};
-
 export default function Home() {
-  const [activeView, setActiveView] = useState<ServiceView>("recepcion");
+  const [activeView, setActiveView] = useState<ServiceView>("received");
   const [packageViews, setPackageViews] = useState(initialPackageViews);
-  const [complaints] = useState<ComplaintItem[]>(buildComplaints(reclamosBase, 24));
+  const [complaints] = useState<ComplaintItem[]>(initialComplaints);
   const [searchTerm, setSearchTerm] = useState("");
   const [pageSize, setPageSize] = useState<number>(25);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Record<PackageServiceView, string[]>>({
-    recepcion: [],
-    retiro: [],
+    received: [],
+    pickedUp: [],
   });
   const [qrPackage, setQrPackage] = useState<PackageItem | null>(null);
   const [qrScanMessage, setQrScanMessage] = useState("");
   const [isAddPackageOpen, setIsAddPackageOpen] = useState(false);
 
-  const currentPackageView = activeView === "reclamos" ? null : packageViews[activeView];
+  // Reclamos y paquetes comparten el mismo buscador y la misma paginación.
+  const currentPackageView = activeView === "complaints" ? null : packageViews[activeView];
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const filteredComplaints = complaints.filter((item) => {
-    const searchableText = [item.nombre, item.numeroPaquete, item.reclamo, item.fecha, item.estado]
+    const searchableText = [item.residentName, item.packageNumber, item.complaint, item.date, item.status]
       .join(" ")
       .toLowerCase();
 
@@ -235,14 +42,14 @@ export default function Home() {
   const filteredPackages = (currentPackageView?.packages ?? []).filter((item) => {
     const searchableText = [
       item.id,
-      item.departamento,
-      item.nombre,
-      item.telefono,
-      item.compania,
-      item.conserje,
-      item.hora,
-      item.fecha,
-      item.estado,
+      item.apartment,
+      item.residentName,
+      item.phone,
+      item.company,
+      item.concierge,
+      item.time,
+      item.date,
+      item.status,
     ]
       .join(" ")
       .toLowerCase();
@@ -250,13 +57,13 @@ export default function Home() {
     return searchableText.includes(normalizedSearch);
   });
 
-  const viewCount = activeView === "reclamos" ? filteredComplaints.length : filteredPackages.length;
+  const viewCount = activeView === "complaints" ? filteredComplaints.length : filteredPackages.length;
   const totalPages = Math.max(1, Math.ceil(viewCount / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const startIndex = (safePage - 1) * pageSize;
   const paginatedPackages = filteredPackages.slice(startIndex, startIndex + pageSize);
   const paginatedComplaints = filteredComplaints.slice(startIndex, startIndex + pageSize);
-  const currentSelections = activeView === "reclamos" ? [] : selectedIds[activeView];
+  const currentSelections = activeView === "complaints" ? [] : selectedIds[activeView];
   const selectedVisibleIds = filteredPackages
     .filter((item) => currentSelections.includes(item.id))
     .map((item) => item.id);
@@ -264,6 +71,7 @@ export default function Home() {
     paginatedPackages.length > 0 &&
     paginatedPackages.every((item) => currentSelections.includes(item.id));
 
+  // Guarda la selección por vista para que "recepcionados" y "retirados" sean independientes.
   const handlePackageSelection = (view: PackageServiceView, id: string, checked: boolean) => {
     setSelectedIds((current) => ({
       ...current,
@@ -273,21 +81,21 @@ export default function Home() {
     }));
   };
 
+  // Aplica la selección masiva solo a los paquetes visibles en la página actual.
   const handleSelectAllVisible = (checked: boolean) => {
-    if (activeView === "reclamos") return;
+    if (activeView === "complaints") return;
 
     setSelectedIds((current) => ({
       ...current,
       [activeView]: checked
-        ? Array.from(
-            new Set([...current[activeView], ...paginatedPackages.map((item) => item.id)]),
-          )
+        ? Array.from(new Set([...current[activeView], ...paginatedPackages.map((item) => item.id)]))
         : current[activeView].filter(
             (selectedId) => !paginatedPackages.some((item) => item.id === selectedId),
           ),
     }));
   };
 
+  // Centraliza las actualizaciones inmutables para reutilizar el mismo patrón en edición y QR.
   const updatePackage = (
     view: PackageServiceView,
     id: string,
@@ -302,37 +110,39 @@ export default function Home() {
     }));
   };
 
+  // Los prompts permiten editar rápido los datos mock sin abrir otro modal de formulario.
   const handleEditPackage = (view: PackageServiceView, id: string) => {
     const target = packageViews[view].packages.find((item) => item.id === id);
     if (!target) return;
 
-    const departamento = window.prompt("Departamento", target.departamento);
-    if (departamento === null) return;
-    const nombre = window.prompt("Nombre", target.nombre);
-    if (nombre === null) return;
-    const telefono = window.prompt("Telefono", target.telefono);
-    if (telefono === null) return;
-    const compania = window.prompt("Compania", target.compania);
-    if (compania === null) return;
-    const conserje = window.prompt("Conserje", target.conserje);
-    if (conserje === null) return;
-    const hora = window.prompt("Hora", target.hora);
-    if (hora === null) return;
-    const fecha = window.prompt("Fecha", target.fecha);
-    if (fecha === null) return;
+    const apartment = window.prompt("Departamento", target.apartment);
+    if (apartment === null) return;
+    const residentName = window.prompt("Nombre", target.residentName);
+    if (residentName === null) return;
+    const phone = window.prompt("Telefono", target.phone);
+    if (phone === null) return;
+    const company = window.prompt("Compania", target.company);
+    if (company === null) return;
+    const concierge = window.prompt("Conserje", target.concierge);
+    if (concierge === null) return;
+    const time = window.prompt("Hora", target.time);
+    if (time === null) return;
+    const date = window.prompt("Fecha", target.date);
+    if (date === null) return;
 
     updatePackage(view, id, (item) => ({
       ...item,
-      departamento,
-      nombre,
-      telefono,
-      compania,
-      conserje,
-      hora,
-      fecha,
+      apartment,
+      residentName,
+      phone,
+      company,
+      concierge,
+      time,
+      date,
     }));
   };
 
+  // Al borrar se actualizan los datos y la selección para no dejar checks colgados.
   const handleDeletePackages = (view: PackageServiceView, ids: string[]) => {
     if (ids.length === 0) return;
     const confirmed = window.confirm(
@@ -356,8 +166,9 @@ export default function Home() {
     }));
   };
 
+  // La edición masiva se limita a exactamente un paquete seleccionado.
   const handleEditSelected = () => {
-    if (activeView === "reclamos") return;
+    if (activeView === "complaints") return;
     if (selectedVisibleIds.length !== 1) return;
     handleEditPackage(activeView, selectedVisibleIds[0]);
   };
@@ -371,13 +182,14 @@ export default function Home() {
     setQrPackage(null);
   }, []);
 
-  const movePackageToRetiro = (id: string) => {
+  // Mover un paquete actualiza la colección que actualmente contiene ese item.
+  const movePackageToPickedUp = (id: string) => {
     let movedPackage: PackageItem | null = null;
 
     setPackageViews((current) => {
-      const recepcionPackages = current.recepcion.packages.filter((item) => {
+      const receivedPackages = current.received.packages.filter((item) => {
         if (item.id === id) {
-          movedPackage = { ...item, estado: "Retiro" };
+          movedPackage = { ...item, status: "PickedUp" };
           return false;
         }
         return true;
@@ -386,10 +198,10 @@ export default function Home() {
       if (!movedPackage) {
         return {
           ...current,
-          retiro: {
-              ...current.retiro,
-              packages: current.retiro.packages.map((item) =>
-              item.id === id ? { ...item, estado: "Retiro" } : item,
+          pickedUp: {
+            ...current.pickedUp,
+            packages: current.pickedUp.packages.map((item) =>
+              item.id === id ? { ...item, status: "PickedUp" } : item,
             ),
           },
         };
@@ -397,79 +209,55 @@ export default function Home() {
 
       return {
         ...current,
-        recepcion: {
-          ...current.recepcion,
-          packages: recepcionPackages,
+        received: {
+          ...current.received,
+          packages: receivedPackages,
         },
-        retiro: {
-          ...current.retiro,
-          packages: [movedPackage, ...current.retiro.packages],
+        pickedUp: {
+          ...current.pickedUp,
+          packages: [movedPackage, ...current.pickedUp.packages],
         },
       };
     });
 
     setSelectedIds((current) => ({
-      recepcion: current.recepcion.filter((selectedId) => selectedId !== id),
-      retiro: current.retiro,
+      received: current.received.filter((selectedId) => selectedId !== id),
+      pickedUp: current.pickedUp,
     }));
   };
 
-  const handleQrScan = useCallback((decodedText: string) => {
-    const packageId = decodedText.replace("LobbyPack:", "").trim();
-    const existsInRecepcion = packageViews.recepcion.packages.some((item) => item.id === packageId);
-    const existsInRetiro = packageViews.retiro.packages.some((item) => item.id === packageId);
+  // El escaneo QR simula el retiro resolviendo el id codificado en el payload.
+  const handleQrScan = useCallback(
+    (decodedText: string) => {
+      const packageId = decodedText.replace("LobbyPack:", "").trim();
+      const existsInReceived = packageViews.received.packages.some((item) => item.id === packageId);
+      const existsInPickedUp = packageViews.pickedUp.packages.some((item) => item.id === packageId);
 
-    if (!existsInRecepcion && !existsInRetiro) {
-      return;
-    }
+      if (!existsInReceived && !existsInPickedUp) {
+        return;
+      }
 
-    movePackageToRetiro(packageId);
-    setQrScanMessage(`Paquete ${packageId} movido a Retiro.`);
-    setActiveView("retiro");
-    setCurrentPage(1);
-    setTimeout(() => closeQrModal(), 900);
-  }, [closeQrModal, packageViews.recepcion.packages, packageViews.retiro.packages]);
+      movePackageToPickedUp(packageId);
+      setQrScanMessage(`Paquete ${packageId} movido a Retiro.`);
+      setActiveView("pickedUp");
+      setCurrentPage(1);
+      setTimeout(() => closeQrModal(), 900);
+    },
+    [closeQrModal, packageViews.received.packages, packageViews.pickedUp.packages],
+  );
 
-  const handleAddPackage = (values: {
-    departamento: string;
-    nombre: string;
-    telefono: string;
-    compania: string;
-    conserje: string;
-  }) => {
-    const timestamp = new Date();
-    const nextId = `REC-${String(timestamp.getTime()).slice(-4)}`;
-    const fecha = timestamp.toLocaleDateString("es-CL", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-    const hora = timestamp.toLocaleTimeString("es-CL", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-
-    const newPackage: PackageItem = {
-      id: nextId,
-      departamento: values.departamento,
-      nombre: values.nombre,
-      telefono: values.telefono,
-      compania: values.compania,
-      conserje: values.conserje,
-      hora,
-      fecha,
-      estado: "Recepcion",
-    };
+  // Los paquetes nuevos siempre entran en "received" con un id generado desde la fecha.
+  const handleAddPackage = (values: AddPackageFormValues) => {
+    const newPackage = createPackageFromForm(values);
 
     setPackageViews((current) => ({
       ...current,
-      recepcion: {
-        ...current.recepcion,
-        packages: [newPackage, ...current.recepcion.packages],
+      received: {
+        ...current.received,
+        packages: [newPackage, ...current.received.packages],
       },
     }));
-    setActiveView("recepcion");
+    setActiveView("received");
     setCurrentPage(1);
     setSearchTerm("");
     setIsAddPackageOpen(false);
@@ -491,9 +279,9 @@ export default function Home() {
           <div className="serviceToggle" aria-label="Selecciona recepcion o retiro">
             <button
               type="button"
-              className={activeView === "recepcion" ? "toggleButton active" : "toggleButton"}
+              className={activeView === "received" ? "toggleButton active" : "toggleButton"}
               onClick={() => {
-                setActiveView("recepcion");
+                setActiveView("received");
                 setCurrentPage(1);
               }}
             >
@@ -501,9 +289,9 @@ export default function Home() {
             </button>
             <button
               type="button"
-              className={activeView === "retiro" ? "toggleButton active" : "toggleButton"}
+              className={activeView === "pickedUp" ? "toggleButton active" : "toggleButton"}
               onClick={() => {
-                setActiveView("retiro");
+                setActiveView("pickedUp");
                 setCurrentPage(1);
               }}
             >
@@ -511,9 +299,9 @@ export default function Home() {
             </button>
             <button
               type="button"
-              className={activeView === "reclamos" ? "toggleButton active" : "toggleButton"}
+              className={activeView === "complaints" ? "toggleButton active" : "toggleButton"}
               onClick={() => {
-                setActiveView("reclamos");
+                setActiveView("complaints");
                 setCurrentPage(1);
               }}
             >
@@ -521,7 +309,7 @@ export default function Home() {
             </button>
           </div>
 
-          {activeView === "reclamos" ? (
+          {activeView === "complaints" ? (
             <ComplaintPanel
               title="Reclamos"
               searchTerm={searchTerm}
@@ -578,7 +366,7 @@ export default function Home() {
             />
           )}
 
-          {activeView === "recepcion" ? (
+          {activeView === "received" ? (
             <button
               type="button"
               className="addPackageButton floatingAddButton"
@@ -600,10 +388,7 @@ export default function Home() {
       ) : null}
 
       {isAddPackageOpen ? (
-        <AddPackageModal
-          onClose={() => setIsAddPackageOpen(false)}
-          onSubmit={handleAddPackage}
-        />
+        <AddPackageModal onClose={() => setIsAddPackageOpen(false)} onSubmit={handleAddPackage} />
       ) : null}
     </main>
   );

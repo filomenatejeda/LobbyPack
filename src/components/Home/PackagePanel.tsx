@@ -1,6 +1,6 @@
 import "./PackagePanel.css";
 import PackageRow from "./PackageRow";
-import type { PackageItem, PackageServiceView } from "./types";
+import type { PackageItem, PackageServiceView } from "../../types/home";
 
 type PackagePanelProps = {
   title: string;

@@ -6,6 +6,7 @@ import Settings from "./pages/Settings/Settings";
 
 type AppPage = "home" | "settings";
 
+// La app usa un cambio simple por hash en lugar de un router completo.
 const getPageFromHash = (): AppPage =>
   window.location.hash === "#configuracion" ? "settings" : "home";
 
@@ -13,6 +14,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<AppPage>(getPageFromHash);
 
   useEffect(() => {
+    // Mantiene la página visible sincronizada cuando el usuario navega con hashes.
     const handleHashChange = () => {
       setCurrentPage(getPageFromHash());
     };

@@ -1,119 +1,19 @@
 import { useState } from "react";
+import TowerCard from "../../components/Settings/TowerCard";
+import type { TowerConfig } from "../../types/settings";
+import { initialTowers, preferenceItems, teamItems } from "../../data/settingsData";
+import {
+  buildApartmentName,
+  clampCount,
+  createTower,
+  syncFloors,
+} from "../../utils/towerUtils";
 import "./Settings.css";
-
-const preferenceItems = [
-  {
-    title: "Notificaciones de paquetes",
-    description: "Recibe alertas cuando un paquete sea recepcionado, retirado o actualizado.",
-  },
-  {
-    title: "Resumen diario",
-    description: "Genera un reporte automatico con la actividad del dia para conserjeria.",
-  },
-  {
-    title: "Acceso con QR",
-    description: "Permite validar retiros de paquetes usando codigo QR desde recepcion.",
-  },
-];
-
-const teamItems = [
-  { name: "Marcos Silva", role: "Conserje turno manana", status: "Activo" },
-  { name: "Daniela Riquelme", role: "Conserje turno tarde", status: "Activo" },
-  { name: "Paula Muñoz", role: "Supervisora recepcion", status: "Admin" },
-];
-
-type FloorConfig = {
-  floorNumber: number;
-  apartments: string[];
-};
-
-type TowerConfig = {
-  id: number;
-  name: string;
-  floors: FloorConfig[];
-  selectedFloor: number;
-  isEditing: boolean;
-};
-
-function clampCount(value: number) {
-  return Math.max(1, Math.min(50, value));
-}
-
-function buildApartmentName(floorNumber: number, apartmentIndex: number) {
-  return `${floorNumber}${String(apartmentIndex).padStart(2, "0")}`;
-}
-
-function createFloor(floorNumber: number, apartmentCount = 4): FloorConfig {
-  return {
-    floorNumber,
-    apartments: Array.from({ length: apartmentCount }, (_, index) =>
-      buildApartmentName(floorNumber, index + 1),
-    ),
-  };
-}
-
-function createTower(id: number, name: string, floorCount: number): TowerConfig {
-  return {
-    id,
-    name,
-    floors: Array.from({ length: floorCount }, (_, index) => createFloor(index + 1)),
-    selectedFloor: 1,
-    isEditing: false,
-  };
-}
-
-function syncFloors(existingFloors: FloorConfig[], floorCount: number) {
-  const nextCount = clampCount(floorCount);
-
-  return Array.from({ length: nextCount }, (_, index) => {
-    const floorNumber = index + 1;
-    const existingFloor = existingFloors[index];
-
-    if (!existingFloor) {
-      return createFloor(floorNumber);
-    }
-
-    return {
-      floorNumber,
-      apartments:
-        existingFloor.apartments.length > 0
-          ? existingFloor.apartments
-          : createFloor(floorNumber).apartments,
-    };
-  });
-}
-
-const initialTowers: TowerConfig[] = [
-  {
-    id: 1,
-    name: "Torre A",
-    floors: [
-      { floorNumber: 1, apartments: ["101", "102", "103", "104"] },
-      { floorNumber: 2, apartments: ["201", "202", "203", "204"] },
-      { floorNumber: 3, apartments: ["301", "302", "303"] },
-      { floorNumber: 4, apartments: ["401", "402", "403"] },
-      { floorNumber: 5, apartments: ["501", "502", "503"] },
-    ],
-    selectedFloor: 1,
-    isEditing: false,
-  },
-  {
-    id: 2,
-    name: "Torre B",
-    floors: [
-      { floorNumber: 1, apartments: ["101", "102"] },
-      { floorNumber: 2, apartments: ["201", "202", "203"] },
-      { floorNumber: 3, apartments: ["301", "302", "303", "304"] },
-      { floorNumber: 4, apartments: ["401", "402"] },
-    ],
-    selectedFloor: 1,
-    isEditing: false,
-  },
-];
 
 export default function Settings() {
   const [towers, setTowers] = useState<TowerConfig[]>(initialTowers);
 
+  // Estos totales alimentan las tarjetas resumen y se recalculan desde el modelo de torres.
   const totalFloors = towers.reduce((sum, tower) => sum + tower.floors.length, 0);
   const totalUnits = towers.reduce(
     (sum, tower) =>
@@ -121,6 +21,7 @@ export default function Settings() {
     0,
   );
 
+  // Las torres nuevas reciben una letra secuencial para mantener legibles los datos mock.
   const addTower = () => {
     setTowers((current) => [
       ...current,
@@ -128,6 +29,7 @@ export default function Settings() {
     ]);
   };
 
+  // Mantiene al menos una torre en pantalla para no dejar esta vista vacía.
   const removeTower = (towerId: number) => {
     setTowers((current) => {
       if (current.length === 1) {
@@ -138,6 +40,7 @@ export default function Settings() {
     });
   };
 
+  // El modo edición se activa de forma independiente por cada tarjeta de torre.
   const toggleTowerEditing = (towerId: number) => {
     setTowers((current) =>
       current.map((tower) =>
@@ -152,6 +55,7 @@ export default function Settings() {
     );
   };
 
+  // Al cambiar la cantidad de pisos se reconstruye la lista preservando datos existentes cuando se puede.
   const updateTowerFloorCount = (towerId: number, value: string) => {
     setTowers((current) =>
       current.map((tower) => {
@@ -172,6 +76,7 @@ export default function Settings() {
     );
   };
 
+  // Ajusta el piso seleccionado para que la vista previa no apunte a un piso inexistente.
   const selectFloor = (towerId: number, value: string) => {
     setTowers((current) =>
       current.map((tower) => {
@@ -190,6 +95,7 @@ export default function Settings() {
     );
   };
 
+  // La edición de departamentos se limita a una torre y un piso por vez.
   const updateApartmentName = (
     towerId: number,
     floorNumber: number,
@@ -221,6 +127,7 @@ export default function Settings() {
     );
   };
 
+  // Los nombres de nuevos departamentos se generan desde el número de piso siguiendo la convención mock.
   const addApartment = (towerId: number, floorNumber: number) => {
     setTowers((current) =>
       current.map((tower) => {
@@ -248,6 +155,7 @@ export default function Settings() {
     );
   };
 
+  // Evita borrar el último departamento de un piso para que cada piso conserve al menos una unidad.
   const removeApartment = (towerId: number, floorNumber: number, apartmentIndex: number) => {
     setTowers((current) =>
       current.map((tower) => {
@@ -380,183 +288,26 @@ export default function Settings() {
 
           <div className="towerList">
             {towers.map((tower) => {
-              const selectedFloor =
-                tower.floors.find((floor) => floor.floorNumber === tower.selectedFloor) ??
-                tower.floors[0];
               const totalTowerUnits = tower.floors.reduce(
                 (sum, floor) => sum + floor.apartments.length,
                 0,
               );
 
               return (
-                <section key={tower.id} className="towerCard">
-                  <div className="towerCardHeader">
-                    <div>
-                      <p className="settingsLabel">Torre</p>
-                      <h3>{tower.name}</h3>
-                    </div>
-
-                    <div className="towerHeaderActions">
-                      <button
-                        type="button"
-                        className="secondaryButton"
-                        onClick={() => toggleTowerEditing(tower.id)}
-                      >
-                        {tower.isEditing ? "Cerrar edicion" : "Editar"}
-                      </button>
-                      <button
-                        type="button"
-                        className="towerRemoveButton"
-                        onClick={() => removeTower(tower.id)}
-                        disabled={towers.length === 1}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="towerSummaryGrid">
-                    <div className="towerSummaryItem">
-                      <span>Nombre de la torre</span>
-                      <strong>{tower.name}</strong>
-                    </div>
-                    <div className="towerSummaryItem">
-                      <span>Cantidad de pisos</span>
-                      <strong>{tower.floors.length}</strong>
-                    </div>
-                    <div className="towerSummaryItem">
-                      <span>Departamentos totales</span>
-                      <strong>{totalTowerUnits}</strong>
-                    </div>
-                  </div>
-
-                  {tower.isEditing ? (
-                    <div className="towerEditor">
-                      <div className="settingsForm towerForm">
-                        <label className="settingsField">
-                          <span>Nombre de la torre</span>
-                          <input
-                            type="text"
-                            value={tower.name}
-                            onChange={(event) =>
-                              updateTowerName(tower.id, event.target.value)
-                            }
-                          />
-                        </label>
-
-                        <label className="settingsField">
-                          <span>Cantidad de pisos</span>
-                          <input
-                            type="number"
-                            min="1"
-                            max="50"
-                            value={tower.floors.length}
-                            onChange={(event) =>
-                              updateTowerFloorCount(tower.id, event.target.value)
-                            }
-                          />
-                        </label>
-                      </div>
-
-                      <div className="floorEditorList">
-                        {tower.floors.map((floor) => (
-                          <section key={`${tower.id}-${floor.floorNumber}`} className="floorEditor">
-                            <div className="floorEditorHeader">
-                              <div>
-                                <p className="settingsLabel">Piso</p>
-                                <h4>Piso {floor.floorNumber}</h4>
-                              </div>
-                              <button
-                                type="button"
-                                className="secondaryButton"
-                                onClick={() => addApartment(tower.id, floor.floorNumber)}
-                              >
-                                Agregar departamento
-                              </button>
-                            </div>
-
-                            <div className="apartmentEditorGrid">
-                              {floor.apartments.map((apartment, apartmentIndex) => (
-                                <div
-                                  key={`${tower.id}-${floor.floorNumber}-${apartmentIndex}`}
-                                  className="apartmentEditorItem"
-                                >
-                                  <input
-                                    type="text"
-                                    value={apartment}
-                                    onChange={(event) =>
-                                      updateApartmentName(
-                                        tower.id,
-                                        floor.floorNumber,
-                                        apartmentIndex,
-                                        event.target.value,
-                                      )
-                                    }
-                                  />
-                                  <button
-                                    type="button"
-                                    className="towerRemoveButton apartmentRemoveButton"
-                                    onClick={() =>
-                                      removeApartment(
-                                        tower.id,
-                                        floor.floorNumber,
-                                        apartmentIndex,
-                                      )
-                                    }
-                                    disabled={floor.apartments.length === 1}
-                                  >
-                                    Quitar
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </section>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  <div className="towerPreview">
-                    <div className="towerPreviewHeader">
-                      <div>
-                        <p className="towerPreviewTitle">Departamentos por piso</p>
-                        <p className="towerPreviewText">
-                          Selecciona un piso para ver solo sus departamentos.
-                        </p>
-                      </div>
-
-                      <label className="settingsField towerFloorField">
-                        <span>Piso</span>
-                        <select
-                          value={tower.selectedFloor}
-                          onChange={(event) => selectFloor(tower.id, event.target.value)}
-                        >
-                          {tower.floors.map((floor) => (
-                            <option
-                              key={`${tower.id}-floor-${floor.floorNumber}`}
-                              value={floor.floorNumber}
-                            >
-                              Piso {floor.floorNumber}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-
-                    <div className="towerPreviewChips">
-                      {selectedFloor.apartments.map((apartment) => (
-                        <span key={`${tower.id}-${selectedFloor.floorNumber}-${apartment}`} className="towerChip">
-                          {apartment}
-                        </span>
-                      ))}
-                    </div>
-
-                    <p className="towerPreviewText">
-                      {tower.name} tiene {selectedFloor.apartments.length} departamentos en el
-                      piso {selectedFloor.floorNumber}.
-                    </p>
-                  </div>
-                </section>
+                <TowerCard
+                  key={tower.id}
+                  tower={tower}
+                  totalTowerUnits={totalTowerUnits}
+                  canRemove={towers.length > 1}
+                  onToggleEditing={toggleTowerEditing}
+                  onRemove={removeTower}
+                  onUpdateName={updateTowerName}
+                  onUpdateFloorCount={updateTowerFloorCount}
+                  onSelectFloor={selectFloor}
+                  onAddApartment={addApartment}
+                  onUpdateApartmentName={updateApartmentName}
+                  onRemoveApartment={removeApartment}
+                />
               );
             })}
           </div>

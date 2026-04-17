@@ -14,6 +14,7 @@ const navItems: NavItem[] = [
 ];
 
 export default function Navbar() {
+  // Controla el drawer móvil de forma independiente a la navegación de escritorio.
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (

@@ -1,0 +1,92 @@
+import type { AddPackageFormValues } from "./addPackageTypes";
+
+type AddPackageFormSectionProps = {
+  values: AddPackageFormValues;
+  ocrText: string;
+  onBack: () => void;
+  onChange: (field: keyof AddPackageFormValues, value: string) => void;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+};
+
+export default function AddPackageFormSection({
+  values,
+  ocrText,
+  onBack,
+  onChange,
+  onSubmit,
+}: AddPackageFormSectionProps) {
+  return (
+    <form className="addPackageForm" onSubmit={onSubmit}>
+      <div className="addPackageFormGrid">
+        <label className="addPackageField">
+          <span>Departamento</span>
+          <input
+            type="text"
+            value={values.apartment}
+            onChange={(event) => onChange("apartment", event.target.value)}
+            placeholder="Torre A 302"
+            required
+          />
+        </label>
+
+        <label className="addPackageField">
+          <span>Nombre</span>
+          <input
+            type="text"
+            value={values.residentName}
+            onChange={(event) => onChange("residentName", event.target.value)}
+            placeholder="Nombre del residente"
+            required
+          />
+        </label>
+
+        <label className="addPackageField">
+          <span>Compania</span>
+          <input
+            type="text"
+            value={values.company}
+            onChange={(event) => onChange("company", event.target.value)}
+            placeholder="Chilexpress"
+          />
+        </label>
+
+        <label className="addPackageField">
+          <span>Telefono</span>
+          <input
+            type="tel"
+            value={values.phone}
+            onChange={(event) => onChange("phone", event.target.value)}
+            placeholder="+56912345678"
+          />
+        </label>
+
+        <label className="addPackageField">
+          <span>Conserje</span>
+          <input
+            type="text"
+            value={values.concierge}
+            onChange={(event) => onChange("concierge", event.target.value)}
+            placeholder="Nombre de quien recibe"
+            required
+          />
+        </label>
+      </div>
+
+      {ocrText ? (
+        <div className="ocrHint">
+          <strong>Texto de la etiqueta:</strong>
+          <p>Se rellenaron los campos detectados automaticamente. Revisa antes de guardar.</p>
+        </div>
+      ) : null}
+
+      <div className="addPackageActions">
+        <button type="button" className="modalSecondaryButton" onClick={onBack}>
+          Volver
+        </button>
+        <button type="submit" className="modalPrimaryButton">
+          Guardar paquete
+        </button>
+      </div>
+    </form>
+  );
+}

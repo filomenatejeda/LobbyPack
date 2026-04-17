@@ -1,5 +1,17 @@
 import "./ComplaintPanel.css";
-import type { ComplaintItem } from "./types";
+import type { ComplaintItem } from "../../types/home";
+
+const complaintStatusLabels = {
+  Submitted: "Ingresado",
+  InReview: "En revision",
+  Resolved: "Resuelto",
+} as const;
+
+const complaintStatusClassNames = {
+  Submitted: "Ingresado",
+  InReview: "Enrevision",
+  Resolved: "Resuelto",
+} as const;
 
 type ComplaintPanelProps = {
   title: string;
@@ -79,14 +91,14 @@ export default function ComplaintPanel({
         {paginatedComplaints.map((item) => (
           <li key={item.id} className="complaintItem">
             <div className="complaintMeta">
-              <strong>{item.nombre}</strong>
-              <span>{item.numeroPaquete}</span>
-              <span>{item.fecha}</span>
-              <span className={`complaintBadge complaintBadge${item.estado.replace(/\s+/g, "")}`}>
-                {item.estado}
+              <strong>{item.residentName}</strong>
+              <span>{item.packageNumber}</span>
+              <span>{item.date}</span>
+              <span className={`complaintBadge complaintBadge${complaintStatusClassNames[item.status]}`}>
+                {complaintStatusLabels[item.status]}
               </span>
             </div>
-            <p className="complaintText">{item.reclamo}</p>
+            <p className="complaintText">{item.complaint}</p>
           </li>
         ))}
       </ul>
