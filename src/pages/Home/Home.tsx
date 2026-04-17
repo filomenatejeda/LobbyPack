@@ -14,23 +14,35 @@ import { createPackageFromForm } from "../../utils/packageUtils";
 import "./Home.css";
 
 export default function Home() {
+  // Controla qué vista principal está activa: recepcionados, retirados o reclamos.
   const [activeView, setActiveView] = useState<ServiceView>("received");
+  // Guarda las dos colecciones principales de paquetes que se muestran en la pantalla.
   const [packageViews, setPackageViews] = useState(initialPackageViews);
+  // Los reclamos se consumen como datos iniciales estáticos para la demo.
   const complaints = initialComplaints;
+  // Texto compartido por el buscador de paquetes y reclamos.
   const [searchTerm, setSearchTerm] = useState("");
+  // Define cuántos registros se muestran por página.
   const [pageSize, setPageSize] = useState<number>(25);
+  // Mantiene la página actual de la tabla visible.
   const [currentPage, setCurrentPage] = useState(1);
+  // Guarda los ids seleccionados por cada vista de paquetes para acciones masivas.
   const [selectedIds, setSelectedIds] = useState<Record<PackageServiceView, string[]>>({
     received: [],
     pickedUp: [],
   });
+  // Referencia el paquete cuyo QR se está mostrando en el modal.
   const [qrPackage, setQrPackage] = useState<PackageItem | null>(null);
+  // Muestra un mensaje breve después de simular el escaneo de un QR.
   const [qrScanMessage, setQrScanMessage] = useState("");
+  // Abre o cierra el modal para registrar un nuevo paquete.
   const [isAddPackageOpen, setIsAddPackageOpen] = useState(false);
 
   // Reclamos y paquetes comparten el mismo buscador y la misma paginación.
   const currentPackageView = activeView === "complaints" ? null : packageViews[activeView];
+  // Normaliza el texto buscado para hacer comparaciones sin espacios extra ni mayúsculas.
   const normalizedSearch = searchTerm.trim().toLowerCase();
+  // Filtra reclamos usando un texto compuesto con sus campos más relevantes.
   const filteredComplaints = complaints.filter((item) => {
     const searchableText = [item.residentName, item.packageNumber, item.complaint, item.date, item.status]
       .join(" ")
@@ -38,6 +50,7 @@ export default function Home() {
 
     return searchableText.includes(normalizedSearch);
   });
+  // Filtra paquetes combinando sus datos visibles en una sola cadena de búsqueda.
   const filteredPackages = (currentPackageView?.packages ?? []).filter((item) => {
     const searchableText = [
       item.id,
@@ -56,16 +69,25 @@ export default function Home() {
     return searchableText.includes(normalizedSearch);
   });
 
+  // Calcula la cantidad de registros según la vista actualmente seleccionada.
   const viewCount = activeView === "complaints" ? filteredComplaints.length : filteredPackages.length;
+  // Garantiza que siempre exista al menos una página, aunque no haya resultados.
   const totalPages = Math.max(1, Math.ceil(viewCount / pageSize));
+  // Evita que currentPage apunte a una página mayor que las disponibles.
   const safePage = Math.min(currentPage, totalPages);
+  // Índice inicial usado para paginar paquetes o reclamos.
   const startIndex = (safePage - 1) * pageSize;
+  // Corta la lista filtrada de paquetes para mostrar solo la página actual.
   const paginatedPackages = filteredPackages.slice(startIndex, startIndex + pageSize);
+  // Corta la lista filtrada de reclamos para mostrar solo la página actual.
   const paginatedComplaints = filteredComplaints.slice(startIndex, startIndex + pageSize);
+  // Recupera la selección actual solo cuando la vista activa corresponde a paquetes.
   const currentSelections = activeView === "complaints" ? [] : selectedIds[activeView];
+  // Obtiene los ids seleccionados que además siguen presentes en los resultados filtrados.
   const selectedVisibleIds = filteredPackages
     .filter((item) => currentSelections.includes(item.id))
     .map((item) => item.id);
+  // Marca el checkbox maestro cuando todos los paquetes visibles están seleccionados.
   const allVisibleSelected =
     paginatedPackages.length > 0 &&
     paginatedPackages.every((item) => currentSelections.includes(item.id));
@@ -172,11 +194,13 @@ export default function Home() {
     handleEditPackage(activeView, selectedVisibleIds[0]);
   };
 
+  // Abre el modal QR para el paquete elegido y limpia mensajes anteriores.
   const openQrModal = (item: PackageItem) => {
     setQrScanMessage("");
     setQrPackage(item);
   };
 
+  // Cierra el modal QR; useCallback evita recrear la función innecesariamente.
   const closeQrModal = useCallback(() => {
     setQrPackage(null);
   }, []);
@@ -249,6 +273,7 @@ export default function Home() {
   const handleAddPackage = (values: AddPackageFormValues) => {
     const newPackage = createPackageFromForm(values);
 
+    // Inserta el nuevo paquete al inicio para que aparezca primero en la tabla.
     setPackageViews((current) => ({
       ...current,
       received: {
@@ -264,6 +289,7 @@ export default function Home() {
 
   return (
     <main>
+      {/* Hero principal con el selector de vista y la tabla correspondiente. */}
       <section className="hero" id="inicio">
         <div className="main">
           <p className="eyebrow">Gestion de paquetes</p>
@@ -275,6 +301,7 @@ export default function Home() {
             Administra paquetes recepcionados y retirados desde una sola vista.
           </p>
 
+          {/* Cambia entre las tres secciones principales reiniciando la paginación. */}
           <div className="serviceToggle" aria-label="Selecciona recepcion o retiro">
             <button
               type="button"
@@ -308,6 +335,7 @@ export default function Home() {
             </button>
           </div>
 
+          {/* Si la vista es de reclamos, se renderiza el panel especializado. */}
           {activeView === "complaints" ? (
             <ComplaintPanel
               title="Reclamos"
@@ -331,6 +359,7 @@ export default function Home() {
               startIndex={startIndex}
             />
           ) : (
+            // En caso contrario se muestra la tabla de paquetes recepcionados o retirados.
             <PackagePanel
               title={currentPackageView?.title ?? "Paquetes"}
               searchTerm={searchTerm}
@@ -365,6 +394,7 @@ export default function Home() {
             />
           )}
 
+          {/* El botón flotante solo aparece en la vista de recepción para registrar nuevos paquetes. */}
           {activeView === "received" ? (
             <button
               type="button"
@@ -377,6 +407,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Modal para mostrar el QR y simular el retiro del paquete. */}
       {qrPackage ? (
         <QrModal
           qrPackage={qrPackage}
@@ -386,6 +417,7 @@ export default function Home() {
         />
       ) : null}
 
+      {/* Modal de formulario para agregar un nuevo paquete a la lista. */}
       {isAddPackageOpen ? (
         <AddPackageModal onClose={() => setIsAddPackageOpen(false)} onSubmit={handleAddPackage} />
       ) : null}
