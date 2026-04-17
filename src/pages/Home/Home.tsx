@@ -5,7 +5,6 @@ import ComplaintPanel from "../../components/Home/ComplaintPanel";
 import PackagePanel from "../../components/Home/PackagePanel";
 import QrModal from "../../components/Home/QrModal";
 import type {
-  ComplaintItem,
   PackageItem,
   PackageServiceView,
   ServiceView,
@@ -17,7 +16,7 @@ import "./Home.css";
 export default function Home() {
   const [activeView, setActiveView] = useState<ServiceView>("received");
   const [packageViews, setPackageViews] = useState(initialPackageViews);
-  const [complaints] = useState<ComplaintItem[]>(initialComplaints);
+  const complaints = initialComplaints;
   const [searchTerm, setSearchTerm] = useState("");
   const [pageSize, setPageSize] = useState<number>(25);
   const [currentPage, setCurrentPage] = useState(1);

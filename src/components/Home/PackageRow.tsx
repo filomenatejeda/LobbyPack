@@ -1,14 +1,9 @@
 import "./PackageRow.css";
 import type { PackageItem, PackageServiceView } from "../../types/home";
 
-const packageStatusLabels = {
-  Received: "Recepcion",
-  PickedUp: "Retiro",
-} as const;
-
-const packageStatusClassNames = {
-  Received: "Recepcion",
-  PickedUp: "Retiro",
+const packageStatusMeta = {
+  Received: { label: "Recepcion", className: "Recepcion" },
+  PickedUp: { label: "Retiro", className: "Retiro" },
 } as const;
 
 type PackageRowProps = {
@@ -46,8 +41,8 @@ export default function PackageRow({
         <div className="packageTopActions">
           <div className="statusField">
             <span>Estado</span>
-            <p className={`statusValue statusValue${packageStatusClassNames[item.status]}`}>
-              {packageStatusLabels[item.status]}
+            <p className={`statusValue statusValue${packageStatusMeta[item.status].className}`}>
+              {packageStatusMeta[item.status].label}
             </p>
           </div>
 

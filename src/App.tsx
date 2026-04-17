@@ -15,12 +15,10 @@ export default function App() {
 
   useEffect(() => {
     // Mantiene la página visible sincronizada cuando el usuario navega con hashes.
-    const handleHashChange = () => {
-      setCurrentPage(getPageFromHash());
-    };
+    const syncPageWithHash = () => setCurrentPage(getPageFromHash());
 
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    window.addEventListener("hashchange", syncPageWithHash);
+    return () => window.removeEventListener("hashchange", syncPageWithHash);
   }, []);
 
   return (

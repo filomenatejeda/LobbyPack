@@ -2,16 +2,11 @@ import { useState } from "react";
 import "./Navbar.css";
 import logo from "../../assets/Logo.png";
 
-type NavItem = {
-  label: string;
-  href: string;
-};
-
-const navItems: NavItem[] = [
+const navItems = [
   { label: "Cuenta", href: "#inicio" },
   { label: "Configuración", href: "#configuracion" },
   { label: "Contacto", href: "#inicio" },
-];
+] as const;
 
 export default function Navbar() {
   // Controla el drawer móvil de forma independiente a la navegación de escritorio.
