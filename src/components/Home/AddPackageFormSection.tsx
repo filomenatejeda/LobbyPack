@@ -2,16 +2,14 @@ import type { AddPackageFormValues } from "./addPackageTypes";
 
 type AddPackageFormSectionProps = {
   values: AddPackageFormValues;
-  ocrText: string;
-  onBack: () => void;
+  onCancel: () => void;
   onChange: (field: keyof AddPackageFormValues, value: string) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 };
 
 export default function AddPackageFormSection({
   values,
-  ocrText,
-  onBack,
+  onCancel,
   onChange,
   onSubmit,
 }: AddPackageFormSectionProps) {
@@ -72,16 +70,9 @@ export default function AddPackageFormSection({
         </label>
       </div>
 
-      {ocrText ? (
-        <div className="ocrHint">
-          <strong>Texto de la etiqueta:</strong>
-          <p>Se rellenaron los campos detectados automaticamente. Revisa antes de guardar.</p>
-        </div>
-      ) : null}
-
       <div className="addPackageActions">
-        <button type="button" className="modalSecondaryButton" onClick={onBack}>
-          Volver
+        <button type="button" className="modalSecondaryButton" onClick={onCancel}>
+          Cancelar
         </button>
         <button type="submit" className="modalPrimaryButton">
           Guardar paquete
