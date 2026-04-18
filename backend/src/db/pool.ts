@@ -81,3 +81,121 @@ export async function repairIssueEncoding() {
     );
   }
 }
+
+export async function repairParcelEncoding() {
+  const [residents] = await pool.query<
+    Array<
+      RowDataPacket & {
+        user_id: string;
+        resident_name: string;
+        department_address: string;
+        user_phone_number: string | null;
+      }
+    >
+  >(
+    `
+      SELECT user_id, resident_name, department_address, user_phone_number
+      FROM Residents
+    `,
+  );
+
+  for (const resident of residents) {
+    const repairedResidentName = repairPotentialMojibake(resident.resident_name);
+    const repairedDepartmentAddress = repairPotentialMojibake(resident.department_address);
+    const repairedPhoneNumber = repairPotentialMojibake(resident.user_phone_number ?? "");
+
+    if (
+      repairedResidentName === resident.resident_name &&
+      repairedDepartmentAddress === resident.department_address &&
+      repairedPhoneNumber === (resident.user_phone_number ?? "")
+    ) {
+      continue;
+    }
+
+    await pool.query(
+      `
+        UPDATE Residents
+        SET resident_name = ?, department_address = ?, user_phone_number = ?
+        WHERE user_id = ?
+      `,
+      [repairedResidentName, repairedDepartmentAddress, repairedPhoneNumber || null, resident.user_id],
+    );
+  }
+
+  const [businesses] = await pool.query<Array<RowDataPacket & { id: string; business_name: string }>>(
+    `
+      SELECT id, business_name
+      FROM Businesses
+    `,
+  );
+
+  for (const business of businesses) {
+    const repairedBusinessName = repairPotentialMojibake(business.business_name);
+
+    if (repairedBusinessName === business.business_name) {
+      continue;
+    }
+
+    await pool.query(
+      `
+        UPDATE Businesses
+        SET business_name = ?
+        WHERE id = ?
+      `,
+      [repairedBusinessName, business.id],
+    );
+  }
+
+  const [concierges] = await pool.query<
+    Array<RowDataPacket & { user_id: string; concierge_name: string }>
+  >(
+    `
+      SELECT user_id, concierge_name
+      FROM Concierges
+    `,
+  );
+
+  for (const concierge of concierges) {
+    const repairedConciergeName = repairPotentialMojibake(concierge.concierge_name);
+
+    if (repairedConciergeName === concierge.concierge_name) {
+      continue;
+    }
+
+    await pool.query(
+      `
+        UPDATE Concierges
+        SET concierge_name = ?
+        WHERE user_id = ?
+      `,
+      [repairedConciergeName, concierge.user_id],
+    );
+  }
+
+  const [parcels] = await pool.query<
+    Array<RowDataPacket & { id: string; parcel_description: string | null }>
+  >(
+    `
+      SELECT id, parcel_description
+      FROM Parcels
+    `,
+  );
+
+  for (const parcel of parcels) {
+    const currentDescription = parcel.parcel_description ?? "";
+    const repairedDescription = repairPotentialMojibake(currentDescription);
+
+    if (repairedDescription === currentDescription) {
+      continue;
+    }
+
+    await pool.query(
+      `
+        UPDATE Parcels
+        SET parcel_description = ?
+        WHERE id = ?
+      `,
+      [repairedDescription, parcel.id],
+    );
+  }
+}

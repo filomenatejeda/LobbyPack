@@ -17,7 +17,7 @@ import type {
   ParcelItem,
   ServiceView,
 } from "../../types/home";
-import { pageSizeOptions } from "../../utils/packageUtils";
+import { normalizeSearchText, pageSizeOptions } from "../../utils/packageUtils";
 import "./Home.css";
 
 export default function Home() {
@@ -67,36 +67,36 @@ export default function Home() {
           parcels: activeView === "received" ? pending_parcels : claimed_parcels,
         };
 
-  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const normalizedSearch = normalizeSearchText(searchTerm.trim());
   const filteredComplaints = issues.filter((item) => {
-    const searchableText = [
-      item.resident_name,
-      item.id_parcel,
-      item.issue_description,
-      item.created_at,
-      item.issue_status,
-    ]
-      .join(" ")
-      .toLowerCase();
+    const searchableText = normalizeSearchText(
+      [
+        item.resident_name,
+        item.id_parcel,
+        item.issue_description,
+        item.created_at,
+        item.issue_status,
+      ].join(" "),
+    );
 
     return searchableText.includes(normalizedSearch);
   });
 
   const filteredPackages = (currentPackageView?.parcels ?? []).filter((item) => {
-    const searchableText = [
-      item.id,
-      item.department_address,
-      item.resident_name,
-      item.user_phone_number,
-      item.business_name,
-      item.concierge_name,
-      item.pending_date,
-      item.claimed_date,
-      item.parcel_status,
-      item.parcel_description,
-    ]
-      .join(" ")
-      .toLowerCase();
+    const searchableText = normalizeSearchText(
+      [
+        item.id,
+        item.department_address,
+        item.resident_name,
+        item.user_phone_number,
+        item.business_name,
+        item.concierge_name,
+        item.pending_date,
+        item.claimed_date,
+        item.parcel_status,
+        item.parcel_description,
+      ].join(" "),
+    );
 
     return searchableText.includes(normalizedSearch);
   });

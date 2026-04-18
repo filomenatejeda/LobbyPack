@@ -39,6 +39,13 @@ export function getIssueStatusClassName(issue_status: IssueStatus) {
   return "Resuelto";
 }
 
+export function normalizeSearchText(value: string) {
+  return value
+    .normalize("NFD")
+    .replaceAll(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
 export function buildParcelPayload(values: AddPackageFormValues) {
   return {
     department_address: values.department_address,

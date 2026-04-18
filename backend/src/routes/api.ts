@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
 import { pool } from "../db/pool";
 import { createId, createResidentEmail } from "../utils/ids";
-import { repairPotentialMojibake } from "../utils/textEncoding";
+import { normalizeTextInput, repairPotentialMojibake } from "../utils/textEncoding";
 
 const DEMO_CONCIERGE_USER_ID = "concierge-demo";
 const BUILDING_ID = "building-main";
@@ -108,6 +108,8 @@ const towersSchema = t.Array(
 );
 
 async function getOrCreateBusiness(connection: PoolConnection, business_name: string) {
+  const normalizedBusinessName = normalizeTextInput(business_name);
+
   const [existingBusinesses] = await connection.query<RowDataPacket[]>(
     `
       SELECT id
@@ -115,7 +117,7 @@ async function getOrCreateBusiness(connection: PoolConnection, business_name: st
       WHERE LOWER(business_name) = LOWER(?)
       LIMIT 1
     `,
-    [business_name.trim()],
+    [normalizedBusinessName],
   );
 
   if (existingBusinesses.length > 0) {
@@ -129,7 +131,7 @@ async function getOrCreateBusiness(connection: PoolConnection, business_name: st
       INSERT INTO Businesses (id, business_name)
       VALUES (?, ?)
     `,
-    [businessId, business_name.trim()],
+    [businessId, normalizedBusinessName],
   );
 
   return businessId;
@@ -141,6 +143,10 @@ async function getOrCreateResident(
   department_address: string,
   user_phone_number: string,
 ) {
+  const normalizedResidentName = normalizeTextInput(resident_name);
+  const normalizedDepartmentAddress = normalizeTextInput(department_address);
+  const normalizedPhoneNumber = normalizeTextInput(user_phone_number);
+
   const [existingResidents] = await connection.query<RowDataPacket[]>(
     `
       SELECT user_id
@@ -149,7 +155,7 @@ async function getOrCreateResident(
         AND LOWER(department_address) = LOWER(?)
       LIMIT 1
     `,
-    [resident_name.trim(), department_address.trim()],
+    [normalizedResidentName, normalizedDepartmentAddress],
   );
 
   if (existingResidents.length > 0) {
@@ -158,10 +164,15 @@ async function getOrCreateResident(
     await connection.query(
       `
         UPDATE Residents
-        SET user_phone_number = ?
+        SET resident_name = ?, department_address = ?, user_phone_number = ?
         WHERE user_id = ?
       `,
-      [user_phone_number.trim() || null, residentId],
+      [
+        normalizedResidentName,
+        normalizedDepartmentAddress,
+        normalizedPhoneNumber || null,
+        residentId,
+      ],
     );
 
     return residentId;
@@ -174,7 +185,7 @@ async function getOrCreateResident(
       INSERT INTO Users (id, email, role)
       VALUES (?, ?, 'resident')
     `,
-    [residentId, createResidentEmail(resident_name)],
+    [residentId, createResidentEmail(normalizedResidentName)],
   );
 
   await connection.query(
@@ -190,10 +201,10 @@ async function getOrCreateResident(
     `,
     [
       residentId,
-      resident_name.trim(),
+      normalizedResidentName,
       "demo-resident-password",
-      user_phone_number.trim() || null,
-      department_address.trim(),
+      normalizedPhoneNumber || null,
+      normalizedDepartmentAddress,
     ],
   );
 
@@ -201,6 +212,8 @@ async function getOrCreateResident(
 }
 
 async function getConciergeUserId(connection: PoolConnection, concierge_name: string) {
+  const normalizedConciergeName = normalizeTextInput(concierge_name);
+
   const [concierges] = await connection.query<RowDataPacket[]>(
     `
       SELECT c.user_id
@@ -208,7 +221,7 @@ async function getConciergeUserId(connection: PoolConnection, concierge_name: st
       WHERE LOWER(c.concierge_name) = LOWER(?)
       LIMIT 1
     `,
-    [concierge_name.trim()],
+    [normalizedConciergeName],
   );
 
   return concierges.length > 0 ? String(concierges[0].user_id) : DEMO_CONCIERGE_USER_ID;
@@ -254,18 +267,18 @@ async function listParcels(parcel_status: "pending" | "claimed") {
     withdrawal_code: row.withdrawal_code,
     qr_code_url: row.qr_code_url,
     parcel_status: row.parcel_status,
-    parcel_description: row.parcel_description ?? "",
+    parcel_description: repairPotentialMojibake(row.parcel_description ?? ""),
     is_urgent: Boolean(row.is_urgent),
     pending_date: row.pending_date,
     claimed_date: row.claimed_date,
     id_concierge: row.id_concierge,
     id_resident: row.id_resident,
     id_business: row.id_business,
-    resident_name: row.resident_name,
-    user_phone_number: row.user_phone_number ?? "",
-    department_address: row.department_address,
-    concierge_name: row.concierge_name,
-    business_name: row.business_name,
+    resident_name: repairPotentialMojibake(row.resident_name),
+    user_phone_number: repairPotentialMojibake(row.user_phone_number ?? ""),
+    department_address: repairPotentialMojibake(row.department_address),
+    concierge_name: repairPotentialMojibake(row.concierge_name),
+    business_name: repairPotentialMojibake(row.business_name),
   }));
 }
 
@@ -422,6 +435,9 @@ export const api = new Elysia({ prefix: "/api" })
   })
   .post("/parcels", async ({ body, set }) => {
     const connection = await pool.getConnection();
+    const normalizedDescription = body.parcel_description
+      ? normalizeTextInput(body.parcel_description)
+      : "";
 
     try {
       await connection.beginTransaction();
@@ -459,7 +475,7 @@ export const api = new Elysia({ prefix: "/api" })
           businessId,
           withdrawalCode,
           `LobbyPack:${parcelId}`,
-          body.parcel_description?.trim() ?? "",
+          normalizedDescription,
           body.is_urgent ?? false,
         ],
       );
@@ -480,6 +496,9 @@ export const api = new Elysia({ prefix: "/api" })
   })
   .patch("/parcels/:id", async ({ params, body, set }) => {
     const connection = await pool.getConnection();
+    const normalizedDescription = body.parcel_description
+      ? normalizeTextInput(body.parcel_description)
+      : "";
 
     try {
       await connection.beginTransaction();
@@ -523,7 +542,7 @@ export const api = new Elysia({ prefix: "/api" })
           conciergeUserId,
           residentUserId,
           businessId,
-          body.parcel_description?.trim() ?? "",
+          normalizedDescription,
           body.is_urgent ?? false,
           params.id,
         ],
@@ -566,18 +585,18 @@ export const api = new Elysia({ prefix: "/api" })
         withdrawal_code: parcel.withdrawal_code,
         qr_code_url: parcel.qr_code_url,
         parcel_status: parcel.parcel_status,
-        parcel_description: parcel.parcel_description ?? "",
+        parcel_description: repairPotentialMojibake(parcel.parcel_description ?? ""),
         is_urgent: Boolean(parcel.is_urgent),
         pending_date: parcel.pending_date,
         claimed_date: parcel.claimed_date,
         id_concierge: parcel.id_concierge,
         id_resident: parcel.id_resident,
         id_business: parcel.id_business,
-        resident_name: parcel.resident_name,
-        user_phone_number: parcel.user_phone_number ?? "",
-        department_address: parcel.department_address,
-        concierge_name: parcel.concierge_name,
-        business_name: parcel.business_name,
+        resident_name: repairPotentialMojibake(parcel.resident_name),
+        user_phone_number: repairPotentialMojibake(parcel.user_phone_number ?? ""),
+        department_address: repairPotentialMojibake(parcel.department_address),
+        concierge_name: repairPotentialMojibake(parcel.concierge_name),
+        business_name: repairPotentialMojibake(parcel.business_name),
       };
     } catch (error) {
       await connection.rollback();

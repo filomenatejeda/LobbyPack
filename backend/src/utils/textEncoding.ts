@@ -27,3 +27,7 @@ export function repairPotentialMojibake(value: string) {
 
   return currentValue;
 }
+
+export function normalizeTextInput(value: string) {
+  return repairPotentialMojibake(value).trim();
+}
