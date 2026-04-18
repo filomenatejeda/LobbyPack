@@ -1,67 +1,80 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AddPackageModal from "../../components/Home/AddPackageModal";
 import type { AddPackageFormValues } from "../../components/Home/addPackageTypes";
 import ComplaintPanel from "../../components/Home/ComplaintPanel";
 import PackagePanel from "../../components/Home/PackagePanel";
 import QrModal from "../../components/Home/QrModal";
+import {
+  claimParcel,
+  createParcel,
+  deleteParcel,
+  fetchDashboard,
+  updateParcel,
+} from "../../services/homeApi";
 import type {
-  PackageItem,
+  IssueItem,
   PackageServiceView,
+  ParcelItem,
   ServiceView,
 } from "../../types/home";
-import { initialComplaints, initialPackageViews, pageSizeOptions } from "../../data/homeData";
-import { createPackageFromForm } from "../../utils/packageUtils";
+import { pageSizeOptions } from "../../utils/packageUtils";
 import "./Home.css";
 
 export default function Home() {
-  // Controla qué vista principal está activa: recepcionados, retirados o reclamos.
   const [activeView, setActiveView] = useState<ServiceView>("received");
-  // Guarda las dos colecciones principales de paquetes que se muestran en la pantalla.
-  const [packageViews, setPackageViews] = useState(initialPackageViews);
-  // Los reclamos se consumen como datos iniciales estáticos para la demo.
-  const complaints = initialComplaints;
-  // Texto compartido por el buscador de paquetes y reclamos.
+  const [pending_parcels, setPendingParcels] = useState<ParcelItem[]>([]);
+  const [claimed_parcels, setClaimedParcels] = useState<ParcelItem[]>([]);
+  const [issues, setIssues] = useState<IssueItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  // Define cuántos registros se muestran por página.
   const [pageSize, setPageSize] = useState<number>(25);
-  // Mantiene la página actual de la tabla visible.
   const [currentPage, setCurrentPage] = useState(1);
-  // Guarda los ids seleccionados por cada vista de paquetes para acciones masivas.
   const [selectedIds, setSelectedIds] = useState<Record<PackageServiceView, string[]>>({
     received: [],
     pickedUp: [],
   });
-  // Referencia el paquete cuyo QR se está mostrando en el modal.
-  const [qrPackage, setQrPackage] = useState<PackageItem | null>(null);
-  // Muestra un mensaje breve después de simular el escaneo de un QR.
+  const [qrPackage, setQrPackage] = useState<ParcelItem | null>(null);
   const [qrScanMessage, setQrScanMessage] = useState("");
-  // Abre o cierra el modal para registrar un nuevo paquete.
   const [isAddPackageOpen, setIsAddPackageOpen] = useState(false);
+  const [editingParcel, setEditingParcel] = useState<ParcelItem | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Reclamos y paquetes comparten el mismo buscador y la misma paginación.
-  const currentPackageView = activeView === "complaints" ? null : packageViews[activeView];
-  // Normaliza el texto buscado para hacer comparaciones sin espacios extra ni mayúsculas.
+  const loadDashboard = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const response = await fetchDashboard();
+      setPendingParcels(response.pending_parcels);
+      setClaimedParcels(response.claimed_parcels);
+      setIssues(response.issues);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No se pudo cargar la información.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadDashboard();
+  }, [loadDashboard]);
+
+  const currentPackageView =
+    activeView === "complaints"
+      ? null
+      : {
+          title: activeView === "received" ? "Paquetes recepcionados" : "Paquetes retirados",
+          parcels: activeView === "received" ? pending_parcels : claimed_parcels,
+        };
+
   const normalizedSearch = searchTerm.trim().toLowerCase();
-  // Filtra reclamos usando un texto compuesto con sus campos más relevantes.
-  const filteredComplaints = complaints.filter((item) => {
-    const searchableText = [item.residentName, item.packageNumber, item.complaint, item.date, item.status]
-      .join(" ")
-      .toLowerCase();
-
-    return searchableText.includes(normalizedSearch);
-  });
-  // Filtra paquetes combinando sus datos visibles en una sola cadena de búsqueda.
-  const filteredPackages = (currentPackageView?.packages ?? []).filter((item) => {
+  const filteredComplaints = issues.filter((item) => {
     const searchableText = [
-      item.id,
-      item.apartment,
-      item.residentName,
-      item.phone,
-      item.company,
-      item.concierge,
-      item.time,
-      item.date,
-      item.status,
+      item.resident_name,
+      item.id_parcel,
+      item.issue_description,
+      item.created_at,
+      item.issue_status,
     ]
       .join(" ")
       .toLowerCase();
@@ -69,30 +82,39 @@ export default function Home() {
     return searchableText.includes(normalizedSearch);
   });
 
-  // Calcula la cantidad de registros según la vista actualmente seleccionada.
+  const filteredPackages = (currentPackageView?.parcels ?? []).filter((item) => {
+    const searchableText = [
+      item.id,
+      item.department_address,
+      item.resident_name,
+      item.user_phone_number,
+      item.business_name,
+      item.concierge_name,
+      item.pending_date,
+      item.claimed_date,
+      item.parcel_status,
+      item.parcel_description,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return searchableText.includes(normalizedSearch);
+  });
+
   const viewCount = activeView === "complaints" ? filteredComplaints.length : filteredPackages.length;
-  // Garantiza que siempre exista al menos una página, aunque no haya resultados.
   const totalPages = Math.max(1, Math.ceil(viewCount / pageSize));
-  // Evita que currentPage apunte a una página mayor que las disponibles.
   const safePage = Math.min(currentPage, totalPages);
-  // Índice inicial usado para paginar paquetes o reclamos.
   const startIndex = (safePage - 1) * pageSize;
-  // Corta la lista filtrada de paquetes para mostrar solo la página actual.
   const paginatedPackages = filteredPackages.slice(startIndex, startIndex + pageSize);
-  // Corta la lista filtrada de reclamos para mostrar solo la página actual.
   const paginatedComplaints = filteredComplaints.slice(startIndex, startIndex + pageSize);
-  // Recupera la selección actual solo cuando la vista activa corresponde a paquetes.
   const currentSelections = activeView === "complaints" ? [] : selectedIds[activeView];
-  // Obtiene los ids seleccionados que además siguen presentes en los resultados filtrados.
   const selectedVisibleIds = filteredPackages
     .filter((item) => currentSelections.includes(item.id))
     .map((item) => item.id);
-  // Marca el checkbox maestro cuando todos los paquetes visibles están seleccionados.
   const allVisibleSelected =
     paginatedPackages.length > 0 &&
     paginatedPackages.every((item) => currentSelections.includes(item.id));
 
-  // Guarda la selección por vista para que "recepcionados" y "retirados" sean independientes.
   const handlePackageSelection = (view: PackageServiceView, id: string, checked: boolean) => {
     setSelectedIds((current) => ({
       ...current,
@@ -102,7 +124,6 @@ export default function Home() {
     }));
   };
 
-  // Aplica la selección masiva solo a los paquetes visibles en la página actual.
   const handleSelectAllVisible = (checked: boolean) => {
     if (activeView === "complaints") return;
 
@@ -116,55 +137,7 @@ export default function Home() {
     }));
   };
 
-  // Centraliza las actualizaciones inmutables para reutilizar el mismo patrón en edición y QR.
-  const updatePackage = (
-    view: PackageServiceView,
-    id: string,
-    updater: (item: PackageItem) => PackageItem,
-  ) => {
-    setPackageViews((current) => ({
-      ...current,
-      [view]: {
-        ...current[view],
-        packages: current[view].packages.map((item) => (item.id === id ? updater(item) : item)),
-      },
-    }));
-  };
-
-  // Los prompts permiten editar rápido los datos mock sin abrir otro modal de formulario.
-  const handleEditPackage = (view: PackageServiceView, id: string) => {
-    const target = packageViews[view].packages.find((item) => item.id === id);
-    if (!target) return;
-
-    const apartment = window.prompt("Departamento", target.apartment);
-    if (apartment === null) return;
-    const residentName = window.prompt("Nombre", target.residentName);
-    if (residentName === null) return;
-    const phone = window.prompt("Teléfono", target.phone);
-    if (phone === null) return;
-    const company = window.prompt("Compañía", target.company);
-    if (company === null) return;
-    const concierge = window.prompt("Conserje", target.concierge);
-    if (concierge === null) return;
-    const time = window.prompt("Hora", target.time);
-    if (time === null) return;
-    const date = window.prompt("Fecha", target.date);
-    if (date === null) return;
-
-    updatePackage(view, id, (item) => ({
-      ...item,
-      apartment,
-      residentName,
-      phone,
-      company,
-      concierge,
-      time,
-      date,
-    }));
-  };
-
-  // Al borrar se actualizan los datos y la selección para no dejar checks colgados.
-  const handleDeletePackages = (view: PackageServiceView, ids: string[]) => {
+  const handleDeletePackages = async (view: PackageServiceView, ids: string[]) => {
     if (ids.length === 0) return;
     const confirmed = window.confirm(
       ids.length === 1
@@ -173,123 +146,127 @@ export default function Home() {
     );
     if (!confirmed) return;
 
-    setPackageViews((current) => ({
-      ...current,
-      [view]: {
-        ...current[view],
-        packages: current[view].packages.filter((item) => !ids.includes(item.id)),
-      },
-    }));
+    try {
+      await Promise.all(ids.map((id) => deleteParcel(id)));
 
-    setSelectedIds((current) => ({
-      ...current,
-      [view]: current[view].filter((selectedId) => !ids.includes(selectedId)),
-    }));
+      if (view === "received") {
+        setPendingParcels((current) => current.filter((item) => !ids.includes(item.id)));
+      } else {
+        setClaimedParcels((current) => current.filter((item) => !ids.includes(item.id)));
+      }
+
+      setSelectedIds((current) => ({
+        ...current,
+        [view]: current[view].filter((selectedId) => !ids.includes(selectedId)),
+      }));
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No se pudieron borrar los paquetes.");
+    }
   };
 
-  // La edición masiva se limita a exactamente un paquete seleccionado.
   const handleEditSelected = () => {
     if (activeView === "complaints") return;
     if (selectedVisibleIds.length !== 1) return;
-    handleEditPackage(activeView, selectedVisibleIds[0]);
+
+    const parcels = activeView === "received" ? pending_parcels : claimed_parcels;
+    const target = parcels.find((item) => item.id === selectedVisibleIds[0]);
+    if (!target) return;
+
+    setEditingParcel(target);
   };
 
-  // Abre el modal QR para el paquete elegido y limpia mensajes anteriores.
-  const openQrModal = (item: PackageItem) => {
+  const openQrModal = (item: ParcelItem) => {
     setQrScanMessage("");
     setQrPackage(item);
   };
 
-  // Cierra el modal QR; useCallback evita recrear la función innecesariamente.
   const closeQrModal = useCallback(() => {
     setQrPackage(null);
   }, []);
 
-  // Mover un paquete actualiza la colección que actualmente contiene ese item.
-  const movePackageToPickedUp = (id: string) => {
-    let movedPackage: PackageItem | null = null;
-
-    setPackageViews((current) => {
-      const receivedPackages = current.received.packages.filter((item) => {
-        if (item.id === id) {
-          movedPackage = { ...item, status: "PickedUp" };
-          return false;
-        }
-        return true;
-      });
-
-      if (!movedPackage) {
-        return {
-          ...current,
-          pickedUp: {
-            ...current.pickedUp,
-            packages: current.pickedUp.packages.map((item) =>
-              item.id === id ? { ...item, status: "PickedUp" } : item,
-            ),
-          },
-        };
-      }
-
-      return {
-        ...current,
-        received: {
-          ...current.received,
-          packages: receivedPackages,
-        },
-        pickedUp: {
-          ...current.pickedUp,
-          packages: [movedPackage, ...current.pickedUp.packages],
-        },
-      };
-    });
-
-    setSelectedIds((current) => ({
-      received: current.received.filter((selectedId) => selectedId !== id),
-      pickedUp: current.pickedUp,
-    }));
-  };
-
-  // El escaneo QR simula el retiro resolviendo el id codificado en el payload.
   const handleQrScan = useCallback(
-    (decodedText: string) => {
+    async (decodedText: string) => {
       const packageId = decodedText.replace("LobbyPack:", "").trim();
-      const existsInReceived = packageViews.received.packages.some((item) => item.id === packageId);
-      const existsInPickedUp = packageViews.pickedUp.packages.some((item) => item.id === packageId);
+      const existsInReceived = pending_parcels.some((item) => item.id === packageId);
+      const existsInPickedUp = claimed_parcels.some((item) => item.id === packageId);
 
       if (!existsInReceived && !existsInPickedUp) {
+        setQrScanMessage("No se encontró el paquete asociado a ese QR.");
         return;
       }
 
-      movePackageToPickedUp(packageId);
-      setQrScanMessage(`Paquete ${packageId} movido a retiro.`);
-      setActiveView("pickedUp");
-      setCurrentPage(1);
-      setTimeout(() => closeQrModal(), 900);
+      try {
+        const movedParcel = await claimParcel(packageId);
+
+        if (!movedParcel) {
+          setQrScanMessage("No se pudo actualizar el estado del paquete.");
+          return;
+        }
+
+        setPendingParcels((current) => current.filter((item) => item.id !== packageId));
+        setClaimedParcels((current) => [movedParcel, ...current.filter((item) => item.id !== packageId)]);
+        setSelectedIds((current) => ({
+          received: current.received.filter((selectedId) => selectedId !== packageId),
+          pickedUp: current.pickedUp,
+        }));
+        setQrScanMessage(`Paquete ${packageId} movido a retiro.`);
+        setActiveView("pickedUp");
+        setCurrentPage(1);
+        setTimeout(() => closeQrModal(), 900);
+      } catch (error) {
+        setQrScanMessage(error instanceof Error ? error.message : "No se pudo marcar el retiro.");
+      }
     },
-    [closeQrModal, packageViews.received.packages, packageViews.pickedUp.packages],
+    [claimed_parcels, closeQrModal, pending_parcels],
   );
 
-  // Los paquetes nuevos siempre entran en "received" con un id generado desde la fecha.
-  const handleAddPackage = (values: AddPackageFormValues) => {
-    const newPackage = createPackageFromForm(values);
+  const handleAddPackage = async (values: AddPackageFormValues) => {
+    try {
+      const createdParcel = await createParcel(values);
+      setPendingParcels((current) => [createdParcel, ...current]);
+      setActiveView("received");
+      setCurrentPage(1);
+      setSearchTerm("");
+      setIsAddPackageOpen(false);
+      setErrorMessage("");
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No se pudo registrar el paquete.");
+    }
+  };
 
-    // Inserta el nuevo paquete al inicio para que aparezca primero en la tabla.
-    setPackageViews((current) => ({
-      ...current,
-      received: {
-        ...current.received,
-        packages: [newPackage, ...current.received.packages],
-      },
-    }));
-    setActiveView("received");
-    setCurrentPage(1);
-    setSearchTerm("");
-    setIsAddPackageOpen(false);
+  const handleUpdatePackage = async (values: AddPackageFormValues) => {
+    if (!editingParcel) return;
+
+    try {
+      const updatedParcel = await updateParcel(editingParcel.id, values);
+
+      if (updatedParcel.parcel_status === "pending") {
+        setPendingParcels((current) =>
+          current.map((item) => (item.id === updatedParcel.id ? updatedParcel : item)),
+        );
+      } else {
+        setClaimedParcels((current) =>
+          current.map((item) => (item.id === updatedParcel.id ? updatedParcel : item)),
+        );
+      }
+
+      setEditingParcel(null);
+      setErrorMessage("");
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No se pudo actualizar el paquete.");
+    }
+  };
+
+  const handleEditPackage = (view: PackageServiceView, id: string) => {
+    const parcels = view === "received" ? pending_parcels : claimed_parcels;
+    const target = parcels.find((item) => item.id === id);
+    if (!target) return;
+
+    setEditingParcel(target);
   };
 
   return (
     <main>
-      {/* Hero principal con el selector de vista y la tabla correspondiente. */}
       <section className="hero" id="inicio">
         <div className="main">
           <p className="eyebrow">Gestión de paquetes</p>
@@ -301,7 +278,6 @@ export default function Home() {
             Administra paquetes recepcionados y retirados desde una sola vista.
           </p>
 
-          {/* Cambia entre las tres secciones principales reiniciando la paginación. */}
           <div className="serviceToggle" aria-label="Selecciona recepción o retiro">
             <button
               type="button"
@@ -335,8 +311,10 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Si la vista es de reclamos, se renderiza el panel especializado. */}
-          {activeView === "complaints" ? (
+          {errorMessage ? <p className="emptyState">{errorMessage}</p> : null}
+          {isLoading ? <p className="resultsText">Cargando datos desde la base de datos...</p> : null}
+
+          {!isLoading && activeView === "complaints" ? (
             <ComplaintPanel
               title="Reclamos"
               searchTerm={searchTerm}
@@ -358,7 +336,9 @@ export default function Home() {
               onNextPage={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
               startIndex={startIndex}
             />
-          ) : (
+          ) : null}
+
+          {!isLoading && activeView !== "complaints" ? (
             <PackagePanel
               title={currentPackageView?.title ?? "Paquetes"}
               searchTerm={searchTerm}
@@ -382,18 +362,17 @@ export default function Home() {
               }}
               onSelectAllVisible={handleSelectAllVisible}
               onEditSelected={handleEditSelected}
-              onDeleteSelected={() => handleDeletePackages(activeView, selectedVisibleIds)}
+              onDeleteSelected={() => void handleDeletePackages(activeView, selectedVisibleIds)}
               onSelect={handlePackageSelection}
               onShowQr={openQrModal}
               onEdit={handleEditPackage}
-              onDelete={handleDeletePackages}
+              onDelete={(view, ids) => void handleDeletePackages(view, ids)}
               onPrevPage={() => setCurrentPage((page) => Math.max(1, page - 1))}
               onNextPage={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
               startIndex={startIndex}
             />
-          )}
+          ) : null}
 
-          {/* El botón flotante solo aparece en la vista de recepción para registrar nuevos paquetes. */}
           {activeView === "received" ? (
             <button
               type="button"
@@ -406,19 +385,34 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Modal para mostrar el QR y simular el retiro del paquete. */}
       {qrPackage ? (
         <QrModal
           qrPackage={qrPackage}
           onClose={closeQrModal}
-          onConfirm={handleQrScan}
+          onConfirm={(value) => void handleQrScan(value)}
           qrScanMessage={qrScanMessage}
         />
       ) : null}
 
-      {/* Modal de formulario para agregar un nuevo paquete a la lista. */}
       {isAddPackageOpen ? (
         <AddPackageModal onClose={() => setIsAddPackageOpen(false)} onSubmit={handleAddPackage} />
+      ) : null}
+
+      {editingParcel ? (
+        <AddPackageModal
+          title={`Editar paquete ${editingParcel.id}`}
+          initialValues={{
+            department_address: editingParcel.department_address,
+            resident_name: editingParcel.resident_name,
+            user_phone_number: editingParcel.user_phone_number,
+            business_name: editingParcel.business_name,
+            concierge_name: editingParcel.concierge_name,
+            parcel_description: editingParcel.parcel_description,
+            is_urgent: editingParcel.is_urgent,
+          }}
+          onClose={() => setEditingParcel(null)}
+          onSubmit={handleUpdatePackage}
+        />
       ) : null}
     </main>
   );

@@ -1,53 +1,23 @@
-// Importa los estilos exclusivos del panel de reclamos.
 import "./ComplaintPanel.css";
-// Importa el tipo que representa un reclamo individual.
-import type { ComplaintItem } from "../../types/home";
+import type { IssueItem } from "../../types/home";
+import { formatIssueStatus, getIssueStatusClassName } from "../../utils/packageUtils";
 
-// Convierte el estado interno del reclamo en un texto legible para el usuario.
-const complaintStatusLabels = {
-  Submitted: "Ingresado",
-  InReview: "En revisión",
-  Resolved: "Resuelto",
-} as const;
-
-// Define el sufijo usado para armar la clase CSS del badge de estado.
-const complaintStatusClassNames = {
-  Submitted: "Ingresado",
-  InReview: "Enrevision",
-  Resolved: "Resuelto",
-} as const;
-
-// Describe todas las props que recibe el componente.
 type ComplaintPanelProps = {
-  // Titulo del panel.
   title: string;
-  // Valor actual del buscador.
   searchTerm: string;
-  // Cantidad de elementos por pagina.
   pageSize: number;
-  // Opciones permitidas para el tamaño de pagina.
   pageSizeOptions: readonly number[];
-  // Total de reclamos despues del filtro.
   filteredCount: number;
-  // Pagina actual ya ajustada a un rango valido.
   safePage: number;
-  // Total de paginas disponibles.
   totalPages: number;
-  // Reclamos que se muestran en la pagina actual.
-  paginatedComplaints: ComplaintItem[];
-  // Actualiza el texto del buscador.
+  paginatedComplaints: IssueItem[];
   onSearchChange: (value: string) => void;
-  // Actualiza el tamaño de pagina.
   onPageSizeChange: (value: number) => void;
-  // Retrocede una pagina.
   onPrevPage: () => void;
-  // Avanza una pagina.
   onNextPage: () => void;
-  // Posicion inicial del rango visible.
   startIndex: number;
 };
 
-// Renderiza la vista de reclamos con busqueda y paginacion.
 export default function ComplaintPanel({
   title,
   searchTerm,
@@ -65,18 +35,15 @@ export default function ComplaintPanel({
 }: ComplaintPanelProps) {
   return (
     <section className="complaintPanel" aria-live="polite">
-      {/* Encabezado principal del panel. */}
       <div className="complaintHeader">
         <h2>{title}</h2>
       </div>
 
-      {/* Zona de herramientas: aqui vive el buscador. */}
       <div className="complaintTools">
         <label className="complaintSearchField">
           <span>Buscar reclamo</span>
 
           <div className="complaintSearchInputWrap">
-            {/* Icono de lupa del campo de busqueda. */}
             <svg viewBox="0 0 24 24" aria-hidden="true" className="complaintSearchIcon">
               <path
                 d="M11 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z"
@@ -105,35 +72,37 @@ export default function ComplaintPanel({
         </label>
       </div>
 
-      {/* Resumen del total filtrado y la pagina actual. */}
       <p className="complaintResultsText">
         {filteredCount} reclamo{filteredCount === 1 ? "" : "s"} en total · página {safePage} de{" "}
         {totalPages}
       </p>
 
-      {/* Lista de reclamos visibles en la pagina actual. */}
       <ul className="complaintList">
         {paginatedComplaints.map((item) => (
           <li key={item.id} className="complaintItem">
             <div className="complaintMeta">
-              <strong>{item.residentName}</strong>
-              <span>{item.packageNumber}</span>
-              <span>{item.date}</span>
+              <strong>{item.resident_name}</strong>
+              <span>{item.id_parcel}</span>
+              <span>
+                {new Date(item.created_at).toLocaleDateString("es-CL", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
 
-              {/* Badge con texto visible y clase CSS segun el estado. */}
               <span
-                className={`complaintBadge complaintBadge${complaintStatusClassNames[item.status]}`}
+                className={`complaintBadge complaintBadge${getIssueStatusClassName(item.issue_status)}`}
               >
-                {complaintStatusLabels[item.status]}
+                {formatIssueStatus(item.issue_status)}
               </span>
             </div>
 
-            <p className="complaintText">{item.complaint}</p>
+            <p className="complaintText">{item.issue_description}</p>
           </li>
         ))}
       </ul>
 
-      {/* Si no hay resultados, muestra estado vacio; si hay, muestra la paginacion. */}
       {filteredCount === 0 ? (
         <p className="complaintEmptyState">No hay reclamos que coincidan con la búsqueda.</p>
       ) : (

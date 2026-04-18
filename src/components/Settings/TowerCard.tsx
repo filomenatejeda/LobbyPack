@@ -9,14 +9,14 @@ type TowerCardProps = {
   onUpdateName: (towerId: number, value: string) => void;
   onUpdateFloorCount: (towerId: number, value: string) => void;
   onSelectFloor: (towerId: number, value: string) => void;
-  onAddApartment: (towerId: number, floorNumber: number) => void;
+  onAddApartment: (towerId: number, floor_number: number) => void;
   onUpdateApartmentName: (
     towerId: number,
-    floorNumber: number,
+    floor_number: number,
     apartmentIndex: number,
     value: string,
   ) => void;
-  onRemoveApartment: (towerId: number, floorNumber: number, apartmentIndex: number) => void;
+  onRemoveApartment: (towerId: number, floor_number: number, apartmentIndex: number) => void;
 };
 
 export default function TowerCard({
@@ -33,14 +33,14 @@ export default function TowerCard({
   onRemoveApartment,
 }: TowerCardProps) {
   const selectedFloor =
-    tower.floors.find((floor) => floor.floorNumber === tower.selectedFloor) ?? tower.floors[0];
+    tower.floors.find((floor) => floor.floor_number === tower.selected_floor) ?? tower.floors[0];
 
   return (
     <section className="towerCard">
       <div className="towerCardHeader">
         <div>
           <p className="settingsLabel">Torre</p>
-          <h3>{tower.name}</h3>
+          <h3>{tower.tower_name}</h3>
         </div>
 
         <div className="towerHeaderActions">
@@ -49,7 +49,7 @@ export default function TowerCard({
             className="secondaryButton"
             onClick={() => onToggleEditing(tower.id)}
           >
-            {tower.isEditing ? "Cerrar edición" : "Editar"}
+            {tower.is_editing ? "Cerrar edición" : "Editar"}
           </button>
           <button
             type="button"
@@ -65,7 +65,7 @@ export default function TowerCard({
       <div className="towerSummaryGrid">
         <div className="towerSummaryItem">
           <span>Nombre de la torre</span>
-          <strong>{tower.name}</strong>
+          <strong>{tower.tower_name}</strong>
         </div>
         <div className="towerSummaryItem">
           <span>Cantidad de pisos</span>
@@ -77,14 +77,14 @@ export default function TowerCard({
         </div>
       </div>
 
-      {tower.isEditing ? (
+      {tower.is_editing ? (
         <div className="towerEditor">
           <div className="settingsForm towerForm">
             <label className="settingsField">
               <span>Nombre de la torre</span>
               <input
                 type="text"
-                value={tower.name}
+                value={tower.tower_name}
                 onChange={(event) => onUpdateName(tower.id, event.target.value)}
               />
             </label>
@@ -103,16 +103,16 @@ export default function TowerCard({
 
           <div className="floorEditorList">
             {tower.floors.map((floor) => (
-              <section key={`${tower.id}-${floor.floorNumber}`} className="floorEditor">
+              <section key={`${tower.id}-${floor.floor_number}`} className="floorEditor">
                 <div className="floorEditorHeader">
                   <div>
                     <p className="settingsLabel">Piso</p>
-                    <h4>Piso {floor.floorNumber}</h4>
+                    <h4>Piso {floor.floor_number}</h4>
                   </div>
                   <button
                     type="button"
                     className="secondaryButton"
-                    onClick={() => onAddApartment(tower.id, floor.floorNumber)}
+                    onClick={() => onAddApartment(tower.id, floor.floor_number)}
                   >
                     Agregar departamento
                   </button>
@@ -121,7 +121,7 @@ export default function TowerCard({
                 <div className="apartmentEditorGrid">
                   {floor.apartments.map((apartment, apartmentIndex) => (
                     <div
-                      key={`${tower.id}-${floor.floorNumber}-${apartmentIndex}`}
+                      key={`${tower.id}-${floor.floor_number}-${apartmentIndex}`}
                       className="apartmentEditorItem"
                     >
                       <input
@@ -130,7 +130,7 @@ export default function TowerCard({
                         onChange={(event) =>
                           onUpdateApartmentName(
                             tower.id,
-                            floor.floorNumber,
+                            floor.floor_number,
                             apartmentIndex,
                             event.target.value,
                           )
@@ -140,7 +140,7 @@ export default function TowerCard({
                         type="button"
                         className="towerRemoveButton apartmentRemoveButton"
                         onClick={() =>
-                          onRemoveApartment(tower.id, floor.floorNumber, apartmentIndex)
+                          onRemoveApartment(tower.id, floor.floor_number, apartmentIndex)
                         }
                         disabled={floor.apartments.length === 1}
                       >
@@ -167,12 +167,12 @@ export default function TowerCard({
           <label className="settingsField towerFloorField">
             <span>Piso</span>
             <select
-              value={tower.selectedFloor}
+              value={tower.selected_floor}
               onChange={(event) => onSelectFloor(tower.id, event.target.value)}
             >
               {tower.floors.map((floor) => (
-                <option key={`${tower.id}-floor-${floor.floorNumber}`} value={floor.floorNumber}>
-                  Piso {floor.floorNumber}
+                <option key={`${tower.id}-floor-${floor.floor_number}`} value={floor.floor_number}>
+                  Piso {floor.floor_number}
                 </option>
               ))}
             </select>
@@ -181,15 +181,15 @@ export default function TowerCard({
 
         <div className="towerPreviewChips">
           {selectedFloor.apartments.map((apartment) => (
-            <span key={`${tower.id}-${selectedFloor.floorNumber}-${apartment}`} className="towerChip">
+            <span key={`${tower.id}-${selectedFloor.floor_number}-${apartment}`} className="towerChip">
               {apartment}
             </span>
           ))}
         </div>
 
         <p className="towerPreviewText">
-          {tower.name} tiene {selectedFloor.apartments.length} departamentos en el piso{" "}
-          {selectedFloor.floorNumber}.
+          {tower.tower_name} tiene {selectedFloor.apartments.length} departamentos en el piso{" "}
+          {selectedFloor.floor_number}.
         </p>
       </div>
     </section>

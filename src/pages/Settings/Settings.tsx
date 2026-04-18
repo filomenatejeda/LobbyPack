@@ -1,19 +1,67 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TowerCard from "../../components/Settings/TowerCard";
-import type { TowerConfig } from "../../types/settings";
-import { initialTowers, preferenceItems, teamItems } from "../../data/settingsData";
+import { preferenceItems } from "../../data/settingsData";
 import {
-  buildApartmentName,
-  clampCount,
-  createTower,
-  syncFloors,
-} from "../../utils/towerUtils";
+  fetchSettings,
+  saveGeneralSettings,
+  savePreferenceSettings,
+  saveTowers,
+} from "../../services/settingsApi";
+import type {
+  GeneralSettings,
+  PreferenceSettings,
+  TeamItem,
+  TowerConfig,
+} from "../../types/settings";
+import { buildApartmentName, clampCount, createTower, syncFloors } from "../../utils/towerUtils";
 import "./Settings.css";
 
-export default function Settings() {
-  const [towers, setTowers] = useState<TowerConfig[]>(initialTowers);
+const emptyGeneralSettings: GeneralSettings = {
+  building_name: "",
+  contact_email: "",
+  reception_hours: "",
+  address_line: "",
+  access_password: "",
+  is_active: true,
+};
 
-  // Estos totales alimentan las tarjetas resumen y se recalculan desde el modelo de torres.
+const emptyPreferenceSettings: PreferenceSettings = {
+  package_notifications: true,
+  daily_summary: true,
+  qr_access: true,
+};
+
+export default function Settings() {
+  const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(emptyGeneralSettings);
+  const [preferenceSettings, setPreferenceSettings] =
+    useState<PreferenceSettings>(emptyPreferenceSettings);
+  const [towers, setTowers] = useState<TowerConfig[]>([]);
+  const [team, setTeam] = useState<TeamItem[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [statusMessage, setStatusMessage] = useState("");
+
+  const loadSettings = async () => {
+    setIsLoading(true);
+    setStatusMessage("");
+
+    try {
+      const response = await fetchSettings();
+      setGeneralSettings(response.general_settings);
+      setPreferenceSettings(response.preference_settings);
+      setTowers(response.towers);
+      setTeam(response.team);
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : "No se pudo cargar la configuración.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadSettings();
+  }, []);
+
   const totalFloors = towers.reduce((sum, tower) => sum + tower.floors.length, 0);
   const totalUnits = towers.reduce(
     (sum, tower) =>
@@ -21,7 +69,6 @@ export default function Settings() {
     0,
   );
 
-  // Las torres nuevas reciben una letra secuencial para mantener legibles los datos mock.
   const addTower = () => {
     setTowers((current) => [
       ...current,
@@ -29,7 +76,6 @@ export default function Settings() {
     ]);
   };
 
-  // Mantiene al menos una torre en pantalla para no dejar esta vista vacía.
   const removeTower = (towerId: number) => {
     setTowers((current) => {
       if (current.length === 1) {
@@ -40,22 +86,20 @@ export default function Settings() {
     });
   };
 
-  // El modo edición se activa de forma independiente por cada tarjeta de torre.
   const toggleTowerEditing = (towerId: number) => {
     setTowers((current) =>
       current.map((tower) =>
-        tower.id === towerId ? { ...tower, isEditing: !tower.isEditing } : tower,
+        tower.id === towerId ? { ...tower, is_editing: !tower.is_editing } : tower,
       ),
     );
   };
 
   const updateTowerName = (towerId: number, value: string) => {
     setTowers((current) =>
-      current.map((tower) => (tower.id === towerId ? { ...tower, name: value } : tower)),
+      current.map((tower) => (tower.id === towerId ? { ...tower, tower_name: value } : tower)),
     );
   };
 
-  // Al cambiar la cantidad de pisos se reconstruye la lista preservando datos existentes cuando se puede.
   const updateTowerFloorCount = (towerId: number, value: string) => {
     setTowers((current) =>
       current.map((tower) => {
@@ -70,13 +114,12 @@ export default function Settings() {
         return {
           ...tower,
           floors: nextFloors,
-          selectedFloor: Math.min(tower.selectedFloor, nextFloors.length),
+          selected_floor: Math.min(tower.selected_floor, nextFloors.length),
         };
       }),
     );
   };
 
-  // Ajusta el piso seleccionado para que la vista previa no apunte a un piso inexistente.
   const selectFloor = (towerId: number, value: string) => {
     setTowers((current) =>
       current.map((tower) => {
@@ -89,16 +132,15 @@ export default function Settings() {
 
         return {
           ...tower,
-          selectedFloor: Math.min(nextFloor, tower.floors.length),
+          selected_floor: Math.min(nextFloor, tower.floors.length),
         };
       }),
     );
   };
 
-  // La edición de departamentos se limita a una torre y un piso por vez.
   const updateApartmentName = (
     towerId: number,
-    floorNumber: number,
+    floor_number: number,
     apartmentIndex: number,
     value: string,
   ) => {
@@ -111,7 +153,7 @@ export default function Settings() {
         return {
           ...tower,
           floors: tower.floors.map((floor) => {
-            if (floor.floorNumber !== floorNumber) {
+            if (floor.floor_number !== floor_number) {
               return floor;
             }
 
@@ -127,8 +169,7 @@ export default function Settings() {
     );
   };
 
-  // Los nombres de nuevos departamentos se generan desde el número de piso siguiendo la convención mock.
-  const addApartment = (towerId: number, floorNumber: number) => {
+  const addApartment = (towerId: number, floor_number: number) => {
     setTowers((current) =>
       current.map((tower) => {
         if (tower.id !== towerId) {
@@ -138,7 +179,7 @@ export default function Settings() {
         return {
           ...tower,
           floors: tower.floors.map((floor) => {
-            if (floor.floorNumber !== floorNumber) {
+            if (floor.floor_number !== floor_number) {
               return floor;
             }
 
@@ -146,7 +187,7 @@ export default function Settings() {
               ...floor,
               apartments: [
                 ...floor.apartments,
-                buildApartmentName(floor.floorNumber, floor.apartments.length + 1),
+                buildApartmentName(floor.floor_number, floor.apartments.length + 1),
               ],
             };
           }),
@@ -155,8 +196,7 @@ export default function Settings() {
     );
   };
 
-  // Evita borrar el último departamento de un piso para que cada piso conserve al menos una unidad.
-  const removeApartment = (towerId: number, floorNumber: number, apartmentIndex: number) => {
+  const removeApartment = (towerId: number, floor_number: number, apartmentIndex: number) => {
     setTowers((current) =>
       current.map((tower) => {
         if (tower.id !== towerId) {
@@ -166,7 +206,7 @@ export default function Settings() {
         return {
           ...tower,
           floors: tower.floors.map((floor) => {
-            if (floor.floorNumber !== floorNumber || floor.apartments.length === 1) {
+            if (floor.floor_number !== floor_number || floor.apartments.length === 1) {
               return floor;
             }
 
@@ -180,6 +220,25 @@ export default function Settings() {
     );
   };
 
+  const handleSave = async () => {
+    setIsSaving(true);
+    setStatusMessage("");
+
+    try {
+      await Promise.all([
+        saveGeneralSettings(generalSettings),
+        savePreferenceSettings(preferenceSettings),
+        saveTowers(towers),
+      ]);
+      setStatusMessage("Configuración guardada correctamente.");
+      await loadSettings();
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : "No se pudo guardar la configuración.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <main className="settingsPage">
       <section className="settingsHero">
@@ -191,6 +250,9 @@ export default function Settings() {
         </p>
       </section>
 
+      {statusMessage ? <p className="settingsLead">{statusMessage}</p> : null}
+      {isLoading ? <p className="settingsLead">Cargando configuración desde MySQL...</p> : null}
+
       <section className="settingsGrid">
         <article className="settingsCard">
           <div className="settingsCardHeader">
@@ -198,38 +260,90 @@ export default function Settings() {
               <p className="settingsLabel">Condominio</p>
               <h2>Lobby principal</h2>
             </div>
-            <span className="settingsBadge">Activo</span>
+            <span className="settingsBadge">
+              {generalSettings.is_active ? "Activo" : "Inactivo"}
+            </span>
           </div>
 
           <div className="settingsForm">
             <label className="settingsField">
               <span>Nombre del edificio</span>
-              <input type="text" defaultValue="LobbyPack Plaza Sur" />
+              <input
+                type="text"
+                value={generalSettings.building_name}
+                onChange={(event) =>
+                  setGeneralSettings((current) => ({
+                    ...current,
+                    building_name: event.target.value,
+                  }))
+                }
+              />
             </label>
             <label className="settingsField">
               <span>Correo de contacto</span>
-              <input type="email" defaultValue="recepcion@lobbypack.cl" />
+              <input
+                type="email"
+                value={generalSettings.contact_email}
+                onChange={(event) =>
+                  setGeneralSettings((current) => ({
+                    ...current,
+                    contact_email: event.target.value,
+                  }))
+                }
+              />
             </label>
             <label className="settingsField">
               <span>Horario de recepción</span>
-              <input type="text" defaultValue="08:00 a 22:00" />
+              <input
+                type="text"
+                value={generalSettings.reception_hours}
+                onChange={(event) =>
+                  setGeneralSettings((current) => ({
+                    ...current,
+                    reception_hours: event.target.value,
+                  }))
+                }
+              />
             </label>
             <label className="settingsField">
               <span>Dirección</span>
-              <input type="text" defaultValue="Av. Plaza Sur 245, Santiago" />
+              <input
+                type="text"
+                value={generalSettings.address_line}
+                onChange={(event) =>
+                  setGeneralSettings((current) => ({
+                    ...current,
+                    address_line: event.target.value,
+                  }))
+                }
+              />
             </label>
             <label className="settingsField">
               <span>Contraseña</span>
-              <input type="password" defaultValue="1234" />
+              <input
+                type="password"
+                value={generalSettings.access_password}
+                onChange={(event) =>
+                  setGeneralSettings((current) => ({
+                    ...current,
+                    access_password: event.target.value,
+                  }))
+                }
+              />
             </label>
           </div>
 
           <div className="settingsActions">
-            <button type="button" className="secondaryButton">
+            <button type="button" className="secondaryButton" onClick={() => void loadSettings()}>
               Restaurar
             </button>
-            <button type="button" className="primaryButton">
-              Guardar cambios
+            <button
+              type="button"
+              className="primaryButton"
+              onClick={() => void handleSave()}
+              disabled={isSaving}
+            >
+              {isSaving ? "Guardando..." : "Guardar cambios"}
             </button>
           </div>
         </article>
@@ -249,7 +363,16 @@ export default function Settings() {
                   <strong>{item.title}</strong>
                   <p>{item.description}</p>
                 </div>
-                <input type="checkbox" defaultChecked />
+                <input
+                  type="checkbox"
+                  checked={preferenceSettings[item.preference_key]}
+                  onChange={(event) =>
+                    setPreferenceSettings((current) => ({
+                      ...current,
+                      [item.preference_key]: event.target.checked,
+                    }))
+                  }
+                />
               </label>
             ))}
           </div>
@@ -325,13 +448,13 @@ export default function Settings() {
           </div>
 
           <div className="settingsTable">
-            {teamItems.map((item) => (
-              <div key={item.name} className="settingsRow">
+            {team.map((item) => (
+              <div key={item.user_id} className="settingsRow">
                 <div>
-                  <strong>{item.name}</strong>
+                  <strong>{item.team_name}</strong>
                   <p>{item.role}</p>
                 </div>
-                <span className="settingsRole">{item.status}</span>
+                <span className="settingsRole">{item.team_status}</span>
               </div>
             ))}
           </div>

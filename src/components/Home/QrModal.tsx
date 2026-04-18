@@ -1,7 +1,7 @@
 import { type ComponentType } from "react";
 import QRCodeImport from "react-qr-code";
 import "./QrModal.css";
-import type { PackageItem } from "../../types/home";
+import type { ParcelItem } from "../../types/home";
 
 type QRCodeModule = {
   default?: ComponentType<{ value: string; size?: number }>;
@@ -16,7 +16,7 @@ const QRCodeComponent =
       : null;
 
 type QrModalProps = {
-  qrPackage: PackageItem;
+  qrPackage: ParcelItem;
   onClose: () => void;
   onConfirm: (value: string) => void;
   qrScanMessage: string;

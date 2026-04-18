@@ -1,7 +1,6 @@
-// Panel para mostrar la lista de paquetes, con herramientas para buscar, seleccionar, editar y borrar paquetes. Incluye paginación y muestra el número total de paquetes y los seleccionados.
 import "./PackagePanel.css";
 import PackageRow from "./PackageRow";
-import type { PackageItem, PackageServiceView } from "../../types/home";
+import type { PackageServiceView, ParcelItem } from "../../types/home";
 
 type PackagePanelProps = {
   title: string;
@@ -13,7 +12,7 @@ type PackagePanelProps = {
   safePage: number;
   totalPages: number;
   selectedVisibleCount: number;
-  paginatedPackages: PackageItem[];
+  paginatedPackages: ParcelItem[];
   currentSelections: string[];
   activeView: PackageServiceView;
   onSearchChange: (value: string) => void;
@@ -22,7 +21,7 @@ type PackagePanelProps = {
   onEditSelected: () => void;
   onDeleteSelected: () => void;
   onSelect: (view: PackageServiceView, id: string, checked: boolean) => void;
-  onShowQr: (item: PackageItem) => void;
+  onShowQr: (item: ParcelItem) => void;
   onEdit: (view: PackageServiceView, id: string) => void;
   onDelete: (view: PackageServiceView, ids: string[]) => void;
   onPrevPage: () => void;

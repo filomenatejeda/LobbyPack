@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "dev:frontend": "vite --host",
     "build": "tsc -b && vite build",
+    "build:frontend": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

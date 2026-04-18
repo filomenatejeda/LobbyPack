@@ -1,23 +1,47 @@
 export type PreferenceItem = {
   title: string;
   description: string;
+  preference_key: "package_notifications" | "daily_summary" | "qr_access";
 };
 
 export type TeamItem = {
-  name: string;
+  user_id: string;
   role: string;
-  status: string;
+  team_name: string;
+  team_status: string;
 };
 
 export type FloorConfig = {
-  floorNumber: number;
+  floor_number: number;
   apartments: string[];
 };
 
 export type TowerConfig = {
   id: number;
-  name: string;
+  tower_name: string;
   floors: FloorConfig[];
-  selectedFloor: number;
-  isEditing: boolean;
+  selected_floor: number;
+  is_editing: boolean;
+};
+
+export type GeneralSettings = {
+  building_name: string;
+  contact_email: string;
+  reception_hours: string;
+  address_line: string;
+  access_password: string;
+  is_active: boolean;
+};
+
+export type PreferenceSettings = {
+  package_notifications: boolean;
+  daily_summary: boolean;
+  qr_access: boolean;
+};
+
+export type SettingsPayload = {
+  general_settings: GeneralSettings;
+  preference_settings: PreferenceSettings;
+  towers: TowerConfig[];
+  team: TeamItem[];
 };

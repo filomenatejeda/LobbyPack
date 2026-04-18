@@ -1,17 +1,18 @@
 import "./PackageRow.css";
-import type { PackageItem, PackageServiceView } from "../../types/home";
-
-const packageStatusMeta = {
-  Received: { label: "Recepción", className: "Recepcion" },
-  PickedUp: { label: "Retiro", className: "Retiro" },
-} as const;
+import type { PackageServiceView, ParcelItem } from "../../types/home";
+import {
+  formatParcelDate,
+  formatParcelStatus,
+  formatParcelTime,
+  getParcelDate,
+} from "../../utils/packageUtils";
 
 type PackageRowProps = {
-  item: PackageItem;
+  item: ParcelItem;
   activeView: PackageServiceView;
   checked: boolean;
   onSelect: (view: PackageServiceView, id: string, checked: boolean) => void;
-  onShowQr: (item: PackageItem) => void;
+  onShowQr: (item: ParcelItem) => void;
   onEdit: (view: PackageServiceView, id: string) => void;
   onDelete: (view: PackageServiceView, ids: string[]) => void;
 };
@@ -25,6 +26,8 @@ export default function PackageRow({
   onEdit,
   onDelete,
 }: PackageRowProps) {
+  const parcelDate = getParcelDate(item);
+
   return (
     <li className="packageItem">
       <div className="packageTop">
@@ -41,13 +44,17 @@ export default function PackageRow({
         <div className="packageTopActions">
           <div className="statusField">
             <span>Estado</span>
-            <p className={`statusValue statusValue${packageStatusMeta[item.status].className}`}>
-              {packageStatusMeta[item.status].label}
+            <p
+              className={`statusValue ${
+                item.parcel_status === "pending" ? "statusValueRecepcion" : "statusValueRetiro"
+              }`}
+            >
+              {formatParcelStatus(item.parcel_status)}
             </p>
           </div>
 
           <div className="packageActions inlineActions">
-            {item.status === "Received" ? (
+            {item.parcel_status === "pending" ? (
               <button
                 type="button"
                 className="rowActionButton qrButton"
@@ -146,31 +153,31 @@ export default function PackageRow({
       <dl className="packageDetails">
         <div>
           <dt>Departamento</dt>
-          <dd>{item.apartment}</dd>
+          <dd>{item.department_address}</dd>
         </div>
         <div>
           <dt>Nombre</dt>
-          <dd>{item.residentName}</dd>
+          <dd>{item.resident_name}</dd>
         </div>
         <div>
           <dt>Compañía</dt>
-          <dd>{item.company}</dd>
+          <dd>{item.business_name}</dd>
         </div>
         <div>
           <dt>Teléfono</dt>
-          <dd>{item.phone || "Sin número"}</dd>
+          <dd>{item.user_phone_number || "Sin número"}</dd>
         </div>
         <div>
           <dt>Conserje</dt>
-          <dd>{item.concierge}</dd>
+          <dd>{item.concierge_name}</dd>
         </div>
         <div>
           <dt>Hora</dt>
-          <dd>{item.time}</dd>
+          <dd>{formatParcelTime(parcelDate)}</dd>
         </div>
         <div>
           <dt>Fecha</dt>
-          <dd>{item.date}</dd>
+          <dd>{formatParcelDate(parcelDate)}</dd>
         </div>
       </dl>
     </li>
