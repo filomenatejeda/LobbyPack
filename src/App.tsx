@@ -1,34 +1,55 @@
-import { useEffect, useState } from "react";
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 import "./App.css";
 import Header from "./components/Header/Header";
+import checkIfAuth from "./lib/checkAuth";
 import Home from "./pages/Home/Home";
+import Landing from "./pages/Landing/Landing";
 import Settings from "./pages/Settings/Settings";
+import ForgotPassword from "./pages/auth/Forgot-Password";
+import Login from "./pages/auth/Login";
+import SignUp from "./pages/auth/Sign-Up";
+import UpdatePassword from "./pages/auth/Update-Password";
 
-type AppPage = "home" | "settings";
+function ProtectedLayout() {
+  const isCheckingAuth = checkIfAuth();
 
-// La app usa un cambio simple por hash en lugar de un router completo.
-const getPageFromHash = (): AppPage =>
-  window.location.hash === "#configuracion" ? "settings" : "home";
-
-export default function App() {
-  const [currentPage, setCurrentPage] = useState<AppPage>(getPageFromHash);
-
-  useEffect(() => {
-    // Mantiene la página visible sincronizada cuando el usuario navega con hashes.
-    const syncPageWithHash = () => setCurrentPage(getPageFromHash());
-
-    window.addEventListener("hashchange", syncPageWithHash);
-    return () => window.removeEventListener("hashchange", syncPageWithHash);
-  }, []);
+  if (isCheckingAuth) {
+    return (
+      <main className="authLoadingState">
+        <p>Verificando sesion...</p>
+      </main>
+    );
+  }
 
   return (
     <div className="app">
       <Header />
-      {currentPage === "settings" ? <Settings /> : <Home />}
+      <Outlet />
       <footer className="siteFooter">
-        <p>© 2026 LobbyPack. Todos los derechos reservados.</p>
-        <span>Gestión de recepción y retiro de paquetes.</span>
+        <p>&copy; 2026 LobbyPack. Todos los derechos reservados.</p>
+        <span>Gestion de recepcion y retiro de paquetes.</span>
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/sign-up" element={<SignUp />} />
+        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+        <Route path="/auth/update-password" element={<UpdatePassword />} />
+
+        <Route element={<ProtectedLayout />}>
+          <Route path="/dashboard" element={<Home />} />
+          <Route path="/configuracion" element={<Settings />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

@@ -91,11 +91,45 @@
     border-color 0.2s ease;
 }
 
+.linkActive {
+  color: var(--accent-strong);
+  border-bottom-color: var(--accent);
+}
+
 .link:focus-visible,
 .link:hover {
   background-color: transparent;
   color: var(--accent-strong);
   border-bottom-color: var(--accent);
+  outline: none;
+}
+
+.authButton,
+.mobileAuthButton {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.authButton {
+  padding: 10px 14px;
+  border-radius: 999px;
+}
+
+.authButton:hover,
+.authButton:focus-visible,
+.mobileAuthButton:hover,
+.mobileAuthButton:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  background: rgba(194, 148, 87, 0.08);
   outline: none;
 }
 
@@ -185,9 +219,21 @@
     border-bottom: 1px solid var(--line);
   }
 
+  .mobileLinkActive {
+    color: var(--accent-strong);
+  }
+
   .mobileLink:hover,
   .mobileLink:focus-visible {
     color: var(--accent-strong);
     outline: none;
+  }
+
+  .mobileAuthButton {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    text-align: left;
   }
 }

@@ -5,6 +5,14 @@
   min-height: 100svh;
 }
 
+.authLoadingState {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: var(--text-soft);
+}
+
 .siteFooter {
   width: 100%;
   padding: 18px 16px 24px;

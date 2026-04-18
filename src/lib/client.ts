@@ -1,6 +1,19 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+
+const isPlaceholderValue = (value?: string) =>
+  !value || value.startsWith("tu_") || value.includes("example");
+
+export const supabaseConfigError =
+  isPlaceholderValue(supabaseUrl) || isPlaceholderValue(supabasePublishableKey)
+    ? "Configura VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY en .env para usar autenticacion."
+    : null;
 
 export const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL!,
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
-)
+  supabaseConfigError ? "https://placeholder.supabase.co" : supabaseUrl,
+  supabaseConfigError
+    ? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder.signature"
+    : supabasePublishableKey,
+);

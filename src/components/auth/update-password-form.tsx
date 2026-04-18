@@ -28,13 +28,12 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
       if (error) throw error
       location.href = "/dashboard"
     } catch (error: unknown) {
-      setError(error instanceof Error ? handleError(error.message) : "Ocurrió un error")
+      setError(error instanceof Error ? handleError(error.message) : "OcurriÃ³ un error")
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Muestra errores comunes con sus traducciones simplificadas
   const handleError = (error: string) => {
     switch (error) {
       case ("email rate limit exceeded"):
@@ -42,7 +41,7 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
     }
 
     if (error.startsWith("Email address ")) {
-      return ("Error: correo inválido")
+      return ("Error: correo invÃ¡lido")
     }
 
     return error
@@ -52,18 +51,18 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Reinicica tu contraseña</CardTitle>
-          <CardDescription>Ingresa tu nueva contraseña abajo.</CardDescription>
+          <CardTitle className="text-2xl">Reinicica tu contraseÃ±a</CardTitle>
+          <CardDescription>Ingresa tu nueva contraseÃ±a abajo.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleForgotPassword}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="password">Nueva contraseña</Label>
+                <Label htmlFor="password">Nueva contraseÃ±a</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Nueva contraseña"
+                  placeholder="Nueva contraseÃ±a"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -71,7 +70,7 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
-                {isLoading ? "Guardando..." : "Guardar nueva contraseña"}
+                {isLoading ? "Guardando..." : "Guardar nueva contraseÃ±a"}
               </Button>
             </div>
           </form>
