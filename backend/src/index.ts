@@ -1,11 +1,12 @@
 import { cors } from "@elysiajs/cors";
 import { Elysia } from "elysia";
-import { pool } from "./db/pool";
+import { ensureUtf8mb4, pool } from "./db/pool";
 import { api } from "./routes/api";
 
 const port = Number(process.env.PORT ?? 3000);
 
 await pool.query("SELECT 1");
+await ensureUtf8mb4();
 
 const app = new Elysia()
   .use(

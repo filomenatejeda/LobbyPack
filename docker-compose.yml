@@ -3,6 +3,9 @@ services:
     image: mysql:8
     container_name: db-lobbypack
     restart: always
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
     env_file:
       - .env
     environment:

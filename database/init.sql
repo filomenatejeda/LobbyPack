@@ -3,21 +3,21 @@ CREATE TABLE IF NOT EXISTS Users (
   email VARCHAR(255) UNIQUE NOT NULL,
   role ENUM('admin', 'concierge', 'resident') NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS Admins (
   user_id VARCHAR(64) PRIMARY KEY,
   admin_name VARCHAR(100),
   admin_password_hash VARCHAR(255),
   FOREIGN KEY (user_id) REFERENCES Users(id)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS Concierges (
   user_id VARCHAR(64) PRIMARY KEY,
   concierge_name VARCHAR(100) NOT NULL,
   concierge_password_hash VARCHAR(255),
   FOREIGN KEY (user_id) REFERENCES Users(id)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS Residents (
   user_id VARCHAR(64) PRIMARY KEY,
@@ -26,12 +26,12 @@ CREATE TABLE IF NOT EXISTS Residents (
   user_phone_number VARCHAR(12),
   department_address VARCHAR(100) NOT NULL,
   FOREIGN KEY (user_id) REFERENCES Users(id)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS Businesses (
   id VARCHAR(64) PRIMARY KEY,
   business_name VARCHAR(100) NOT NULL
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS Buildings (
   id VARCHAR(64) PRIMARY KEY,
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS Buildings (
   access_password VARCHAR(255) NOT NULL,
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS BuildingPreferences (
   building_id VARCHAR(64) PRIMARY KEY,
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS BuildingPreferences (
   daily_summary BOOLEAN DEFAULT TRUE,
   qr_access BOOLEAN DEFAULT TRUE,
   FOREIGN KEY (building_id) REFERENCES Buildings(id)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS Towers (
   id BIGINT PRIMARY KEY,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS Towers (
   tower_name VARCHAR(100) NOT NULL,
   display_order INT NOT NULL,
   FOREIGN KEY (building_id) REFERENCES Buildings(id)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS Floors (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS Floors (
   floor_number INT NOT NULL,
   UNIQUE KEY unique_tower_floor (tower_id, floor_number),
   FOREIGN KEY (tower_id) REFERENCES Towers(id) ON DELETE CASCADE
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS Apartments (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS Apartments (
   display_order INT NOT NULL,
   UNIQUE KEY unique_floor_apartment (floor_id, apartment_name),
   FOREIGN KEY (floor_id) REFERENCES Floors(id) ON DELETE CASCADE
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS Parcels (
   id VARCHAR(64) PRIMARY KEY,
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS Parcels (
   FOREIGN KEY (id_concierge) REFERENCES Users(id),
   FOREIGN KEY (id_resident) REFERENCES Users(id),
   FOREIGN KEY (id_business) REFERENCES Businesses(id)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS Issues (
   id VARCHAR(64) PRIMARY KEY,
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS Issues (
   issue_description TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_parcel) REFERENCES Parcels(id) ON DELETE CASCADE
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 INSERT INTO Buildings (
   id,
