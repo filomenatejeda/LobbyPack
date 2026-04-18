@@ -140,7 +140,9 @@ export default function ComplaintPanel({
 
                 <button
                   type="button"
-                  className="complaintQuickAction"
+                  className={`complaintQuickAction complaintQuickAction${getIssueStatusClassName(
+                    getQuickIssueStatus(item.issue_status),
+                  )}`}
                   onClick={() => onIssueStatusChange(item.id, getQuickIssueStatus(item.issue_status))}
                   disabled={isUpdating}
                 >

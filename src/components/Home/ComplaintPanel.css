@@ -125,12 +125,12 @@
 }
 
 .complaintBadgeEnrevision {
-  background: #e7efdc;
-  color: #627553;
+  background: #f6e9b8;
+  color: #8a6b1f;
 }
 
 .complaintBadgeResuelto {
-  background: var(--accent-soft);
+  background: #dcefd2;
   color: #4f6840;
 }
 
@@ -177,13 +177,26 @@
 .complaintQuickAction {
   border: 1px solid transparent;
   border-radius: 999px;
-  background: var(--accent);
   padding: 9px 14px;
   font: inherit;
   font-size: 0.88rem;
   font-weight: 700;
-  color: white;
   cursor: pointer;
+}
+
+.complaintQuickActionIngresado {
+  background: var(--accent);
+  color: white;
+}
+
+.complaintQuickActionEnrevision {
+  background: #f6e9b8;
+  color: #8a6b1f;
+}
+
+.complaintQuickActionResuelto {
+  background: #dcefd2;
+  color: #4f6840;
 }
 
 .complaintQuickAction:disabled,
