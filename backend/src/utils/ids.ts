@@ -48,6 +48,13 @@ export async function createSequentialId(
   }
 }
 
+export async function createSequentialCode(
+  connection: PoolConnection,
+  options: SequentialIdOptions,
+) {
+  return createSequentialId(connection, options);
+}
+
 export function createResidentEmail(resident_name: string) {
   const normalizedName = resident_name
     .normalize("NFD")

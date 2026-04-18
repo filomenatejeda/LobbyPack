@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
 import { pool } from "../db/pool";
-import { createResidentEmail, createSequentialId } from "../utils/ids";
+import { createResidentEmail, createSequentialCode, createSequentialId } from "../utils/ids";
 import { normalizeTextInput, repairPotentialMojibake } from "../utils/textEncoding";
 
 const DEMO_CONCIERGE_USER_ID = "concierge-demo";
@@ -466,7 +466,12 @@ export const api = new Elysia({ prefix: "/api" })
         prefix: "parcel",
         padLength: 4,
       });
-      const withdrawalCode = `REC-${String(Date.now()).slice(-6)}`;
+      const withdrawalCode = await createSequentialCode(connection, {
+        tableName: "Parcels",
+        columnName: "withdrawal_code",
+        prefix: "REC",
+        padLength: 4,
+      });
 
       await connection.query(
         `
@@ -623,31 +628,53 @@ export const api = new Elysia({ prefix: "/api" })
     body: parcelPayloadSchema,
   })
   .post("/parcels/:id/claim", async ({ params, set }) => {
-    const [result] = await pool.query<RowDataPacket[]>(
-      `
-        SELECT id
-        FROM Parcels
-        WHERE id = ?
-        LIMIT 1
-      `,
-      [params.id],
-    );
+    const connection = await pool.getConnection();
 
-    if (result.length === 0) {
-      set.status = 404;
-      return { message: "Parcel not found" };
+    try {
+      await connection.beginTransaction();
+
+      const [result] = await connection.query<RowDataPacket[]>(
+        `
+          SELECT id
+          FROM Parcels
+          WHERE id = ?
+          LIMIT 1
+        `,
+        [params.id],
+      );
+
+      if (result.length === 0) {
+        await connection.rollback();
+        set.status = 404;
+        return { message: "Parcel not found" };
+      }
+
+      const withdrawalCode = await createSequentialCode(connection, {
+        tableName: "Parcels",
+        columnName: "withdrawal_code",
+        prefix: "RET",
+        padLength: 4,
+      });
+
+      await connection.query(
+        `
+          UPDATE Parcels
+          SET
+            withdrawal_code = ?,
+            parcel_status = 'claimed',
+            claimed_date = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `,
+        [withdrawalCode, params.id],
+      );
+
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
     }
-
-    await pool.query(
-      `
-        UPDATE Parcels
-        SET
-          parcel_status = 'claimed',
-          claimed_date = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `,
-      [params.id],
-    );
 
     const parcels = await listParcels("claimed");
     return parcels.find((parcel) => parcel.id === params.id);

@@ -1,4 +1,5 @@
 import mysql, { type RowDataPacket } from "mysql2/promise";
+import { createSequentialCode } from "../utils/ids";
 import { repairPotentialMojibake } from "../utils/textEncoding";
 
 const requiredEnv = [
@@ -197,5 +198,80 @@ export async function repairParcelEncoding() {
       `,
       [repairedDescription, parcel.id],
     );
+  }
+}
+
+export async function repairParcelWithdrawalCodes() {
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const [parcelsNeedingRetCode] = await connection.query<
+      Array<RowDataPacket & { id: string }>
+    >(
+      `
+        SELECT id
+        FROM Parcels
+        WHERE parcel_status = 'claimed'
+          AND (withdrawal_code IS NULL OR withdrawal_code NOT LIKE 'RET-%')
+        ORDER BY claimed_date, pending_date, id
+      `,
+    );
+
+    for (const parcel of parcelsNeedingRetCode) {
+      const withdrawalCode = await createSequentialCode(connection, {
+        tableName: "Parcels",
+        columnName: "withdrawal_code",
+        prefix: "RET",
+        padLength: 4,
+      });
+
+      await connection.query(
+        `
+          UPDATE Parcels
+          SET withdrawal_code = ?
+          WHERE id = ?
+        `,
+        [withdrawalCode, parcel.id],
+      );
+    }
+
+    const [parcelsNeedingRecCode] = await connection.query<
+      Array<RowDataPacket & { id: string }>
+    >(
+      `
+        SELECT id
+        FROM Parcels
+        WHERE parcel_status = 'pending'
+          AND (withdrawal_code IS NULL OR withdrawal_code NOT LIKE 'REC-%')
+        ORDER BY pending_date, id
+      `,
+    );
+
+    for (const parcel of parcelsNeedingRecCode) {
+      const withdrawalCode = await createSequentialCode(connection, {
+        tableName: "Parcels",
+        columnName: "withdrawal_code",
+        prefix: "REC",
+        padLength: 4,
+      });
+
+      await connection.query(
+        `
+          UPDATE Parcels
+          SET withdrawal_code = ?
+          WHERE id = ?
+        `,
+        [withdrawalCode, parcel.id],
+      );
+    }
+
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
   }
 }
