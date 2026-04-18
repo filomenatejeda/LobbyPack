@@ -1,4 +1,4 @@
-import type { AddPackageFormValues } from "../components/Home/addPackageTypes";
+import type { AddPackageFormValues } from "../components/Home/packageFormTypes";
 import type { IssueStatus, ParcelItem, ParcelStatus } from "../types/home";
 
 export const pageSizeOptions = [25, 50, 100] as const;

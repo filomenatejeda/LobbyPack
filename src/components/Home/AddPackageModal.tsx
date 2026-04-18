@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import AddPackageFormSection from "./AddPackageFormSection";
-import type { AddPackageFormValues } from "./addPackageTypes";
+import type { AddPackageFormValues } from "./packageFormTypes";
 import "./AddPackageModal.css";
 
 type AddPackageModalProps = {
@@ -32,7 +32,7 @@ export default function AddPackageModal({
     setValues((current) => ({ ...current, [field]: value }));
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     await onSubmit(values);
     setValues(baseValues);

@@ -1,5 +1,5 @@
 import { apiRequest } from "../lib/api";
-import type { AddPackageFormValues } from "../components/Home/addPackageTypes";
+import type { AddPackageFormValues } from "../components/Home/packageFormTypes";
 import type { HomeDashboardResponse, ParcelItem } from "../types/home";
 import { buildParcelPayload } from "../utils/packageUtils";
 

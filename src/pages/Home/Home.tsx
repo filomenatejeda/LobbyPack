@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import AddPackageModal from "../../components/Home/AddPackageModal";
-import type { AddPackageFormValues } from "../../components/Home/addPackageTypes";
+import type { AddPackageFormValues } from "../../components/Home/packageFormTypes";
 import ComplaintPanel from "../../components/Home/ComplaintPanel";
 import PackagePanel from "../../components/Home/PackagePanel";
 import QrModal from "../../components/Home/QrModal";

@@ -1,10 +1,11 @@
-import type { AddPackageFormValues } from "./addPackageTypes";
+import type { FormEvent } from "react";
+import type { AddPackageFormValues } from "./packageFormTypes";
 
 type AddPackageFormSectionProps = {
   values: AddPackageFormValues;
   onCancel: () => void;
   onChange: (field: keyof AddPackageFormValues, value: string | boolean) => void;
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
 export default function AddPackageFormSection({
