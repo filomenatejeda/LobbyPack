@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
 import { pool } from "../db/pool";
-import { createId, createResidentEmail } from "../utils/ids";
+import { createResidentEmail, createSequentialId } from "../utils/ids";
 import { normalizeTextInput, repairPotentialMojibake } from "../utils/textEncoding";
 
 const DEMO_CONCIERGE_USER_ID = "concierge-demo";
@@ -124,7 +124,12 @@ async function getOrCreateBusiness(connection: PoolConnection, business_name: st
     return String(existingBusinesses[0].id);
   }
 
-  const businessId = createId("business");
+  const businessId = await createSequentialId(connection, {
+    tableName: "Businesses",
+    columnName: "id",
+    prefix: "business",
+    padLength: 3,
+  });
 
   await connection.query(
     `
@@ -178,7 +183,12 @@ async function getOrCreateResident(
     return residentId;
   }
 
-  const residentId = createId("resident");
+  const residentId = await createSequentialId(connection, {
+    tableName: "Users",
+    columnName: "id",
+    prefix: "resident",
+    padLength: 3,
+  });
 
   await connection.query(
     `
@@ -450,7 +460,12 @@ export const api = new Elysia({ prefix: "/api" })
         body.user_phone_number,
       );
       const businessId = await getOrCreateBusiness(connection, body.business_name);
-      const parcelId = createId("parcel");
+      const parcelId = await createSequentialId(connection, {
+        tableName: "Parcels",
+        columnName: "id",
+        prefix: "parcel",
+        padLength: 4,
+      });
       const withdrawalCode = `REC-${String(Date.now()).slice(-6)}`;
 
       await connection.query(
