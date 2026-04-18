@@ -2,6 +2,7 @@ import { Elysia, t } from "elysia";
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
 import { pool } from "../db/pool";
 import { createId, createResidentEmail } from "../utils/ids";
+import { repairPotentialMojibake } from "../utils/textEncoding";
 
 const DEMO_CONCIERGE_USER_ID = "concierge-demo";
 const BUILDING_ID = "building-main";
@@ -285,7 +286,11 @@ async function listIssues() {
     `,
   );
 
-  return rows;
+  return rows.map((row) => ({
+    ...row,
+    issue_description: repairPotentialMojibake(row.issue_description),
+    resident_name: repairPotentialMojibake(row.resident_name),
+  }));
 }
 
 async function getSettingsPayload() {

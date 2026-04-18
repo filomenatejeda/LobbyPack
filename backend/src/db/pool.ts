@@ -1,4 +1,5 @@
 import mysql, { type RowDataPacket } from "mysql2/promise";
+import { repairPotentialMojibake } from "../utils/textEncoding";
 
 const requiredEnv = [
   "MYSQL_HOST",
@@ -51,6 +52,32 @@ export async function ensureUtf8mb4() {
   for (const { TABLE_NAME } of tables) {
     await pool.query(
       `ALTER TABLE \`${TABLE_NAME}\` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci`,
+    );
+  }
+}
+
+export async function repairIssueEncoding() {
+  const [issues] = await pool.query<Array<RowDataPacket & { id: string; issue_description: string }>>(
+    `
+      SELECT id, issue_description
+      FROM Issues
+    `,
+  );
+
+  for (const issue of issues) {
+    const repairedDescription = repairPotentialMojibake(issue.issue_description);
+
+    if (repairedDescription === issue.issue_description) {
+      continue;
+    }
+
+    await pool.query(
+      `
+        UPDATE Issues
+        SET issue_description = ?
+        WHERE id = ?
+      `,
+      [repairedDescription, issue.id],
     );
   }
 }
