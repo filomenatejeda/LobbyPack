@@ -88,6 +88,8 @@ export function LoginForm() {
         return "Error: ingresa el código de verificación.";
       case "Invalid TOTP code entered":
         return "Error: el código del autenticador no es válido.";
+      case "Auth session missing!":
+        return "Error: la sección ha expirado.";
       default:
         break;
     }
