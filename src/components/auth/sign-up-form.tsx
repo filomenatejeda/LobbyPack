@@ -1,22 +1,9 @@
-import { type ComponentType, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
-import QRCodeImport from "react-qr-code";
 import { useNavigate } from "react-router-dom";
 
 import { supabase, supabaseConfigError } from "@/lib/client";
 import "./login-form.css";
-
-type QRCodeModule = {
-  default?: ComponentType<{ value: string; size?: number }>;
-};
-
-const qrCodeImport = QRCodeImport as unknown;
-const QRCodeComponent =
-  typeof qrCodeImport === "function"
-    ? (qrCodeImport as ComponentType<{ value: string; size?: number }>)
-    : typeof qrCodeImport === "object" && qrCodeImport !== null && "default" in qrCodeImport
-      ? (qrCodeImport as QRCodeModule).default ?? null
-      : null;
 
 const Phase = {
   Email: 0,
@@ -24,10 +11,6 @@ const Phase = {
   MFA: 2,
   Password: 3,
 } as const;
-
-function createTemporaryPassword() {
-  return `Tmp-${crypto.randomUUID()}-Aa1!`;
-}
 
 export function SignUpForm() {
   const navigate = useNavigate();
@@ -38,6 +21,7 @@ export function SignUpForm() {
   const [repeatPassword, setRepeatPassword] = useState("");
   const [mfaFactorId, setMfaFactorId] = useState("");
   const [mfaQrCode, setMfaQrCode] = useState("");
+  const [mfaQrUri, setMfaUri] = useState("");
   const [mfaSecret, setMfaSecret] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -52,6 +36,7 @@ export function SignUpForm() {
       setMfaQrCode("");
       setMfaSecret("");
       setPhase(Phase.Password);
+      console.log("PASSWORD")
       return;
     }
 
@@ -64,8 +49,10 @@ export function SignUpForm() {
 
     setMfaFactorId(enrolledFactor.data.id);
     setMfaQrCode(enrolledFactor.data.totp.qr_code);
+    setMfaUri(enrolledFactor.data.totp.uri);
     setMfaSecret(enrolledFactor.data.totp.secret);
     setMfaCode("");
+    console.log("MFA")
     setPhase(Phase.MFA);
   };
 
@@ -107,7 +94,7 @@ export function SignUpForm() {
     };
   }, []);
 
-  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSignUp = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
@@ -118,12 +105,13 @@ export function SignUpForm() {
       }
 
       if (phase === Phase.Email) {
-        const signedUp = await supabase.auth.signUp({
-          email,
-          password: createTemporaryPassword(),
+        const signedUp = await supabase.auth.signInWithOtp({
+          email
         });
 
         if (signedUp.error) throw signedUp.error;
+        // const signedIn = await supabase.auth.signInWithPassword({ email, password: "test1234" })
+        // if (signedIn.error) throw signedIn.error
 
         setPhase(Phase.OTP);
         return;
@@ -133,7 +121,7 @@ export function SignUpForm() {
         const verifiedOtp = await supabase.auth.verifyOtp({
           email,
           token: otpCode,
-          type: "signup",
+          type: "email",
         });
 
         if (verifiedOtp.error) throw verifiedOtp.error;
@@ -213,6 +201,7 @@ export function SignUpForm() {
     setRepeatPassword("");
     setMfaFactorId("");
     setMfaQrCode("");
+    setMfaUri("");
     setMfaSecret("");
     setError(null);
   };
@@ -220,7 +209,7 @@ export function SignUpForm() {
   const handleError = (message: string) => {
     switch (message) {
       case "email rate limit exceeded":
-        return "Error: espera 1 minuto antes de volver a intentarlo.";
+        return "Error: límite de correos enviados alcanzado, vuelve a intentarlo más tarde.";
       case "Code needs to be non-empty":
         return "Error: ingresa el código de verificación.";
       case "Invalid TOTP code entered":
@@ -306,11 +295,7 @@ export function SignUpForm() {
           <>
             <div className="authMfaPanel">
               <div className="authMfaQrBox">
-                {QRCodeComponent && mfaQrCode ? (
-                  <QRCodeComponent value={mfaQrCode} size={180} />
-                ) : (
-                  <p className="authMfaFallback">No se pudo cargar el QR del autenticador.</p>
-                )}
+                {mfaSecret != "" && <img src={mfaQrCode} alt={mfaQrUri}/>}
               </div>
 
               <div className="authMfaInfo">
