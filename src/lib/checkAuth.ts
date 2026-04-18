@@ -16,13 +16,30 @@ export default function useCheckIfAuth() {
         supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
       ]);
 
-      const hasUser = Boolean(userResponse.data.user) && !userResponse.error;
+      const user = userResponse.data.user;
+      const hasUser = Boolean(user) && !userResponse.error;
+      const provider = user?.app_metadata?.provider;
+      const usedGoogleSSO = provider === "google";
       const hasVerifiedSession = assuranceResponse.data?.currentLevel === "aal2";
 
-      if (!hasUser || !hasVerifiedSession) {
+      if (!hasUser) {
         navigate("/auth/login", {
           replace: true,
-          state: { from: location.pathname },
+          state: {
+            from: location.pathname,
+            reason: "missing_session",
+          },
+        });
+        return;
+      }
+
+      if (!usedGoogleSSO && !hasVerifiedSession) {
+        navigate("/auth/login", {
+          replace: true,
+          state: {
+            from: location.pathname,
+            reason: "missing_mfa",
+          },
         });
         return;
       }

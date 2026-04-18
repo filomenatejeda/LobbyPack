@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 
 import { supabase, supabaseConfigError } from "@/lib/client";
@@ -10,6 +11,8 @@ const Phase = {
 } as const;
 
 export function LoginForm() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +21,75 @@ export function LoginForm() {
   const [mfaChallengeId, setMfaChallengeId] = useState("");
   const [mfaFactorId, setMfaFactorId] = useState("");
   const [mfaCode, setMfaCode] = useState("");
+
+  useEffect(() => {
+    let isActive = true;
+
+    const restoreSessionFlow = async () => {
+      if (supabaseConfigError) {
+        return;
+      }
+
+      const [{ data: userData, error: userError }, assuranceResponse] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+      ]);
+
+      if (!isActive || userError || !userData.user) {
+        return;
+      }
+
+      const usedGoogleSSO = userData.user.app_metadata?.provider === "google";
+
+      if (usedGoogleSSO || assuranceResponse.data?.currentLevel === "aal2") {
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+
+      const firstFactorId = (await supabase.auth.mfa.listFactors()).data?.all[0]?.id;
+
+      if (!firstFactorId) {
+        setError(
+          "La cuenta inició sesión, pero falta configurar OTP/MFA para cumplir el acceso avanzado.",
+        );
+        return;
+      }
+
+      const challenge = await supabase.auth.mfa.challenge({ factorId: firstFactorId });
+
+      if (challenge.error) {
+        setError(handleError(challenge.error.message));
+        return;
+      }
+
+      if (!isActive) {
+        return;
+      }
+
+      setMfaFactorId(firstFactorId);
+      setMfaChallengeId(challenge.data.id);
+      setPhase(Phase.MFA);
+    };
+
+    void restoreSessionFlow();
+
+    return () => {
+      isActive = false;
+    };
+  }, [navigate]);
+
+  useEffect(() => {
+    const reason = location.state?.reason;
+
+    if (reason === "missing_mfa") {
+      setError("Debes completar el doble factor de autenticación para entrar al dashboard.");
+      return;
+    }
+
+    if (reason === "missing_session") {
+      setError("Debes iniciar sesión para continuar.");
+    }
+  }, [location.state]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -64,7 +136,7 @@ export function LoginForm() {
 
           if (verifiedMFA.error) throw verifiedMFA.error;
 
-          location.href = "/dashboard";
+          navigate("/dashboard", { replace: true });
           break;
         }
 
@@ -80,6 +152,35 @@ export function LoginForm() {
     }
   };
 
+  const handleGoogleSSO = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      if (supabaseConfigError) {
+        throw new Error(supabaseConfigError);
+      }
+
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/login`,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+
+      if (oauthError) throw oauthError;
+    } catch (caughtError: unknown) {
+      setError(
+        caughtError instanceof Error ? handleError(caughtError.message) : "Ocurrió un error.",
+      );
+      setIsLoading(false);
+    }
+  };
+
   const handleError = (message: string) => {
     switch (message) {
       case "Invalid login credentials":
@@ -89,7 +190,7 @@ export function LoginForm() {
       case "Invalid TOTP code entered":
         return "Error: el código del autenticador no es válido.";
       case "Auth session missing!":
-        return "Error: la sección ha expirado.";
+        return "Error: la sesión ha expirado.";
       default:
         break;
     }
@@ -107,7 +208,8 @@ export function LoginForm() {
         <p className="authEyebrow">Acceso</p>
         <h2 className="authTitle">Inicia sesión</h2>
         <p className="authDescription">
-          Entra con tu correo y contraseña para administrar paquetes, retiros y reclamos.
+          Entra con tu correo y contraseña o usa Google SSO para administrar paquetes, retiros y
+          reclamos.
         </p>
       </div>
 
@@ -121,23 +223,26 @@ export function LoginForm() {
             placeholder="correo@ejemplo.com"
             autoComplete="email"
             required
+            disabled={phase === Phase.MFA}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
         </label>
 
-        <label className="authField">
-          <span>Contraseña</span>
-          <input
-            className="authInput"
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </label>
+        {phase === Phase.Login && (
+          <label className="authField">
+            <span>Contraseña</span>
+            <input
+              className="authInput"
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
+        )}
 
         {phase === Phase.MFA && (
           <label className="authField">
@@ -173,6 +278,17 @@ export function LoginForm() {
               ? "Verificar código e ingresar"
               : "Iniciar sesión"}
         </button>
+
+        {phase === Phase.Login && (
+          <button
+            type="button"
+            className="authSSOButton"
+            disabled={isLoading || Boolean(supabaseConfigError)}
+            onClick={() => void handleGoogleSSO()}
+          >
+            Continuar con Google
+          </button>
+        )}
 
         <a className="authSecondaryLink" href="/auth/forgot-password">
           ¿Olvidaste tu contraseña?

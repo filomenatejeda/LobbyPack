@@ -114,11 +114,41 @@
   box-shadow: 0 10px 24px rgba(95, 122, 83, 0.24);
 }
 
+.authSSOButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  border: 1px solid rgba(95, 86, 74, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--brown-strong);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+  box-shadow: 0 8px 18px rgba(60, 52, 45, 0.06);
+}
+
 .authPrimaryButton:hover {
   transform: translateY(-1px);
 }
 
+.authSSOButton:hover {
+  transform: translateY(-1px);
+}
+
 .authPrimaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.authSSOButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
