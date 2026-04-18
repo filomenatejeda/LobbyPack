@@ -39,6 +39,14 @@ export function getIssueStatusClassName(issue_status: IssueStatus) {
   return "Resuelto";
 }
 
+export function getIssueStatusOptions() {
+  return [
+    { value: "open", label: "Ingresado" },
+    { value: "under_review", label: "En revisiÃ³n" },
+    { value: "resolved", label: "Resuelto" },
+  ] as const;
+}
+
 export function normalizeSearchText(value: string) {
   return value
     .normalize("NFD")

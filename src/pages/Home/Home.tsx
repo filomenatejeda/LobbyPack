@@ -9,6 +9,7 @@ import {
   createParcel,
   deleteParcel,
   fetchDashboard,
+  updateIssueStatus,
   updateParcel,
 } from "../../services/homeApi";
 import type {
@@ -36,6 +37,7 @@ export default function Home() {
   const [qrScanMessage, setQrScanMessage] = useState("");
   const [isAddPackageOpen, setIsAddPackageOpen] = useState(false);
   const [editingParcel, setEditingParcel] = useState<ParcelItem | null>(null);
+  const [updatingIssueId, setUpdatingIssueId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -265,6 +267,27 @@ export default function Home() {
     setEditingParcel(target);
   };
 
+  const handleIssueStatusChange = async (issueId: string, nextStatus: IssueItem["issue_status"]) => {
+    const currentIssue = issues.find((item) => item.id === issueId);
+    if (!currentIssue || currentIssue.issue_status === nextStatus) {
+      return;
+    }
+
+    setUpdatingIssueId(issueId);
+    setErrorMessage("");
+
+    try {
+      const updatedIssue = await updateIssueStatus(issueId, nextStatus);
+      setIssues((current) =>
+        current.map((item) => (item.id === updatedIssue.id ? updatedIssue : item)),
+      );
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No se pudo actualizar el reclamo.");
+    } finally {
+      setUpdatingIssueId(null);
+    }
+  };
+
   return (
     <main>
       <section className="hero" id="inicio">
@@ -324,6 +347,7 @@ export default function Home() {
               safePage={safePage}
               totalPages={totalPages}
               paginatedComplaints={paginatedComplaints}
+              updatingIssueId={updatingIssueId}
               onSearchChange={(value) => {
                 setSearchTerm(value);
                 setCurrentPage(1);
@@ -334,6 +358,9 @@ export default function Home() {
               }}
               onPrevPage={() => setCurrentPage((page) => Math.max(1, page - 1))}
               onNextPage={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              onIssueStatusChange={(issueId, nextStatus) =>
+                void handleIssueStatusChange(issueId, nextStatus)
+              }
               startIndex={startIndex}
             />
           ) : null}

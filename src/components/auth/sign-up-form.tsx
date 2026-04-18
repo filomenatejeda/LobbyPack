@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { supabase, supabaseConfigError } from "@/lib/client";
@@ -20,6 +20,45 @@ export function SignUpForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [phase, setPhase] = useState<number>(Phase.Email);
 
+  useEffect(() => {
+    let isActive = true;
+
+    const syncSignedInUser = async () => {
+      if (supabaseConfigError) {
+        return;
+      }
+
+      const { data, error: userError } = await supabase.auth.getUser();
+
+      if (!isActive || userError || !data.user?.email) {
+        return;
+      }
+
+      setEmail(data.user.email);
+      setOtpCode("");
+      setPhase(Phase.Password);
+    };
+
+    void syncSignedInUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isActive || !session?.user?.email) {
+        return;
+      }
+
+      setEmail(session.user.email);
+      setOtpCode("");
+      setPhase(Phase.Password);
+    });
+
+    return () => {
+      isActive = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -31,7 +70,12 @@ export function SignUpForm() {
       }
 
       if (phase === Phase.Email) {
-        const signedInWithOtp = await supabase.auth.signInWithOtp({ email });
+        const signedInWithOtp = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/sign-up`,
+          },
+        });
 
         if (signedInWithOtp.error) throw signedInWithOtp.error;
 
@@ -80,7 +124,12 @@ export function SignUpForm() {
         throw new Error(supabaseConfigError);
       }
 
-      const { error: resendError } = await supabase.auth.signInWithOtp({ email });
+      const { error: resendError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/sign-up`,
+        },
+      });
       if (resendError) throw resendError;
     } catch (caughtError: unknown) {
       setError(

@@ -1,6 +1,6 @@
 import { apiRequest } from "../lib/api";
 import type { AddPackageFormValues } from "../components/Home/packageFormTypes";
-import type { HomeDashboardResponse, ParcelItem } from "../types/home";
+import type { HomeDashboardResponse, IssueItem, IssueStatus, ParcelItem } from "../types/home";
 import { buildParcelPayload } from "../utils/packageUtils";
 
 export function fetchDashboard() {
@@ -30,5 +30,12 @@ export function claimParcel(id: string) {
 export function deleteParcel(id: string) {
   return apiRequest<null>(`/api/parcels/${id}`, {
     method: "DELETE",
+  });
+}
+
+export function updateIssueStatus(id: string, issue_status: IssueStatus) {
+  return apiRequest<IssueItem>(`/api/issues/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ issue_status }),
   });
 }

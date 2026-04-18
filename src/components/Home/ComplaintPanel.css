@@ -141,6 +141,57 @@
   color: var(--text);
 }
 
+.complaintActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.complaintStatusField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.complaintStatusField span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.complaintStatusSelect {
+  min-width: 180px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfbf9;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.complaintQuickAction {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--accent);
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+}
+
+.complaintQuickAction:disabled,
+.complaintStatusSelect:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .complaintEmptyState {
   margin-top: 14px;
   font-size: 0.88rem;
@@ -195,6 +246,16 @@
 
   .complaintFooter {
     gap: 12px;
+  }
+
+  .complaintActions {
+    align-items: stretch;
+  }
+
+  .complaintStatusField,
+  .complaintStatusSelect,
+  .complaintQuickAction {
+    width: 100%;
   }
 
   .complaintPagination {

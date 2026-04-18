@@ -1,6 +1,11 @@
 import "./ComplaintPanel.css";
-import type { IssueItem } from "../../types/home";
-import { formatIssueStatus, getIssueStatusClassName } from "../../utils/packageUtils";
+import type { IssueItem, IssueStatus } from "../../types/home";
+import {
+  formatIssueStatus,
+  formatParcelStatus,
+  getIssueStatusClassName,
+  getIssueStatusOptions,
+} from "../../utils/packageUtils";
 
 type ComplaintPanelProps = {
   title: string;
@@ -11,12 +16,16 @@ type ComplaintPanelProps = {
   safePage: number;
   totalPages: number;
   paginatedComplaints: IssueItem[];
+  updatingIssueId: string | null;
   onSearchChange: (value: string) => void;
   onPageSizeChange: (value: number) => void;
   onPrevPage: () => void;
   onNextPage: () => void;
+  onIssueStatusChange: (issueId: string, nextStatus: IssueStatus) => void;
   startIndex: number;
 };
+
+const issueStatusOptions = getIssueStatusOptions();
 
 export default function ComplaintPanel({
   title,
@@ -27,10 +36,12 @@ export default function ComplaintPanel({
   safePage,
   totalPages,
   paginatedComplaints,
+  updatingIssueId,
   onSearchChange,
   onPageSizeChange,
   onPrevPage,
   onNextPage,
+  onIssueStatusChange,
   startIndex,
 }: ComplaintPanelProps) {
   return (
@@ -66,45 +77,90 @@ export default function ComplaintPanel({
               type="search"
               value={searchTerm}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Busca por nombre, número de paquete o reclamo"
+              placeholder="Busca por nombre, nÃºmero de paquete o reclamo"
             />
           </div>
         </label>
       </div>
 
       <p className="complaintResultsText">
-        {filteredCount} reclamo{filteredCount === 1 ? "" : "s"} en total · página {safePage} de{" "}
+        {filteredCount} reclamo{filteredCount === 1 ? "" : "s"} en total Â· pÃ¡gina {safePage} de{" "}
         {totalPages}
       </p>
 
       <ul className="complaintList">
-        {paginatedComplaints.map((item) => (
-          <li key={item.id} className="complaintItem">
-            <div className="complaintMeta">
-              <strong>{item.resident_name}</strong>
-              <span>{item.id_parcel}</span>
-              <span>
-                {new Date(item.created_at).toLocaleDateString("es-CL", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </span>
+        {paginatedComplaints.map((item) => {
+          const isUpdating = updatingIssueId === item.id;
 
-              <span
-                className={`complaintBadge complaintBadge${getIssueStatusClassName(item.issue_status)}`}
-              >
-                {formatIssueStatus(item.issue_status)}
-              </span>
-            </div>
+          return (
+            <li key={item.id} className="complaintItem">
+              <div className="complaintMeta">
+                <strong>{item.resident_name}</strong>
+                <span>{item.id_parcel}</span>
+                <span>{item.department_address}</span>
+                <span>{item.business_name}</span>
+                <span>{formatParcelStatus(item.parcel_status)}</span>
+                <span>
+                  {new Date(item.created_at).toLocaleDateString("es-CL", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </span>
 
-            <p className="complaintText">{item.issue_description}</p>
-          </li>
-        ))}
+                <span
+                  className={`complaintBadge complaintBadge${getIssueStatusClassName(item.issue_status)}`}
+                >
+                  {formatIssueStatus(item.issue_status)}
+                </span>
+              </div>
+
+              <p className="complaintText">{item.issue_description}</p>
+
+              <div className="complaintActions">
+                <label className="complaintStatusField">
+                  <span>Estado</span>
+                  <select
+                    className="complaintStatusSelect"
+                    value={item.issue_status}
+                    onChange={(event) =>
+                      onIssueStatusChange(item.id, event.target.value as IssueStatus)
+                    }
+                    disabled={isUpdating}
+                  >
+                    {issueStatusOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <button
+                  type="button"
+                  className="complaintQuickAction"
+                  onClick={() =>
+                    onIssueStatusChange(
+                      item.id,
+                      item.issue_status === "resolved" ? "under_review" : "resolved",
+                    )
+                  }
+                  disabled={isUpdating}
+                >
+                  {isUpdating
+                    ? "Guardando..."
+                    : item.issue_status === "resolved"
+                      ? "Reabrir revisiÃ³n"
+                      : "Marcar resuelto"}
+                </button>
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       {filteredCount === 0 ? (
-        <p className="complaintEmptyState">No hay reclamos que coincidan con la búsqueda.</p>
+        <p className="complaintEmptyState">No hay reclamos que coincidan con la bÃºsqueda.</p>
       ) : (
         <div className="complaintFooter">
           <label className="complaintPageSizeField">

@@ -12,8 +12,8 @@ export const supabaseConfigError =
     : null;
 
 export const supabase = createClient(
-  supabaseConfigError ? "https://placeholder.supabase.co" : supabaseUrl,
+  supabaseConfigError ? "https://placeholder.supabase.co" : (supabaseUrl ?? ""),
   supabaseConfigError
     ? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder.signature"
-    : supabasePublishableKey,
+    : (supabasePublishableKey ?? ""),
 );

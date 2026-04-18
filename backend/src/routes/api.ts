@@ -33,6 +33,9 @@ type IssueRow = RowDataPacket & {
   issue_description: string;
   created_at: string;
   resident_name: string;
+  parcel_status: "pending" | "claimed";
+  department_address: string;
+  business_name: string;
 };
 
 type TeamRow = RowDataPacket & {
@@ -90,6 +93,14 @@ const preferenceSettingsSchema = t.Object({
   package_notifications: t.Boolean(),
   daily_summary: t.Boolean(),
   qr_access: t.Boolean(),
+});
+
+const issueStatusSchema = t.Object({
+  issue_status: t.Union([
+    t.Literal("open"),
+    t.Literal("under_review"),
+    t.Literal("resolved"),
+  ]),
 });
 
 const towersSchema = t.Array(
@@ -301,10 +312,14 @@ async function listIssues() {
         i.issue_status,
         i.issue_description,
         i.created_at,
-        r.resident_name
+        r.resident_name,
+        p.parcel_status,
+        r.department_address,
+        b.business_name
       FROM Issues i
       INNER JOIN Parcels p ON p.id = i.id_parcel
       INNER JOIN Residents r ON r.user_id = p.id_resident
+      INNER JOIN Businesses b ON b.id = p.id_business
       ORDER BY i.created_at DESC
     `,
   );
@@ -313,6 +328,8 @@ async function listIssues() {
     ...row,
     issue_description: repairPotentialMojibake(row.issue_description),
     resident_name: repairPotentialMojibake(row.resident_name),
+    department_address: repairPotentialMojibake(row.department_address),
+    business_name: repairPotentialMojibake(row.business_name),
   }));
 }
 
@@ -692,6 +709,36 @@ export const api = new Elysia({ prefix: "/api" })
     return null;
   })
   .get("/issues", async () => listIssues())
+  .patch("/issues/:id", async ({ params, body, set }) => {
+    const [issues] = await pool.query<RowDataPacket[]>(
+      `
+        SELECT id
+        FROM Issues
+        WHERE id = ?
+        LIMIT 1
+      `,
+      [params.id],
+    );
+
+    if (issues.length === 0) {
+      set.status = 404;
+      return { message: "Issue not found" };
+    }
+
+    await pool.query(
+      `
+        UPDATE Issues
+        SET issue_status = ?
+        WHERE id = ?
+      `,
+      [body.issue_status, params.id],
+    );
+
+    const updatedIssues = await listIssues();
+    return updatedIssues.find((issue) => issue.id === params.id);
+  }, {
+    body: issueStatusSchema,
+  })
   .get("/settings", async () => getSettingsPayload())
   .put("/settings/general", async ({ body }) => {
     await pool.query(
