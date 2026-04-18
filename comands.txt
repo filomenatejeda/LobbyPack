@@ -10,3 +10,6 @@ docker compose volumes
 Iniciar Docker
 docker compose down
 docker compose up --build
+
+Alotamgon@gmail.com
+test1234
