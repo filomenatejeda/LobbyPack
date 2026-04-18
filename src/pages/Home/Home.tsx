@@ -140,9 +140,9 @@ export default function Home() {
     if (apartment === null) return;
     const residentName = window.prompt("Nombre", target.residentName);
     if (residentName === null) return;
-    const phone = window.prompt("Telefono", target.phone);
+    const phone = window.prompt("Teléfono", target.phone);
     if (phone === null) return;
-    const company = window.prompt("Compania", target.company);
+    const company = window.prompt("Compañía", target.company);
     if (company === null) return;
     const concierge = window.prompt("Conserje", target.concierge);
     if (concierge === null) return;
@@ -261,7 +261,7 @@ export default function Home() {
       }
 
       movePackageToPickedUp(packageId);
-      setQrScanMessage(`Paquete ${packageId} movido a Retiro.`);
+      setQrScanMessage(`Paquete ${packageId} movido a retiro.`);
       setActiveView("pickedUp");
       setCurrentPage(1);
       setTimeout(() => closeQrModal(), 900);
@@ -292,7 +292,7 @@ export default function Home() {
       {/* Hero principal con el selector de vista y la tabla correspondiente. */}
       <section className="hero" id="inicio">
         <div className="main">
-          <p className="eyebrow">Gestion de paquetes</p>
+          <p className="eyebrow">Gestión de paquetes</p>
           <h1>
             <span className="titlePrimary">Lobby</span>
             <span className="titleAccent">Pack</span>
@@ -302,7 +302,7 @@ export default function Home() {
           </p>
 
           {/* Cambia entre las tres secciones principales reiniciando la paginación. */}
-          <div className="serviceToggle" aria-label="Selecciona recepcion o retiro">
+          <div className="serviceToggle" aria-label="Selecciona recepción o retiro">
             <button
               type="button"
               className={activeView === "received" ? "toggleButton active" : "toggleButton"}
@@ -311,7 +311,7 @@ export default function Home() {
                 setCurrentPage(1);
               }}
             >
-              Recepcion
+              Recepción
             </button>
             <button
               type="button"
@@ -359,7 +359,6 @@ export default function Home() {
               startIndex={startIndex}
             />
           ) : (
-            // En caso contrario se muestra la tabla de paquetes recepcionados o retirados.
             <PackagePanel
               title={currentPackageView?.title ?? "Paquetes"}
               searchTerm={searchTerm}

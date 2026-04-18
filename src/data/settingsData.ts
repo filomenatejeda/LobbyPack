@@ -8,19 +8,19 @@ export const preferenceItems: PreferenceItem[] = [
   },
   {
     title: "Resumen diario",
-    description: "Genera un reporte automatico con la actividad del dia para conserjeria.",
+    description: "Genera un reporte automático con la actividad del día para conserjería.",
   },
   {
     title: "Acceso con QR",
-    description: "Permite validar retiros de paquetes usando codigo QR desde recepcion.",
+    description: "Permite validar retiros de paquetes usando código QR desde recepción.",
   },
 ];
 
 // Lista de equipo demo mostrada en la sección de permisos.
 export const teamItems: TeamItem[] = [
-  { name: "Marcos Silva", role: "Conserje turno manana", status: "Activo" },
+  { name: "Marcos Silva", role: "Conserje turno mañana", status: "Activo" },
   { name: "Daniela Riquelme", role: "Conserje turno tarde", status: "Activo" },
-  { name: "Paula Muñoz", role: "Supervisora recepcion", status: "Admin" },
+  { name: "Paula Muñoz", role: "Supervisora de recepción", status: "Admin" },
 ];
 
 // Estructura inicial del edificio mostrada en las tarjetas editables de torres.

@@ -1,3 +1,4 @@
+// Panel para mostrar la lista de paquetes, con herramientas para buscar, seleccionar, editar y borrar paquetes. Incluye paginación y muestra el número total de paquetes y los seleccionados.
 import "./PackagePanel.css";
 import PackageRow from "./PackageRow";
 import type { PackageItem, PackageServiceView } from "../../types/home";
@@ -87,7 +88,7 @@ export default function PackagePanel(props: PackagePanelProps) {
               type="search"
               value={searchTerm}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Busca por codigo, nombre, depto o compania"
+              placeholder="Busca por código, nombre, depto. o compañía"
             />
           </div>
         </label>
@@ -173,7 +174,7 @@ export default function PackagePanel(props: PackagePanelProps) {
       </div>
 
       <p className="resultsText">
-        {filteredCount} paquete{filteredCount === 1 ? "" : "s"} en total · pagina {safePage} de{" "}
+        {filteredCount} paquete{filteredCount === 1 ? "" : "s"} en total · página {safePage} de{" "}
         {totalPages} · {selectedVisibleCount} seleccionado{selectedVisibleCount === 1 ? "" : "s"}
       </p>
 
@@ -193,7 +194,7 @@ export default function PackagePanel(props: PackagePanelProps) {
       </ul>
 
       {filteredCount === 0 ? (
-        <p className="emptyState">No hay paquetes que coincidan con la busqueda.</p>
+        <p className="emptyState">No hay paquetes que coincidan con la búsqueda.</p>
       ) : (
         <div className="panelFooter">
           <label className="pageSizeField">

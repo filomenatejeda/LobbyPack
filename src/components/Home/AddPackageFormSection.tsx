@@ -1,3 +1,7 @@
+// Formulario para agregar un nuevo paquete, con campos para departamento, 
+// nombre del residente, compañía de envío, teléfono y conserje. Incluye botones para 
+// cancelar o guardar el paquete.
+
 import type { AddPackageFormValues } from "./addPackageTypes";
 
 type AddPackageFormSectionProps = {
@@ -39,7 +43,7 @@ export default function AddPackageFormSection({
         </label>
 
         <label className="addPackageField">
-          <span>Compania</span>
+          <span>Compañía</span>
           <input
             type="text"
             value={values.company}
@@ -49,7 +53,7 @@ export default function AddPackageFormSection({
         </label>
 
         <label className="addPackageField">
-          <span>Telefono</span>
+          <span>Teléfono</span>
           <input
             type="tel"
             value={values.phone}

@@ -1,3 +1,6 @@
+// Modal para agregar un nuevo paquete, con un formulario que 
+// incluye campos para departamento,
+
 import { useState } from "react";
 import AddPackageFormSection from "./AddPackageFormSection";
 import type { AddPackageFormValues } from "./addPackageTypes";

@@ -49,7 +49,7 @@ export default function TowerCard({
             className="secondaryButton"
             onClick={() => onToggleEditing(tower.id)}
           >
-            {tower.isEditing ? "Cerrar edicion" : "Editar"}
+            {tower.isEditing ? "Cerrar edición" : "Editar"}
           </button>
           <button
             type="button"

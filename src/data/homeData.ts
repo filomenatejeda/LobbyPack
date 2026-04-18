@@ -129,7 +129,7 @@ const complaintsBase: ComplaintItem[] = [
     residentName: "Camila Rojas",
     packageNumber: "REC-0001",
     complaint:
-      "Indica que el paquete figura como recepcionado, pero aun no estaba disponible en conserjeria al momento de consultarlo.",
+      "Indica que el paquete figura como recepcionado, pero aún no estaba disponible en conserjería al momento de consultarlo.",
     date: "28 Mar 2026",
     status: "Submitted",
     id: "RCL-0001",
@@ -138,7 +138,7 @@ const complaintsBase: ComplaintItem[] = [
     residentName: "Valentina Diaz",
     packageNumber: "REC-0008",
     complaint:
-      "Solicita revision porque el numero de departamento asociado al paquete no coincide con su entrega habitual.",
+      "Solicita revisión porque el número de departamento asociado al paquete no coincide con su entrega habitual.",
     date: "28 Mar 2026",
     status: "InReview",
     id: "RCL-0002",
@@ -156,7 +156,7 @@ const complaintsBase: ComplaintItem[] = [
     residentName: "Antonia Mella",
     packageNumber: "REC-0021",
     complaint:
-      "Menciona demora en el aviso de llegada y pide dejar constancia para proximas entregas.",
+      "Menciona demora en el aviso de llegada y pide dejar constancia para próximas entregas.",
     date: "28 Mar 2026",
     status: "Submitted",
     id: "RCL-0004",
@@ -165,7 +165,7 @@ const complaintsBase: ComplaintItem[] = [
     residentName: "Sofia Araya",
     packageNumber: "RET-0009",
     complaint:
-      "Solicita confirmar quien retiro el paquete porque no reconoce la firma registrada en recepcion.",
+      "Solicita confirmar quién retiró el paquete porque no reconoce la firma registrada en recepción.",
     date: "28 Mar 2026",
     status: "InReview",
     id: "RCL-0005",

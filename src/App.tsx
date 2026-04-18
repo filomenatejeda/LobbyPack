@@ -27,7 +27,7 @@ export default function App() {
       {currentPage === "settings" ? <Settings /> : <Home />}
       <footer className="siteFooter">
         <p>© 2026 LobbyPack. Todos los derechos reservados.</p>
-        <span>Gestion de recepcion y retiro de paquetes.</span>
+        <span>Gestión de recepción y retiro de paquetes.</span>
       </footer>
     </div>
   );

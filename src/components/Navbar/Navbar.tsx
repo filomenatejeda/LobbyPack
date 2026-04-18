@@ -19,7 +19,7 @@ export default function Navbar() {
           <button
             type="button"
             className="menuToggle"
-            aria-label={isMenuOpen ? "Cerrar menu" : "Abrir menu"}
+            aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen((current) => !current)}
           >
@@ -61,7 +61,7 @@ export default function Navbar() {
             <button
               type="button"
               className="menuToggle"
-              aria-label="Cerrar menu"
+              aria-label="Cerrar menú"
               onClick={() => setIsMenuOpen(false)}
             >
               <span />

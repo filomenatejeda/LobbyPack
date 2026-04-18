@@ -183,10 +183,10 @@ export default function Settings() {
   return (
     <main className="settingsPage">
       <section className="settingsHero">
-        <p className="settingsEyebrow">Configuracion general</p>
+        <p className="settingsEyebrow">Configuración general</p>
         <h1>Configura LobbyPack a tu manera</h1>
         <p className="settingsLead">
-          Ajusta notificaciones, recepcion de paquetes y permisos del equipo desde un solo
+          Ajusta notificaciones, recepción de paquetes y permisos del equipo desde un solo
           panel.
         </p>
       </section>
@@ -211,15 +211,15 @@ export default function Settings() {
               <input type="email" defaultValue="recepcion@lobbypack.cl" />
             </label>
             <label className="settingsField">
-              <span>Horario de recepcion</span>
+              <span>Horario de recepción</span>
               <input type="text" defaultValue="08:00 a 22:00" />
             </label>
             <label className="settingsField">
-              <span>Direccion</span>
+              <span>Dirección</span>
               <input type="text" defaultValue="Av. Plaza Sur 245, Santiago" />
             </label>
             <label className="settingsField">
-              <span>Contrasena</span>
+              <span>Contraseña</span>
               <input type="password" defaultValue="1234" />
             </label>
           </div>

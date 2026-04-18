@@ -2,7 +2,7 @@ import "./PackageRow.css";
 import type { PackageItem, PackageServiceView } from "../../types/home";
 
 const packageStatusMeta = {
-  Received: { label: "Recepcion", className: "Recepcion" },
+  Received: { label: "Recepción", className: "Recepcion" },
   PickedUp: { label: "Retiro", className: "Retiro" },
 } as const;
 
@@ -153,12 +153,12 @@ export default function PackageRow({
           <dd>{item.residentName}</dd>
         </div>
         <div>
-          <dt>Compania</dt>
+          <dt>Compañía</dt>
           <dd>{item.company}</dd>
         </div>
         <div>
-          <dt>Telefono</dt>
-          <dd>{item.phone || "Sin numero"}</dd>
+          <dt>Teléfono</dt>
+          <dd>{item.phone || "Sin número"}</dd>
         </div>
         <div>
           <dt>Conserje</dt>

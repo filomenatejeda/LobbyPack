@@ -52,7 +52,7 @@ export default function QrModal({
         </div>
 
         <p className="qrHint">
-          Este codigo QR identifica el paquete y puede usarse para marcarlo como retirado.
+          Este código QR identifica el paquete y puede usarse para marcarlo como retirado.
         </p>
 
         <button
