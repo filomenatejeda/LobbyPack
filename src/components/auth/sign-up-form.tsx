@@ -36,7 +36,7 @@ export function SignUpForm() {
       setMfaQrCode("");
       setMfaSecret("");
       setPhase(Phase.Password);
-      console.log("PASSWORD")
+      // console.log("PASSWORD")
       return;
     }
 
@@ -52,7 +52,7 @@ export function SignUpForm() {
     setMfaUri(enrolledFactor.data.totp.uri);
     setMfaSecret(enrolledFactor.data.totp.secret);
     setMfaCode("");
-    console.log("MFA")
+    // console.log("MFA")
     setPhase(Phase.MFA);
   };
 
