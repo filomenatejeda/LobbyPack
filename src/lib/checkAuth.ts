@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/client";
+import { isGoogleSSOUser } from "@/lib/auth-provider";
 
 export default function useCheckIfAuth() {
   const navigate = useNavigate();
@@ -18,8 +19,7 @@ export default function useCheckIfAuth() {
 
       const user = userResponse.data.user;
       const hasUser = Boolean(user) && !userResponse.error;
-      const provider = user?.app_metadata?.provider;
-      const usedGoogleSSO = provider === "google";
+      const usedGoogleSSO = isGoogleSSOUser(user);
       const hasVerifiedSession = assuranceResponse.data?.currentLevel === "aal2";
 
       if (!hasUser) {

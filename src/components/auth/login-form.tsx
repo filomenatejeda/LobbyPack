@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 
 import { supabase, supabaseConfigError } from "@/lib/client";
+import { isGoogleSSOUser } from "@/lib/auth-provider";
 import "./login-form.css";
 
 const Phase = {
@@ -39,7 +40,7 @@ export function LoginForm() {
         return;
       }
 
-      const usedGoogleSSO = userData.user.app_metadata?.provider === "google";
+      const usedGoogleSSO = isGoogleSSOUser(userData.user);
 
       if (usedGoogleSSO || assuranceResponse.data?.currentLevel === "aal2") {
         navigate("/dashboard", { replace: true });
