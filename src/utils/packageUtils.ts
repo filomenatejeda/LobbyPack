@@ -42,9 +42,21 @@ export function getIssueStatusClassName(issue_status: IssueStatus) {
 export function getIssueStatusOptions() {
   return [
     { value: "open", label: "Ingresado" },
-    { value: "under_review", label: "En revisiÃ³n" },
+    { value: "under_review", label: "En revisión" },
     { value: "resolved", label: "Resuelto" },
   ] as const;
+}
+
+export function getQuickIssueStatus(issue_status: IssueStatus): IssueStatus {
+  if (issue_status === "open") return "under_review";
+  if (issue_status === "under_review") return "resolved";
+  return "under_review";
+}
+
+export function getQuickIssueStatusLabel(issue_status: IssueStatus) {
+  if (issue_status === "open") return "Pasar a En revisión";
+  if (issue_status === "under_review") return "Marcar resuelto";
+  return "Volver a En revisión";
 }
 
 export function normalizeSearchText(value: string) {

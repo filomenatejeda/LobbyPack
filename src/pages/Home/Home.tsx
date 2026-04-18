@@ -18,7 +18,7 @@ import type {
   ParcelItem,
   ServiceView,
 } from "../../types/home";
-import { normalizeSearchText, pageSizeOptions } from "../../utils/packageUtils";
+import { formatIssueStatus, normalizeSearchText, pageSizeOptions } from "../../utils/packageUtils";
 import "./Home.css";
 
 export default function Home() {
@@ -78,6 +78,7 @@ export default function Home() {
         item.issue_description,
         item.created_at,
         item.issue_status,
+        formatIssueStatus(item.issue_status),
       ].join(" "),
     );
 

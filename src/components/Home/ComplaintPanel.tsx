@@ -5,6 +5,8 @@ import {
   formatParcelStatus,
   getIssueStatusClassName,
   getIssueStatusOptions,
+  getQuickIssueStatus,
+  getQuickIssueStatusLabel,
 } from "../../utils/packageUtils";
 
 type ComplaintPanelProps = {
@@ -77,14 +79,14 @@ export default function ComplaintPanel({
               type="search"
               value={searchTerm}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Busca por nombre, nÃºmero de paquete o reclamo"
+              placeholder="Busca por nombre, número de paquete o reclamo"
             />
           </div>
         </label>
       </div>
 
       <p className="complaintResultsText">
-        {filteredCount} reclamo{filteredCount === 1 ? "" : "s"} en total Â· pÃ¡gina {safePage} de{" "}
+        {filteredCount} reclamo{filteredCount === 1 ? "" : "s"} en total · página {safePage} de{" "}
         {totalPages}
       </p>
 
@@ -139,19 +141,10 @@ export default function ComplaintPanel({
                 <button
                   type="button"
                   className="complaintQuickAction"
-                  onClick={() =>
-                    onIssueStatusChange(
-                      item.id,
-                      item.issue_status === "resolved" ? "under_review" : "resolved",
-                    )
-                  }
+                  onClick={() => onIssueStatusChange(item.id, getQuickIssueStatus(item.issue_status))}
                   disabled={isUpdating}
                 >
-                  {isUpdating
-                    ? "Guardando..."
-                    : item.issue_status === "resolved"
-                      ? "Reabrir revisiÃ³n"
-                      : "Marcar resuelto"}
+                  {isUpdating ? "Guardando..." : getQuickIssueStatusLabel(item.issue_status)}
                 </button>
               </div>
             </li>
@@ -160,7 +153,7 @@ export default function ComplaintPanel({
       </ul>
 
       {filteredCount === 0 ? (
-        <p className="complaintEmptyState">No hay reclamos que coincidan con la bÃºsqueda.</p>
+        <p className="complaintEmptyState">No hay reclamos que coincidan con la búsqueda.</p>
       ) : (
         <div className="complaintFooter">
           <label className="complaintPageSizeField">
