@@ -201,6 +201,43 @@
   text-decoration: underline;
 }
 
+.authMfaPanel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(95, 86, 74, 0.12);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.authMfaQrBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 212px;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.authMfaInfo {
+  display: grid;
+  gap: 10px;
+}
+
+.authMfaText,
+.authMfaSecret,
+.authMfaFallback {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
+
+.authMfaSecret strong {
+  color: var(--brown-strong);
+  word-break: break-all;
+}
+
 @media (max-width: 768px) {
   .authCard {
     border-radius: 24px;
