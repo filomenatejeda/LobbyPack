@@ -54,6 +54,7 @@ export default function Landing() {
             Controla la recepción y el retiro de paquetes sin perder el orden del día.
           </p>
 
+
           <div className="landingActions">
             <Link to="/auth/login" className="landingPrimaryButton">
               Iniciar sesión
@@ -61,12 +62,12 @@ export default function Landing() {
             <Link to="/auth/sign-up" className="landingSecondaryButton">
               Crear cuenta
             </Link>
+
           </div>
                     <p className="landingLead landingLeadSecondary">
             Una plataforma simple para conserjería y recepción, pensada para registrar entregas,
             validar retiros y revisar incidencias desde un mismo lugar.
           </p>
-
         </div>
       </section>
 

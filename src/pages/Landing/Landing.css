@@ -12,10 +12,10 @@
   left: 0;
   width: 100%;
   z-index: 30;
-  border-bottom: 1px solid rgba(96, 62, 33, 0.12);
-  background: rgba(255, 252, 246, 0.92);
+  border-bottom: 1px solid rgba(96, 62, 33, 0.18);
+  background: rgba(111, 134, 74, 0.96);
   backdrop-filter: blur(16px);
-  box-shadow: 0 10px 28px rgba(96, 62, 33, 0.08);
+  box-shadow: 0 10px 28px rgba(76, 92, 44, 0.22);
 }
 
 .landingTopNavInner {
@@ -24,6 +24,16 @@
   justify-content: space-between;
   gap: 16px;
   min-height: 72px;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.landingTopNav .landingContainer {
+  width: 100%;
+  max-width: none;
+  padding-left: 12px;
+  padding-right: 16px;
 }
 
 .landingBrand {
@@ -34,11 +44,11 @@
 }
 
 .landingBrandLobby {
-  color: #603e21;
+  color: #f4ead8;
 }
 
 .landingBrandPack {
-  color: #7c8033;
+  color: #2f3d18;
 }
 
 .landingTopNavLinks {
@@ -70,7 +80,7 @@
   min-height: 34px;
   padding: 0 14px;
   border-radius: 999px;
-  color: var(--brown-strong);
+  color: #ffffff;
   font-size: 0.92rem;
   font-weight: 700;
   text-decoration: none;
@@ -81,8 +91,8 @@
 }
 
 .landingQuickNavLink:hover {
-  background: rgba(124, 128, 51, 0.12);
-  color: var(--accent-strong);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
   transform: translateY(-1px);
 }
 
@@ -152,9 +162,9 @@
 }
 
 .landingSecondaryButton {
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.8);
-  color: var(--brown-strong);
+  border: 1px solid rgba(96, 62, 33, 0.12);
+  background: rgba(129, 150, 91, 0.96);
+  color: #ffffff;
 }
 
 .landingPrimaryButton:hover,
@@ -524,4 +534,5 @@
     border-radius: 26px;
   }
 }
+
 
