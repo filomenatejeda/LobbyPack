@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
+import logo from "../../assets/Logo1.png";
 import "./Landing.css";
 
 const features = [
@@ -19,20 +20,43 @@ const features = [
   },
 ];
 
+const audience = ["Conserjería", "Recepción", "Edificios", "Condominios"];
+const miniBenefits = ["Registro rápido", "Historial de retiros", "Seguimiento claro", "Menos errores"];
+
 export default function Landing() {
   return (
     <main className="landingPage">
-      <section className="landingHero">
-        <div className="landingContainer">
+      <nav className="landingTopNav" aria-label="Navegación de la portada">
+        <div className="landingContainer landingTopNavInner">
+          <a href="#inicio" className="landingBrand">
+            <span className="landingBrandLobby">Lobby</span>
+            <span className="landingBrandPack">Pack</span>
+          </a>
+          <div className="landingTopNavLinks">
+            <a href="#inicio" className="landingQuickNavLink">
+              Inicio
+            </a>
+            <a href="#funciones" className="landingQuickNavLink">
+              Funciones
+            </a>
+            <a href="#como-funciona" className="landingQuickNavLink">
+              Cómo funciona
+            </a>
+            <a href="#acceso" className="landingQuickNavLink">
+              Acceso
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <section className="landingHero" id="inicio">
+        <div className="landingContainer landingHeroContent">
+          <img src={logo} alt="LobbyPack" className="landingLogoHero" />
           <p className="landingEyebrow">Gestión de paquetería para edificios</p>
-          <h1 className="landingTitle">
-            <span className="landingTitlePrimary">Lobby</span>
-            <span className="landingTitleAccent">Pack</span>
-          </h1>
-          <p className="landingLead">
-            Organiza la recepción, el retiro y el seguimiento de paquetes desde una plataforma
-            simple para conserjería, recepción o cabina de control.
+          <p className="landingLead landingLeadStrong">
+            Controla la recepción y retiro de paquetes de tu edificio en un solo lugar.
           </p>
+
 
           <div className="landingActions">
             <Link to="/auth/login" className="landingPrimaryButton">
@@ -42,25 +66,106 @@ export default function Landing() {
               Crear cuenta
             </Link>
           </div>
+
+          <div className="landingMetaRow">
+            <div className="landingTagGroup" aria-label="Pensado para">
+              {audience.map((item) => (
+                <span key={item} className="landingTag">
+                  {item}
+                </span>
+              ))}
+            </div>
+            <div className="landingBenefitInline" aria-label="Beneficios principales">
+              {miniBenefits.map((item) => (
+                <span key={item} className="landingBenefitChip">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="landingSection">
+      <section className="landingSection landingShowcaseSection">
+        <div className="landingContainer landingShowcaseGrid">
+          <div>
+            <p className="landingEyebrow">Vista del sistema</p>
+            <h2 className="landingShowcaseTitle">Una vista simple para saber qué llegó, qué sigue pendiente y qué ya fue retirado.</h2>
+            <p className="landingShowcaseText">
+              LobbyPack ordena la operación diaria con una vista rápida de paquetes, estados y
+              acciones frecuentes, para que el equipo responda mejor sin perder tiempo.
+            </p>
+          </div>
+
+          <div className="landingMockup" aria-hidden="true">
+            <div className="landingMockupHeader">
+              <span className="landingMockupDot" />
+              <span className="landingMockupDot" />
+              <span className="landingMockupDot" />
+            </div>
+            <div className="landingMockupBody">
+              <aside className="landingMockupSidebar">
+                <span className="landingMockupSidebarItem landingMockupSidebarItemActive">Paquetes</span>
+                <span className="landingMockupSidebarItem">Pendientes</span>
+                <span className="landingMockupSidebarItem">Retirados</span>
+                <span className="landingMockupSidebarItem">Incidencias</span>
+              </aside>
+              <div className="landingMockupContent">
+                <div className="landingMockupStats">
+                  <div className="landingMockupStatCard">
+                    <strong>18</strong>
+                    <span>recibidos hoy</span>
+                  </div>
+                  <div className="landingMockupStatCard">
+                    <strong>6</strong>
+                    <span>pendientes</span>
+                  </div>
+                  <div className="landingMockupStatCard">
+                    <strong>12</strong>
+                    <span>retirados</span>
+                  </div>
+                </div>
+                <div className="landingMockupList">
+                  <div className="landingMockupRow">
+                    <span>Torre B · 1204</span>
+                    <span className="landingMockupBadge landingMockupBadgePending">Pendiente</span>
+                  </div>
+                  <div className="landingMockupRow">
+                    <span>Condominio Norte · 302</span>
+                    <span className="landingMockupBadge landingMockupBadgeDone">Retirado</span>
+                  </div>
+                  <div className="landingMockupRow">
+                    <span>Edificio Central · 908</span>
+                    <span className="landingMockupBadge landingMockupBadgePending">Pendiente</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="landingSection" id="funciones">
         <div className="landingContainer">
-          <div className="landingSectionHeader">
-            <p className="landingEyebrow">Qué hace LobbyPack</p>
-            <h2>Una herramienta para trabajar con menos desorden</h2>
+          <div className="landingSectionHeader landingSectionHeaderWide">
+            <div>
+              <p className="landingEyebrow">Qué hace LobbyPack</p>
+              <h2>Una herramienta para trabajar con menos desorden</h2>
+            </div>
             <p>
               Pensada para equipos que necesitan registrar entregas, validar retiros y tener una
               vista clara de lo que está pasando.
             </p>
           </div>
 
-          <div className="landingFeatureList">
-            {features.map((feature) => (
-              <article key={feature.title} className="landingFeatureItem">
-                <h3>{feature.title}</h3>
-                <p>{feature.description}</p>
+          <div className="landingFeatureFlow">
+            {features.map((feature, index) => (
+              <article key={feature.title} className={`landingFeatureBand landingFeatureBand${index + 1}`}>
+                <span className="landingFeatureIndex">0{index + 1}</span>
+                <div>
+                  <h3>{feature.title}</h3>
+                  <p>{feature.description}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -68,9 +173,10 @@ export default function Landing() {
       </section>
 
       <section className="landingSection landingSectionMuted">
-        <div className="landingContainer landingInfoGrid">
-          <article className="landingInfoCard">
-            <h2>Cómo funciona</h2>
+        <div className="landingContainer landingStoryGrid">
+          <article className="landingStoryBlock landingStoryPrimary" id="como-funciona">
+            <p className="landingEyebrow">Cómo funciona</p>
+            <h2>Un flujo simple desde que el paquete llega hasta que se retira.</h2>
             <ol className="landingSteps">
               <li>Registras un paquete cuando llega.</li>
               <li>Queda listado como pendiente.</li>
@@ -79,10 +185,12 @@ export default function Landing() {
             </ol>
           </article>
 
-          <article className="landingInfoCard">
-            <h2>Acceso al sistema</h2>
+          <article className="landingStoryBlock landingStorySecondary" id="acceso">
+            <p className="landingEyebrow">Acceso</p>
+            <h2>La portada explica el sistema y el dashboard se mantiene protegido.</h2>
             <p>
-              La portada es pública para explicar el sistema, pero el dashboard sigue protegido.
+              Muestras la propuesta de valor sin exponer la operación interna del edificio o la
+              comunidad.
             </p>
             <div className="landingMiniActions">
               <Link to="/auth/login" className="landingTextLink">
