@@ -20,9 +20,6 @@ const features = [
   },
 ];
 
-const audience = ["Conserjería", "Recepción", "Edificios", "Condominios"];
-const miniBenefits = ["Registro rápido", "Historial de retiros", "Seguimiento claro", "Menos errores"];
-
 export default function Landing() {
   return (
     <main className="landingPage">
@@ -54,9 +51,8 @@ export default function Landing() {
           <img src={logo} alt="LobbyPack" className="landingLogoHero" />
           <p className="landingEyebrow">Gestión de paquetería para edificios</p>
           <p className="landingLead landingLeadStrong">
-            Controla la recepción y retiro de paquetes de tu edificio en un solo lugar.
+            Controla la recepción y el retiro de paquetes sin perder el orden del día.
           </p>
-
 
           <div className="landingActions">
             <Link to="/auth/login" className="landingPrimaryButton">
@@ -66,23 +62,11 @@ export default function Landing() {
               Crear cuenta
             </Link>
           </div>
+                    <p className="landingLead landingLeadSecondary">
+            Una plataforma simple para conserjería y recepción, pensada para registrar entregas,
+            validar retiros y revisar incidencias desde un mismo lugar.
+          </p>
 
-          <div className="landingMetaRow">
-            <div className="landingTagGroup" aria-label="Pensado para">
-              {audience.map((item) => (
-                <span key={item} className="landingTag">
-                  {item}
-                </span>
-              ))}
-            </div>
-            <div className="landingBenefitInline" aria-label="Beneficios principales">
-              {miniBenefits.map((item) => (
-                <span key={item} className="landingBenefitChip">
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
@@ -90,7 +74,9 @@ export default function Landing() {
         <div className="landingContainer landingShowcaseGrid">
           <div>
             <p className="landingEyebrow">Vista del sistema</p>
-            <h2 className="landingShowcaseTitle">Una vista simple para saber qué llegó, qué sigue pendiente y qué ya fue retirado.</h2>
+            <h2 className="landingShowcaseTitle">
+              Una vista simple para saber qué llegó, qué sigue pendiente y qué ya fue retirado.
+            </h2>
             <p className="landingShowcaseText">
               LobbyPack ordena la operación diaria con una vista rápida de paquetes, estados y
               acciones frecuentes, para que el equipo responda mejor sin perder tiempo.
@@ -105,7 +91,9 @@ export default function Landing() {
             </div>
             <div className="landingMockupBody">
               <aside className="landingMockupSidebar">
-                <span className="landingMockupSidebarItem landingMockupSidebarItemActive">Paquetes</span>
+                <span className="landingMockupSidebarItem landingMockupSidebarItemActive">
+                  Paquetes
+                </span>
                 <span className="landingMockupSidebarItem">Pendientes</span>
                 <span className="landingMockupSidebarItem">Retirados</span>
                 <span className="landingMockupSidebarItem">Incidencias</span>
@@ -160,7 +148,10 @@ export default function Landing() {
 
           <div className="landingFeatureFlow">
             {features.map((feature, index) => (
-              <article key={feature.title} className={`landingFeatureBand landingFeatureBand${index + 1}`}>
+              <article
+                key={feature.title}
+                className={`landingFeatureBand landingFeatureBand${index + 1}`}
+              >
                 <span className="landingFeatureIndex">0{index + 1}</span>
                 <div>
                   <h3>{feature.title}</h3>
