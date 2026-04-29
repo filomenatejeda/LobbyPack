@@ -89,6 +89,23 @@ const generalSettingsSchema = t.Object({
   is_active: t.Boolean(),
 });
 
+const communityRegistrationSchema = t.Object({
+  community_name: t.String({ minLength: 1 }),
+  community_type: t.String({ minLength: 1 }),
+  community_country: t.String({ minLength: 1 }),
+  community_location: t.String({ minLength: 1 }),
+  community_address: t.String({ minLength: 1 }),
+  admin_first_name: t.String({ minLength: 1 }),
+  admin_last_name: t.String({ minLength: 1 }),
+  admin_email: t.String({ minLength: 1 }),
+});
+
+const communityAddressAvailabilitySchema = t.Object({
+  community_country: t.String({ minLength: 1 }),
+  community_location: t.String({ minLength: 1 }),
+  community_address: t.String({ minLength: 1 }),
+});
+
 const preferenceSettingsSchema = t.Object({
   package_notifications: t.Boolean(),
   daily_summary: t.Boolean(),
@@ -117,6 +134,39 @@ const towersSchema = t.Array(
     ),
   }),
 );
+
+function createAddressFingerprint(country: string, location: string, address: string) {
+  return [country, location, address]
+    .map((value) =>
+      normalizeTextInput(value)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}]+/gu, " ")
+        .trim()
+        .replace(/\s+/g, " "),
+    )
+    .join("|");
+}
+
+async function ensureCommunityRegistrationsTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS CommunityRegistrations (
+      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+      community_name VARCHAR(255) NOT NULL,
+      community_type VARCHAR(100) NOT NULL DEFAULT 'Otro',
+      community_country VARCHAR(100) NOT NULL,
+      community_location VARCHAR(255) NOT NULL,
+      community_address VARCHAR(255) NOT NULL,
+      address_fingerprint VARCHAR(512) UNIQUE NOT NULL,
+      admin_first_name VARCHAR(100) NOT NULL,
+      admin_last_name VARCHAR(100) NOT NULL,
+      admin_email VARCHAR(255) UNIQUE NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci
+  `);
+}
 
 async function getOrCreateBusiness(connection: PoolConnection, business_name: string) {
   const normalizedBusinessName = normalizeTextInput(business_name);
@@ -456,6 +506,196 @@ async function getSettingsPayload() {
 }
 
 export const api = new Elysia({ prefix: "/api" })
+  .post("/auth/check-community-address", async ({ body }) => {
+    await ensureCommunityRegistrationsTable();
+
+    const normalizedCountry = normalizeTextInput(body.community_country);
+    const normalizedLocation = normalizeTextInput(body.community_location);
+    const normalizedAddress = normalizeTextInput(body.community_address);
+    const addressFingerprint = createAddressFingerprint(
+      normalizedCountry,
+      normalizedLocation,
+      normalizedAddress,
+    );
+
+    const [existingBuildings] = await pool.query<RowDataPacket[]>(
+      `
+        SELECT address_line
+        FROM Buildings
+      `,
+    );
+
+    const matchingBuilding = existingBuildings.find(
+      (building) =>
+        createAddressFingerprint(normalizedCountry, normalizedLocation, String(building.address_line)) ===
+        addressFingerprint,
+    );
+
+    if (matchingBuilding) {
+      return {
+        available: false,
+        message: "Esta direccion ya tiene una cuenta administradora registrada.",
+      };
+    }
+
+    const [existingRegistrations] = await pool.query<RowDataPacket[]>(
+      `
+        SELECT id
+        FROM CommunityRegistrations
+        WHERE address_fingerprint = ?
+        LIMIT 1
+      `,
+      [addressFingerprint],
+    );
+
+    if (existingRegistrations.length > 0) {
+      return {
+        available: false,
+        message: "Esta direccion ya tiene una cuenta administradora registrada.",
+      };
+    }
+
+    return { available: true, message: "" };
+  }, {
+    body: communityAddressAvailabilitySchema,
+  })
+  .post("/auth/register-community", async ({ body, set }) => {
+    await ensureCommunityRegistrationsTable();
+
+    const normalizedCommunityName = normalizeTextInput(body.community_name);
+    const normalizedCommunityType = normalizeTextInput(body.community_type);
+    const normalizedCountry = normalizeTextInput(body.community_country);
+    const normalizedLocation = normalizeTextInput(body.community_location);
+    const normalizedAddress = normalizeTextInput(body.community_address);
+    const normalizedAdminFirstName = normalizeTextInput(body.admin_first_name);
+    const normalizedAdminLastName = normalizeTextInput(body.admin_last_name);
+    const normalizedAdminEmail = normalizeTextInput(body.admin_email).toLowerCase();
+    const addressFingerprint = createAddressFingerprint(
+      normalizedCountry,
+      normalizedLocation,
+      normalizedAddress,
+    );
+
+    const [existingBuildings] = await pool.query<RowDataPacket[]>(
+      `
+        SELECT contact_email, address_line
+        FROM Buildings
+      `,
+    );
+
+    const matchingBuilding = existingBuildings.find(
+      (building) =>
+        createAddressFingerprint(normalizedCountry, normalizedLocation, String(building.address_line)) ===
+        addressFingerprint,
+    );
+
+    if (
+      matchingBuilding &&
+      String(matchingBuilding.contact_email).toLowerCase() !== normalizedAdminEmail
+    ) {
+      set.status = 409;
+      return {
+        message: "Esta direccion ya tiene una cuenta administradora registrada.",
+      };
+    }
+
+    const [existingRegistrations] = await pool.query<RowDataPacket[]>(
+      `
+        SELECT admin_email, address_fingerprint
+        FROM CommunityRegistrations
+        WHERE address_fingerprint = ?
+           OR LOWER(admin_email) = LOWER(?)
+        LIMIT 1
+      `,
+      [addressFingerprint, normalizedAdminEmail],
+    );
+
+    const existingRegistration = existingRegistrations[0];
+
+    if (
+      existingRegistration &&
+      String(existingRegistration.admin_email).toLowerCase() !== normalizedAdminEmail
+    ) {
+      set.status = 409;
+      return {
+        message: "Esta direccion ya tiene una cuenta administradora registrada.",
+      };
+    }
+
+    if (
+      existingRegistration &&
+      String(existingRegistration.address_fingerprint) !== addressFingerprint
+    ) {
+      set.status = 409;
+      return {
+        message: "Este correo ya esta asociado a otra direccion registrada.",
+      };
+    }
+
+    if (existingRegistration) {
+      await pool.query(
+        `
+          UPDATE CommunityRegistrations
+          SET
+            community_name = ?,
+            community_type = ?,
+            community_country = ?,
+            community_location = ?,
+            community_address = ?,
+            address_fingerprint = ?,
+            admin_first_name = ?,
+            admin_last_name = ?
+          WHERE LOWER(admin_email) = LOWER(?)
+        `,
+        [
+          normalizedCommunityName,
+          normalizedCommunityType,
+          normalizedCountry,
+          normalizedLocation,
+          normalizedAddress,
+          addressFingerprint,
+          normalizedAdminFirstName,
+          normalizedAdminLastName,
+          normalizedAdminEmail,
+        ],
+      );
+
+      return { ok: true };
+    }
+
+    await pool.query(
+      `
+        INSERT INTO CommunityRegistrations (
+          community_name,
+          community_type,
+          community_country,
+          community_location,
+          community_address,
+          address_fingerprint,
+          admin_first_name,
+          admin_last_name,
+          admin_email
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        normalizedCommunityName,
+        normalizedCommunityType,
+        normalizedCountry,
+        normalizedLocation,
+        normalizedAddress,
+        addressFingerprint,
+        normalizedAdminFirstName,
+        normalizedAdminLastName,
+        normalizedAdminEmail,
+      ],
+    );
+
+    set.status = 201;
+    return { ok: true };
+  }, {
+    body: communityRegistrationSchema,
+  })
   .get("/parcels", async ({ query }) => {
     const parcel_status = query.parcel_status === "claimed" ? "claimed" : "pending";
     return listParcels(parcel_status);

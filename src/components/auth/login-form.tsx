@@ -192,6 +192,8 @@ export function LoginForm() {
         return "Error: el código del autenticador no es válido.";
       case "Auth session missing!":
         return "Error: la sesión ha expirado.";
+      case "AAL2 session is required to update email or password when MFA is enabled.":
+        return "Error: debes verificar el código del autenticador antes de actualizar la contraseña.";
       default:
         break;
     }

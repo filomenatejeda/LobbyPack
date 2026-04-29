@@ -11,7 +11,16 @@ export async function apiRequest<T>(path: string, init?: RequestInit) {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `Request failed with status ${response.status}`);
+    let message = text || `Request failed with status ${response.status}`;
+
+    try {
+      const parsed = JSON.parse(text) as { message?: string };
+      message = parsed.message || message;
+    } catch {
+      // Keep the raw response text when the body is not JSON.
+    }
+
+    throw new Error(message);
   }
 
   if (response.status === 204) {

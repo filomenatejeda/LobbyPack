@@ -38,6 +38,8 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
     switch (error) {
       case ("email rate limit exceeded"):
         return ("Error: espera 1 minuto antes de volver a intentarlo")
+      case ("AAL2 session is required to update email or password when MFA is enabled."):
+        return ("Error: debes verificar el codigo del autenticador antes de actualizar la contrasena.")
     }
 
     if (error.startsWith("Email address ")) {

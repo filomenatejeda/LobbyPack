@@ -52,6 +52,21 @@ CREATE TABLE IF NOT EXISTS BuildingPreferences (
   FOREIGN KEY (building_id) REFERENCES Buildings(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
+CREATE TABLE IF NOT EXISTS CommunityRegistrations (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  community_name VARCHAR(255) NOT NULL,
+  community_type VARCHAR(100) NOT NULL DEFAULT 'Otro',
+  community_country VARCHAR(100) NOT NULL,
+  community_location VARCHAR(255) NOT NULL,
+  community_address VARCHAR(255) NOT NULL,
+  address_fingerprint VARCHAR(512) UNIQUE NOT NULL,
+  admin_first_name VARCHAR(100) NOT NULL,
+  admin_last_name VARCHAR(100) NOT NULL,
+  admin_email VARCHAR(255) UNIQUE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
 CREATE TABLE IF NOT EXISTS Towers (
   id BIGINT PRIMARY KEY,
   building_id VARCHAR(64) NOT NULL,
