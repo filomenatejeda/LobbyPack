@@ -52,7 +52,7 @@ export default function useCheckIfAuth() {
         }
       }
 
-      if (!usedGoogleSSO && !hasVerifiedSession) {
+      if (!hasVerifiedSession) {
         navigate("/auth/login", {
           replace: true,
           state: {

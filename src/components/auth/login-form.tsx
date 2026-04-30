@@ -25,6 +25,22 @@ export function LoginForm() {
   const [mfaFactorId, setMfaFactorId] = useState("");
   const [mfaCode, setMfaCode] = useState("");
 
+  const beginMfaChallenge = async () => {
+    const factorId = (await supabase.auth.mfa.listFactors()).data?.all[0]?.id;
+
+    if (!factorId) {
+      throw new Error("No se encontro un segundo factor de autenticacion.");
+    }
+
+    const challenge = await supabase.auth.mfa.challenge({ factorId });
+
+    if (challenge.error) throw challenge.error;
+
+    setMfaFactorId(factorId);
+    setMfaChallengeId(challenge.data.id);
+    setPhase(Phase.MFA);
+  };
+
   useEffect(() => {
     let isActive = true;
 
@@ -68,7 +84,20 @@ export function LoginForm() {
           return;
         }
 
-        navigate("/dashboard", { replace: true });
+        if (assuranceResponse.data?.currentLevel === "aal2") {
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+
+        try {
+          await beginMfaChallenge();
+        } catch (challengeError) {
+          setError(
+            challengeError instanceof Error
+              ? handleError(challengeError.message)
+              : "Ocurrió un error.",
+          );
+        }
         return;
       }
 
@@ -77,29 +106,19 @@ export function LoginForm() {
         return;
       }
 
-      const firstFactorId = (await supabase.auth.mfa.listFactors()).data?.all[0]?.id;
-
-      if (!firstFactorId) {
-        setError(
-          "La cuenta inició sesión, pero falta configurar OTP/MFA para cumplir el acceso avanzado.",
-        );
-        return;
-      }
-
-      const challenge = await supabase.auth.mfa.challenge({ factorId: firstFactorId });
-
-      if (challenge.error) {
-        setError(handleError(challenge.error.message));
-        return;
-      }
-
       if (!isActive) {
         return;
       }
 
-      setMfaFactorId(firstFactorId);
-      setMfaChallengeId(challenge.data.id);
-      setPhase(Phase.MFA);
+      try {
+        await beginMfaChallenge();
+      } catch (challengeError) {
+        setError(
+          challengeError instanceof Error
+            ? handleError(challengeError.message)
+            : "Ocurrió un error.",
+        );
+      }
     };
 
     void restoreSessionFlow();
@@ -141,20 +160,7 @@ export function LoginForm() {
 
           if (signInError) throw signInError;
 
-          const factorId = (await supabase.auth.mfa.listFactors()).data?.all[0]?.id;
-
-          if (!factorId) {
-            throw new Error("No se encontró un segundo factor de autenticación.");
-          }
-
-          setMfaFactorId(factorId);
-
-          const challenge = await supabase.auth.mfa.challenge({ factorId });
-
-          if (challenge.error) throw challenge.error;
-
-          setMfaChallengeId(challenge.data.id);
-          setPhase(Phase.MFA);
+          await beginMfaChallenge();
           break;
         }
 
@@ -212,6 +218,23 @@ export function LoginForm() {
     }
   };
 
+  const resetLoginFlow = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      setEmail("");
+      setPassword("");
+      setMfaCode("");
+      setMfaChallengeId("");
+      setMfaFactorId("");
+      setPhase(Phase.Login);
+      setIsLoading(false);
+    }
+  };
+
   const handleError = (message: string) => {
     switch (message) {
       case "Invalid login credentials":
@@ -239,42 +262,46 @@ export function LoginForm() {
     <form className="authCard" onSubmit={handleLogin}>
       <div className="authCardHeader">
         <p className="authEyebrow">Acceso</p>
-        <h2 className="authTitle">Inicia sesión</h2>
+        <h2 className="authTitle">
+          {phase === Phase.MFA ? "Verifica tu acceso" : "Inicia sesión"}
+        </h2>
         <p className="authDescription">
-          Entra con tu correo y contraseña o usa Google SSO para administrar paquetes, retiros y
-          reclamos.
+          {phase === Phase.MFA
+            ? "Ingresa el código de 6 dígitos de tu autenticador para entrar al dashboard."
+            : "Entra con tu correo y contraseña o usa Google SSO para administrar paquetes, retiros y reclamos."}
         </p>
       </div>
 
       <div className="authFields">
-        <label className="authField">
-          <span>Correo electrónico</span>
-          <input
-            className="authInput"
-            id="email"
-            type="email"
-            placeholder="correo@ejemplo.com"
-            autoComplete="email"
-            required
-            disabled={phase === Phase.MFA}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </label>
-
         {phase === Phase.Login && (
-          <label className="authField">
-            <span>Contraseña</span>
-            <input
-              className="authInput"
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </label>
+          <>
+            <label className="authField">
+              <span>Correo electrónico</span>
+              <input
+                className="authInput"
+                id="email"
+                type="email"
+                placeholder="correo@ejemplo.com"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </label>
+
+            <label className="authField">
+              <span>Contraseña</span>
+              <input
+                className="authInput"
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
+          </>
         )}
 
         {phase === Phase.MFA && (
@@ -326,15 +353,25 @@ export function LoginForm() {
           </button>
         )}
 
+        {phase === Phase.MFA && (
+          <button type="button" className="authTextButton" onClick={() => void resetLoginFlow()}>
+            Usar otra cuenta
+          </button>
+        )}
+
+        {phase === Phase.Login && (
         <a className="authSecondaryLink" href="/auth/forgot-password">
           ¿Olvidaste tu contraseña?
         </a>
+        )}
       </div>
 
+      {phase === Phase.Login && (
       <div className="authFooter">
         <span>¿No tienes una cuenta?</span>
         <a href="/auth/sign-up">Crea una cuenta</a>
       </div>
+      )}
     </form>
   );
 }
