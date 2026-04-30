@@ -1,9 +1,7 @@
-﻿.landingPage {
+.landingPage {
   min-height: 100svh;
   scroll-behavior: smooth;
-  background:
-    radial-gradient(circle at top left, rgba(124, 128, 51, 0.1), transparent 28%),
-    linear-gradient(180deg, #fffdf8 0%, #f8f3ea 100%);
+  background: #ffffff;
 }
 
 .landingTopNav {
@@ -66,7 +64,7 @@
 }
 
 .landingHero {
-  padding: clamp(96px, 11vw, 124px) 0 40px;
+  padding: clamp(96px, 11vw, 124px) 0 56px;
 }
 
 .landingHeroContent {
@@ -115,7 +113,7 @@
 
 .landingLead {
   max-width: 680px;
-  margin: 14px auto 0;
+  margin: 18px auto 0;
   color: var(--text-soft);
   line-height: 1.7;
 }
@@ -127,8 +125,13 @@
 }
 
 .landingLeadSecondary {
-  max-width: 620px;
+  max-width: 980px;
   font-size: clamp(0.98rem, 1.8vw, 1.08rem);
+  margin-top: 30px;
+  padding: 22px clamp(20px, 4vw, 48px);
+  border-top: 1px solid rgba(96, 62, 33, 0.12);
+  border-bottom: 1px solid rgba(96, 62, 33, 0.12);
+  color: var(--brown-strong);
 }
 
 .landingActions {
@@ -136,7 +139,7 @@
   justify-content: center;
   gap: 14px;
   flex-wrap: wrap;
-  margin-top: 26px;
+  margin-top: 30px;
 }
 
 .landingPrimaryButton,
@@ -144,11 +147,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 50px;
-  padding: 0 22px;
-  border-radius: 999px;
+  min-height: 48px;
+  min-width: 148px;
+  padding: 0 24px;
+  border-radius: 12px;
   text-decoration: none;
-  font-weight: 700;
+  font-size: 0.94rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
@@ -156,15 +162,16 @@
 }
 
 .landingPrimaryButton {
-  background: var(--accent-strong);
+  border: 1px solid rgba(64, 82, 43, 0.18);
+  background: #52683e;
   color: #ffffff;
-  box-shadow: 0 10px 22px rgba(95, 122, 83, 0.18);
+  box-shadow: 0 14px 28px rgba(64, 82, 43, 0.18);
 }
 
 .landingSecondaryButton {
-  border: 1px solid rgba(96, 62, 33, 0.12);
-  background: rgba(129, 150, 91, 0.96);
-  color: #ffffff;
+  border: 1px solid rgba(96, 62, 33, 0.22);
+  background: #ffffff;
+  color: var(--brown-strong);
 }
 
 .landingPrimaryButton:hover,
@@ -175,7 +182,7 @@
 
 
 .landingSection {
-  padding: 40px 0 0;
+  padding: 56px 0 0;
   scroll-margin-top: 108px;
 }
 
@@ -184,7 +191,8 @@
 }
 
 .landingShowcaseSection {
-  padding-top: 26px;
+  padding-top: 42px;
+  border-top: 1px solid rgba(96, 62, 33, 0.08);
 }
 
 .landingShowcaseGrid {
@@ -218,10 +226,10 @@
 
 .landingMockup {
   padding: 18px;
-  border: 1px solid rgba(96, 62, 33, 0.1);
-  border-radius: 34px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 26px 54px rgba(96, 62, 33, 0.08);
+  border: 1px solid rgba(96, 62, 33, 0.14);
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 22px 44px rgba(96, 62, 33, 0.08);
 }
 
 .landingMockupHeader {
@@ -247,13 +255,14 @@
   display: grid;
   gap: 10px;
   padding: 14px;
-  border-radius: 24px;
-  background: rgba(248, 243, 234, 0.85);
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(96, 62, 33, 0.08);
 }
 
 .landingMockupSidebarItem {
   padding: 10px 12px;
-  border-radius: 14px;
+  border-radius: 10px;
   color: var(--text-soft);
   font-weight: 700;
 }
@@ -278,8 +287,9 @@
   display: grid;
   gap: 4px;
   padding: 14px;
-  border-radius: 20px;
-  background: rgba(255, 252, 246, 0.95);
+  border: 1px solid rgba(96, 62, 33, 0.06);
+  border-radius: 14px;
+  background: #ffffff;
 }
 
 .landingMockupStatCard strong {
@@ -303,8 +313,9 @@
   justify-content: space-between;
   gap: 12px;
   padding: 14px 16px;
-  border-radius: 18px;
-  background: rgba(255, 252, 246, 0.95);
+  border: 1px solid rgba(96, 62, 33, 0.06);
+  border-radius: 12px;
+  background: #ffffff;
   color: var(--brown-strong);
   font-weight: 600;
 }
@@ -343,31 +354,19 @@
 
 .landingFeatureFlow {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .landingFeatureBand {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 20px;
   align-items: start;
-  padding: 26px 30px;
-  border-radius: 32px;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 20px 44px rgba(96, 62, 33, 0.06);
-}
-
-.landingFeatureBand1 {
-  margin-right: 88px;
-}
-
-.landingFeatureBand2 {
-  margin-left: 42px;
-  margin-right: 42px;
-}
-
-.landingFeatureBand3 {
-  margin-left: 88px;
+  padding: 24px 28px;
+  border: 1px solid rgba(96, 62, 33, 0.1);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 14px 30px rgba(96, 62, 33, 0.045);
 }
 
 .landingFeatureIndex {
@@ -392,18 +391,19 @@
 
 .landingStoryBlock {
   padding: 34px;
-  border-radius: 36px;
+  border-radius: 22px;
 }
 
 .landingStoryPrimary {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(246, 239, 226, 0.9));
-  box-shadow: 0 24px 46px rgba(96, 62, 33, 0.08);
+  border: 1px solid rgba(96, 62, 33, 0.1);
+  background: #ffffff;
+  box-shadow: 0 18px 38px rgba(96, 62, 33, 0.06);
 }
 
 .landingStorySecondary {
   align-self: end;
-  background: rgba(123, 128, 51, 0.1);
-  border: 1px solid rgba(124, 128, 51, 0.2);
+  background: #ffffff;
+  border: 1px solid rgba(124, 128, 51, 0.22);
 }
 
 .landingSteps {
@@ -426,7 +426,8 @@
 .landingTextLink {
   color: var(--accent-strong);
   font-weight: 700;
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
   transition: transform 0.2s ease;
 }
 
@@ -434,23 +435,29 @@
   width: 100%;
   margin-top: 40px;
   padding: 18px 0 24px;
-  border-top: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.7);
+  border-top: 1px solid rgba(96, 62, 33, 0.18);
+  background: rgba(111, 134, 74, 0.96);
+}
+
+.landingFooter .landingContainer {
+  width: 100%;
+  max-width: none;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 .landingFooter p {
   margin: 0;
   font-size: 0.9rem;
   font-weight: 700;
-  color: var(--brown-strong);
+  color: #ffffff;
 }
 
 .landingFooter span {
   display: block;
   margin-top: 6px;
   font-size: 0.82rem;
-  color: var(--text-soft);
-  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.82);
 }
 
 #inicio,
