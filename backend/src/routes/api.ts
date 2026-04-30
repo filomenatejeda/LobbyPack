@@ -106,6 +106,10 @@ const communityAddressAvailabilitySchema = t.Object({
   community_address: t.String({ minLength: 1 }),
 });
 
+const adminEmailSchema = t.Object({
+  admin_email: t.String({ minLength: 1 }),
+});
+
 const preferenceSettingsSchema = t.Object({
   package_notifications: t.Boolean(),
   daily_summary: t.Boolean(),
@@ -558,6 +562,24 @@ export const api = new Elysia({ prefix: "/api" })
     return { available: true, message: "" };
   }, {
     body: communityAddressAvailabilitySchema,
+  })
+  .post("/auth/check-admin-email", async ({ body }) => {
+    await ensureCommunityRegistrationsTable();
+
+    const normalizedAdminEmail = normalizeTextInput(body.admin_email).toLowerCase();
+    const [existingRegistrations] = await pool.query<RowDataPacket[]>(
+      `
+        SELECT id
+        FROM CommunityRegistrations
+        WHERE LOWER(admin_email) = LOWER(?)
+        LIMIT 1
+      `,
+      [normalizedAdminEmail],
+    );
+
+    return { exists: existingRegistrations.length > 0 };
+  }, {
+    body: adminEmailSchema,
   })
   .post("/auth/register-community", async ({ body, set }) => {
     await ensureCommunityRegistrationsTable();

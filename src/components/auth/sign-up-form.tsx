@@ -4,6 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { supabase, supabaseConfigError } from "@/lib/client";
+import { isGoogleSSOUser } from "@/lib/auth-provider";
 import {
   checkCommunityAddressAvailability,
   reserveCommunityRegistration,
@@ -118,6 +119,7 @@ export function SignUpForm() {
   const [mfaSecret, setMfaSecret] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCompletingGoogleRegistration, setIsCompletingGoogleRegistration] = useState(false);
   const [phase, setPhase] = useState<number>(Phase.Community);
   const [focusedAutocomplete, setFocusedAutocomplete] = useState<
     "country" | "location" | "address" | null
@@ -183,6 +185,27 @@ export function SignUpForm() {
     setMfaCode("");
     // console.log("MFA")
     setPhase(Phase.MFA);
+  };
+
+  const finishCommunityRegistration = async () => {
+    const updatedUser = await supabase.auth.updateUser({
+      data: getCommunityMetadata(),
+    });
+
+    if (updatedUser.error) throw updatedUser.error;
+
+    await reserveCommunityRegistration({
+      community_name: communityName,
+      community_type: communityType,
+      community_country: communityCountry,
+      community_location: communityLocation,
+      community_address: communityAddress,
+      admin_first_name: adminFirstName,
+      admin_last_name: adminLastName,
+      admin_email: email,
+    });
+
+    navigate("/dashboard", { replace: true });
   };
 
   useEffect(() => {
@@ -381,6 +404,12 @@ export function SignUpForm() {
       setAdminFirstName(String(data.user.user_metadata?.admin_first_name ?? ""));
       setAdminLastName(String(data.user.user_metadata?.admin_last_name ?? ""));
 
+      if (isGoogleSSOUser(data.user) && !data.user.user_metadata?.community_name) {
+        setIsCompletingGoogleRegistration(true);
+        setPhase(Phase.Community);
+        return;
+      }
+
       const firstFactorId = (await supabase.auth.mfa.listFactors()).data?.all[0]?.id;
 
       if (!isActive) {
@@ -425,6 +454,7 @@ export function SignUpForm() {
       }
 
       if (phase === Phase.Admin) {
+
         setPhase(Phase.Password);
         return;
       }
@@ -458,23 +488,7 @@ export function SignUpForm() {
 
         if (verifiedMFA.error) throw verifiedMFA.error;
 
-        const updatedUser = await supabase.auth.updateUser({
-          data: getCommunityMetadata(),
-        });
-
-        if (updatedUser.error) throw updatedUser.error;
-
-        await reserveCommunityRegistration({
-          community_name: communityName,
-          community_type: communityType,
-          community_country: communityCountry,
-          community_location: communityLocation,
-          community_address: communityAddress,
-          admin_first_name: adminFirstName,
-          admin_last_name: adminLastName,
-          admin_email: email,
-        });
-        navigate("/dashboard", { replace: true });
+        await finishCommunityRegistration();
         return;
       }
 
@@ -484,6 +498,18 @@ export function SignUpForm() {
 
       if (!isPasswordSecure) {
         throw new Error("La contraseña no cumple los requisitos de seguridad.");
+      }
+
+      if (isCompletingGoogleRegistration) {
+        const updatedUser = await supabase.auth.updateUser({
+          password,
+          data: getCommunityMetadata(),
+        });
+
+        if (updatedUser.error) throw updatedUser.error;
+
+        await beginMfaEnrollment(email);
+        return;
       }
 
       const signedUp = await supabase.auth.signUp({
@@ -566,6 +592,14 @@ export function SignUpForm() {
     }
   };
 
+  const goToLogin = async () => {
+    if (isCompletingGoogleRegistration) {
+      await supabase.auth.signOut();
+    }
+
+    navigate("/auth/login", { replace: true });
+  };
+
   const handleError = (message: string) => {
     switch (message) {
       case "email rate limit exceeded":
@@ -612,7 +646,9 @@ export function SignUpForm() {
           {phase === Phase.Community &&
             "Completa los datos de la comunidad antes de registrar a la persona administradora."}
           {phase === Phase.Admin &&
-            "Ingresa los datos de la persona administradora y el correo para recibir el código OTP."}
+            (isCompletingGoogleRegistration
+              ? "Completa los datos de la persona administradora para crear la cuenta con Google."
+              : "Ingresa los datos de la persona administradora y el correo para recibir el código OTP.")}
           {phase === Phase.OTP &&
             "Escribe el código que llegó a tu correo para verificar la cuenta."}
           {phase === Phase.MFA &&
@@ -894,7 +930,7 @@ export function SignUpForm() {
             placeholder="correo@ejemplo.com"
             autoComplete="email"
             required
-            readOnly={phase !== Phase.Admin}
+            readOnly={phase !== Phase.Admin || isCompletingGoogleRegistration}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -1064,13 +1100,17 @@ export function SignUpForm() {
                   ? "Verificar código"
                   : phase === Phase.MFA
                     ? "Verificar autenticador"
-                    : "Crear cuenta"}
+                    : isCompletingGoogleRegistration
+                      ? "Guardar contraseña"
+                      : "Crear cuenta"}
         </button>
       </div>
 
       <div className="authFooter">
         <span>¿Ya tienes una cuenta?</span>
-        <a href="/auth/login">Inicia sesión</a>
+        <button type="button" className="authTextButton" onClick={() => void goToLogin()}>
+          Inicia sesión
+        </button>
       </div>
     </form>
   );

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/client";
 import { isGoogleSSOUser } from "@/lib/auth-provider";
+import { checkAdminEmailRegistration } from "@/services/authRegistrationApi";
 
 export default function useCheckIfAuth() {
   const navigate = useNavigate();
@@ -31,6 +32,24 @@ export default function useCheckIfAuth() {
           },
         });
         return;
+      }
+
+      if (usedGoogleSSO) {
+        const userEmail = user?.email;
+        const registration = userEmail
+          ? await checkAdminEmailRegistration(userEmail)
+          : { exists: false };
+
+        if (!registration.exists) {
+          navigate("/auth/sign-up", {
+            replace: true,
+            state: {
+              from: location.pathname,
+              reason: "complete_google_registration",
+            },
+          });
+          return;
+        }
       }
 
       if (!usedGoogleSSO && !hasVerifiedSession) {

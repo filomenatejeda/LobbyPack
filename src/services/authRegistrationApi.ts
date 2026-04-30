@@ -22,10 +22,21 @@ type CommunityAddressAvailabilityResponse = {
   message: string;
 };
 
+type AdminEmailRegistrationResponse = {
+  exists: boolean;
+};
+
 export function checkCommunityAddressAvailability(payload: CommunityAddressAvailabilityPayload) {
   return apiRequest<CommunityAddressAvailabilityResponse>("/api/auth/check-community-address", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+export function checkAdminEmailRegistration(admin_email: string) {
+  return apiRequest<AdminEmailRegistrationResponse>("/api/auth/check-admin-email", {
+    method: "POST",
+    body: JSON.stringify({ admin_email }),
   });
 }
 

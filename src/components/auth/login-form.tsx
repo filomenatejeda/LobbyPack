@@ -4,6 +4,7 @@ import { REGEXP_ONLY_DIGITS } from "input-otp";
 
 import { supabase, supabaseConfigError } from "@/lib/client";
 import { isGoogleSSOUser } from "@/lib/auth-provider";
+import { checkAdminEmailRegistration } from "@/services/authRegistrationApi";
 import googleGLogo from "@/assets/google-g.svg";
 import "./login-form.css";
 
@@ -43,7 +44,35 @@ export function LoginForm() {
 
       const usedGoogleSSO = isGoogleSSOUser(userData.user);
 
-      if (usedGoogleSSO || assuranceResponse.data?.currentLevel === "aal2") {
+      if (usedGoogleSSO) {
+        const userEmail = userData.user.email;
+
+        if (!userEmail) {
+          setError("Google no entrego un correo valido para continuar.");
+          return;
+        }
+
+        const registration = await checkAdminEmailRegistration(userEmail);
+
+        if (!isActive) {
+          return;
+        }
+
+        if (!registration.exists) {
+          navigate("/auth/sign-up", {
+            replace: true,
+            state: {
+              reason: "complete_google_registration",
+            },
+          });
+          return;
+        }
+
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+
+      if (assuranceResponse.data?.currentLevel === "aal2") {
         navigate("/dashboard", { replace: true });
         return;
       }
