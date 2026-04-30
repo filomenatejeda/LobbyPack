@@ -72,6 +72,7 @@ const uniqueSuggestions = (suggestions: string[]) =>
 
 const geoapifyApiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
 const COMMUNITY_TYPE_OPTIONS = ["Edificio", "Condominio", "Comunidad residencial", "Otro"];
+const ADMIN_ROLE = "admin";
 const PASSWORD_REQUIREMENTS = [
   {
     label: "Minimo 8 caracteres",
@@ -144,6 +145,7 @@ export function SignUpForm() {
   const isPasswordSecure = passwordChecks.every((requirement) => requirement.isValid);
 
   const getCommunityMetadata = () => ({
+    role: ADMIN_ROLE,
     community_name: communityName.trim(),
     community_type: communityType,
     community_country: communityCountry.trim(),
@@ -160,9 +162,10 @@ export function SignUpForm() {
     if (existingFactor?.id) {
       setMfaFactorId(existingFactor.id);
       setMfaQrCode("");
+      setMfaUri("");
       setMfaSecret("");
-      setPhase(Phase.Password);
-      // console.log("PASSWORD")
+      setMfaCode("");
+      setPhase(Phase.MFA);
       return;
     }
 
@@ -219,7 +222,7 @@ export function SignUpForm() {
         const data = (await response.json()) as GeoapifyResponse;
         const nextSuggestions = uniqueSuggestions(
           (data.results ?? []).map((result) => {
-            const place = result.city ?? result.county ?? result.address_line1;
+            const place = result.county ?? result.city ?? result.address_line1;
             const region = result.state ?? result.address_line2;
             return [place, region, result.country].filter(Boolean).join(", ");
           }),
@@ -422,29 +425,7 @@ export function SignUpForm() {
       }
 
       if (phase === Phase.Admin) {
-        await reserveCommunityRegistration({
-          community_name: communityName,
-          community_type: communityType,
-          community_country: communityCountry,
-          community_location: communityLocation,
-          community_address: communityAddress,
-          admin_first_name: adminFirstName,
-          admin_last_name: adminLastName,
-          admin_email: email,
-        });
-
-        const signedUp = await supabase.auth.signInWithOtp({
-          email,
-          options: {
-            data: getCommunityMetadata(),
-          },
-        });
-
-        if (signedUp.error) throw signedUp.error;
-        // const signedIn = await supabase.auth.signInWithPassword({ email, password: "test1234" })
-        // if (signedIn.error) throw signedIn.error
-
-        setPhase(Phase.OTP);
+        setPhase(Phase.Password);
         return;
       }
 
@@ -452,11 +433,10 @@ export function SignUpForm() {
         const verifiedOtp = await supabase.auth.verifyOtp({
           email,
           token: otpCode,
-          type: "email",
+          type: "signup",
         });
 
         if (verifiedOtp.error) throw verifiedOtp.error;
-
         await beginMfaEnrollment(email);
         return;
       }
@@ -478,7 +458,23 @@ export function SignUpForm() {
 
         if (verifiedMFA.error) throw verifiedMFA.error;
 
-        setPhase(Phase.Password);
+        const updatedUser = await supabase.auth.updateUser({
+          data: getCommunityMetadata(),
+        });
+
+        if (updatedUser.error) throw updatedUser.error;
+
+        await reserveCommunityRegistration({
+          community_name: communityName,
+          community_type: communityType,
+          community_country: communityCountry,
+          community_location: communityLocation,
+          community_address: communityAddress,
+          admin_first_name: adminFirstName,
+          admin_last_name: adminLastName,
+          admin_email: email,
+        });
+        navigate("/dashboard", { replace: true });
         return;
       }
 
@@ -490,14 +486,16 @@ export function SignUpForm() {
         throw new Error("La contraseña no cumple los requisitos de seguridad.");
       }
 
-      const updatedUser = await supabase.auth.updateUser({
+      const signedUp = await supabase.auth.signUp({
+        email,
         password,
-        data: getCommunityMetadata(),
+        options: {
+          data: getCommunityMetadata(),
+        },
       });
 
-      if (updatedUser.error) throw updatedUser.error;
-
-      navigate("/dashboard", { replace: true });
+      if (signedUp.error) throw signedUp.error;
+      setPhase(Phase.OTP);
     } catch (caughtError: unknown) {
       setError(
         caughtError instanceof Error ? handleError(caughtError.message) : "Ocurrió un error.",
@@ -544,6 +542,30 @@ export function SignUpForm() {
     setError(null);
   };
 
+  const goToPreviousStep = () => {
+    setError(null);
+
+    if (phase === Phase.Admin) {
+      setPhase(Phase.Community);
+      return;
+    }
+
+    if (phase === Phase.Password) {
+      setPhase(Phase.Admin);
+      return;
+    }
+
+    if (phase === Phase.OTP) {
+      setPhase(Phase.Password);
+      return;
+    }
+
+    if (phase === Phase.MFA) {
+      setMfaCode("");
+      setPhase(Phase.OTP);
+    }
+  };
+
   const handleError = (message: string) => {
     switch (message) {
       case "email rate limit exceeded":
@@ -574,6 +596,16 @@ export function SignUpForm() {
   return (
     <form className="authCard" onSubmit={handleSignUp}>
       <div className="authCardHeader">
+        {phase !== Phase.Community && (
+          <button
+            type="button"
+            className="authBackButton"
+            aria-label="Volver al paso anterior"
+            onClick={goToPreviousStep}
+          >
+            ‹
+          </button>
+        )}
         <p className="authEyebrow">Registro</p>
         <h2 className="authTitle">Crea tu Comunidad</h2>
         <p className="authDescription">
@@ -584,7 +616,9 @@ export function SignUpForm() {
           {phase === Phase.OTP &&
             "Escribe el código que llegó a tu correo para verificar la cuenta."}
           {phase === Phase.MFA &&
-            "Escanea el QR del TOTP y escribe el código de 6 dígitos del autenticador."}
+            (mfaSecret
+              ? "Escanea el QR del TOTP y escribe el código de 6 dígitos del autenticador."
+              : "Ingresa el código de 6 dígitos de tu autenticador para continuar.")}
           {phase === Phase.Password &&
             "Define tu contraseña y su confirmación para actualizarla en Supabase."}
         </p>
@@ -633,7 +667,15 @@ export function SignUpForm() {
                 required
                 value={communityCountry}
                 onBlur={() => window.setTimeout(() => setFocusedAutocomplete(null), 120)}
-                onChange={(e) => setCommunityCountry(e.target.value)}
+                onChange={(e) => {
+                  setCommunityCountry(e.target.value);
+                  setCommunityLocation("");
+                  setCommunityAddress("");
+                  setLocationSuggestions([]);
+                  setAddressSuggestions([]);
+                  setCommunityAddressStatus({ message: "", type: "" });
+                  setFocusedAutocomplete("country");
+                }}
                 onFocus={() => setFocusedAutocomplete("country")}
               />
               {focusedAutocomplete === "country" && countrySuggestions.length > 0 && (
@@ -666,11 +708,29 @@ export function SignUpForm() {
                 type="text"
                 autoComplete="address-level2"
                 required
+                disabled={!communityCountry.trim()}
+                placeholder={
+                  communityCountry.trim() ? "Ingresa tu ciudad" : "Primero selecciona un pais"
+                }
                 value={communityLocation}
                 onBlur={() => window.setTimeout(() => setFocusedAutocomplete(null), 120)}
-                onChange={(e) => setCommunityLocation(e.target.value)}
-                onFocus={() => setFocusedAutocomplete("location")}
+                onChange={(e) => {
+                  setCommunityLocation(e.target.value);
+                  setCommunityAddress("");
+                  setAddressSuggestions([]);
+                  setCommunityAddressStatus({ message: "", type: "" });
+                  setFocusedAutocomplete("location");
+                }}
+                onFocus={() => {
+                  if (!communityCountry.trim()) {
+                    return;
+                  }
+                  setFocusedAutocomplete("location");
+                }}
               />
+              {!communityCountry.trim() && (
+                <p className="authFieldNote">Selecciona primero un pais para habilitar la ciudad.</p>
+              )}
               {focusedAutocomplete === "location" && communityCountry.trim() && (
                 <div className="authSuggestions">
                   {!geoapifyApiKey && (
@@ -715,11 +775,30 @@ export function SignUpForm() {
                 type="text"
                 autoComplete="street-address"
                 required
+                disabled={!communityCountry.trim() || !communityLocation.trim()}
+                placeholder={
+                  communityCountry.trim() && communityLocation.trim()
+                    ? "Ingresa tu direccion"
+                    : "Primero selecciona pais y ciudad"
+                }
                 value={communityAddress}
                 onBlur={() => window.setTimeout(() => setFocusedAutocomplete(null), 120)}
-                onChange={(e) => setCommunityAddress(e.target.value)}
-                onFocus={() => setFocusedAutocomplete("address")}
+                onChange={(e) => {
+                  setCommunityAddress(e.target.value);
+                  setFocusedAutocomplete("address");
+                }}
+                onFocus={() => {
+                  if (!communityCountry.trim() || !communityLocation.trim()) {
+                    return;
+                  }
+                  setFocusedAutocomplete("address");
+                }}
               />
+              {(!communityCountry.trim() || !communityLocation.trim()) && (
+                <p className="authFieldNote">
+                  Selecciona pais y ciudad para habilitar la direccion.
+                </p>
+              )}
               {focusedAutocomplete === "address" && communityLocation.trim() && communityCountry.trim() && (
                 <div className="authSuggestions">
                   {!geoapifyApiKey && (
@@ -967,7 +1046,11 @@ export function SignUpForm() {
             isLoading ||
             (phase === Phase.Community &&
               (isCheckingCommunityAddress || communityAddressStatus.type === "taken")) ||
-            (phase === Phase.Password && Boolean(password) && !isPasswordSecure) ||
+            (phase === Phase.Password &&
+              (!password ||
+                !repeatPassword ||
+                !isPasswordSecure ||
+                password !== repeatPassword)) ||
             (phase !== Phase.Community && Boolean(supabaseConfigError))
           }
         >
@@ -976,7 +1059,7 @@ export function SignUpForm() {
             : phase === Phase.Community
               ? "Siguiente"
               : phase === Phase.Admin
-                ? "Enviar código"
+                ? "Continuar a contraseña"
                 : phase === Phase.OTP
                   ? "Verificar código"
                   : phase === Phase.MFA

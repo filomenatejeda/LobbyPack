@@ -4,6 +4,7 @@ import { REGEXP_ONLY_DIGITS } from "input-otp";
 
 import { supabase, supabaseConfigError } from "@/lib/client";
 import { isGoogleSSOUser } from "@/lib/auth-provider";
+import googleGLogo from "@/assets/google-g.svg";
 import "./login-form.css";
 
 const Phase = {
@@ -289,7 +290,10 @@ export function LoginForm() {
             disabled={isLoading || Boolean(supabaseConfigError)}
             onClick={() => void handleGoogleSSO()}
           >
-            Continuar con Google
+            <span className="authGoogleIcon" aria-hidden="true">
+              <img src={googleGLogo} alt="" />
+            </span>
+            Usar Google
           </button>
         )}
 

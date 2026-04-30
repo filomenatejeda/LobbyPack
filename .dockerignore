@@ -3,3 +3,6 @@
 
 # Ignorar modulos de node
 node_modules
+
+# Build artifacts (no son necesarios para correr dev dentro del contenedor)
+dist
