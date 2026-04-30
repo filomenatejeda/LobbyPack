@@ -55,6 +55,21 @@ type BuildingRow = RowDataPacket & {
   is_active: number;
 };
 
+type CommunityRegistrationRow = RowDataPacket & {
+  id: number;
+  community_name: string;
+  community_type: string;
+  community_country: string;
+  community_location: string;
+  community_address: string;
+  admin_email: string;
+};
+
+type SettingsContext = {
+  buildingId: string;
+  communityRegistration?: CommunityRegistrationRow;
+};
+
 type PreferenceRow = RowDataPacket & {
   package_notifications: number;
   daily_summary: number;
@@ -82,6 +97,7 @@ const parcelPayloadSchema = t.Object({
 
 const generalSettingsSchema = t.Object({
   building_name: t.String({ minLength: 1 }),
+  community_type: t.Optional(t.String()),
   contact_email: t.String({ minLength: 1 }),
   reception_hours: t.String({ minLength: 1 }),
   address_line: t.String({ minLength: 1 }),
@@ -387,7 +403,8 @@ async function listIssues() {
   }));
 }
 
-async function getSettingsPayload() {
+async function getSettingsPayload(adminEmail?: string) {
+  const { buildingId, communityRegistration } = await getSettingsContext(adminEmail);
   const [buildings] = await pool.query<BuildingRow[]>(
     `
       SELECT *
@@ -395,7 +412,7 @@ async function getSettingsPayload() {
       WHERE id = ?
       LIMIT 1
     `,
-    [BUILDING_ID],
+    [buildingId],
   );
 
   const [preferences] = await pool.query<PreferenceRow[]>(
@@ -405,7 +422,7 @@ async function getSettingsPayload() {
       WHERE building_id = ?
       LIMIT 1
     `,
-    [BUILDING_ID],
+    [buildingId],
   );
 
   const [team] = await pool.query<TeamRow[]>(
@@ -442,11 +459,15 @@ async function getSettingsPayload() {
       WHERE t.building_id = ?
       ORDER BY t.display_order, f.floor_number, a.display_order
     `,
-    [BUILDING_ID],
+    [buildingId],
   );
 
   const building = buildings[0];
-  const preference = preferences[0];
+  const preference = preferences[0] ?? {
+    package_notifications: 1,
+    daily_summary: 1,
+    qr_access: 1,
+  };
   const towers = new Map<
     number,
     {
@@ -488,6 +509,7 @@ async function getSettingsPayload() {
   return {
     general_settings: {
       building_name: building.building_name,
+      community_type: communityRegistration?.community_type ?? "Edificio",
       contact_email: building.contact_email,
       reception_hours: building.reception_hours,
       address_line: building.address_line,
@@ -507,6 +529,74 @@ async function getSettingsPayload() {
       team_status: row.team_status,
     })),
   };
+}
+
+async function getSettingsContext(adminEmail?: string): Promise<SettingsContext> {
+  const normalizedAdminEmail = adminEmail ? normalizeTextInput(adminEmail).toLowerCase() : "";
+  const [communityRegistrations] = normalizedAdminEmail
+    ? await pool.query<CommunityRegistrationRow[]>(
+        `
+          SELECT
+            id,
+            community_name,
+            community_type,
+            community_country,
+            community_location,
+            community_address,
+            admin_email
+          FROM CommunityRegistrations
+          WHERE LOWER(admin_email) = LOWER(?)
+          LIMIT 1
+        `,
+        [normalizedAdminEmail],
+      )
+    : [[] as CommunityRegistrationRow[]];
+
+  const communityRegistration = communityRegistrations[0];
+  if (!communityRegistration) {
+    return { buildingId: BUILDING_ID };
+  }
+
+  const buildingId = `community-${communityRegistration.id}`;
+
+  await pool.query(
+    `
+      INSERT INTO Buildings (
+        id,
+        building_name,
+        contact_email,
+        reception_hours,
+        address_line,
+        access_password,
+        is_active
+      )
+      VALUES (?, ?, ?, '', ?, '', TRUE)
+      ON DUPLICATE KEY UPDATE
+        contact_email = VALUES(contact_email)
+    `,
+    [
+      buildingId,
+      communityRegistration.community_name,
+      communityRegistration.admin_email,
+      communityRegistration.community_address,
+    ],
+  );
+
+  await pool.query(
+    `
+      INSERT INTO BuildingPreferences (
+        building_id,
+        package_notifications,
+        daily_summary,
+        qr_access
+      )
+      VALUES (?, TRUE, TRUE, TRUE)
+      ON DUPLICATE KEY UPDATE building_id = building_id
+    `,
+    [buildingId],
+  );
+
+  return { buildingId, communityRegistration };
 }
 
 export const api = new Elysia({ prefix: "/api" })
@@ -1001,28 +1091,26 @@ export const api = new Elysia({ prefix: "/api" })
   }, {
     body: issueStatusSchema,
   })
-  .get("/settings", async () => getSettingsPayload())
-  .put("/settings/general", async ({ body }) => {
+  .get("/settings", async ({ query }) => getSettingsPayload(query.admin_email))
+  .put("/settings/general", async ({ body, query }) => {
+    const { buildingId } = await getSettingsContext(query.admin_email);
+
     await pool.query(
       `
         UPDATE Buildings
         SET
           building_name = ?,
-          contact_email = ?,
           reception_hours = ?,
           address_line = ?,
-          access_password = ?,
           is_active = ?
         WHERE id = ?
       `,
       [
         body.building_name.trim(),
-        body.contact_email.trim(),
         body.reception_hours.trim(),
         body.address_line.trim(),
-        body.access_password.trim(),
         body.is_active,
-        BUILDING_ID,
+        buildingId,
       ],
     );
 
@@ -1030,7 +1118,9 @@ export const api = new Elysia({ prefix: "/api" })
   }, {
     body: generalSettingsSchema,
   })
-  .put("/settings/preferences", async ({ body }) => {
+  .put("/settings/preferences", async ({ body, query }) => {
+    const { buildingId } = await getSettingsContext(query.admin_email);
+
     await pool.query(
       `
         UPDATE BuildingPreferences
@@ -1039,15 +1129,16 @@ export const api = new Elysia({ prefix: "/api" })
           daily_summary = ?,
           qr_access = ?
         WHERE building_id = ?
-      `,
-      [body.package_notifications, body.daily_summary, body.qr_access, BUILDING_ID],
+    `,
+      [body.package_notifications, body.daily_summary, body.qr_access, buildingId],
     );
 
     return body;
   }, {
     body: preferenceSettingsSchema,
   })
-  .put("/settings/towers", async ({ body }) => {
+  .put("/settings/towers", async ({ body, query }) => {
+    const { buildingId } = await getSettingsContext(query.admin_email);
     const connection = await pool.getConnection();
 
     try {
@@ -1061,7 +1152,7 @@ export const api = new Elysia({ prefix: "/api" })
           INNER JOIN Towers t ON t.id = f.tower_id
           WHERE t.building_id = ?
         `,
-        [BUILDING_ID],
+        [buildingId],
       );
 
       await connection.query(
@@ -1071,7 +1162,7 @@ export const api = new Elysia({ prefix: "/api" })
           INNER JOIN Towers t ON t.id = f.tower_id
           WHERE t.building_id = ?
         `,
-        [BUILDING_ID],
+        [buildingId],
       );
 
       await connection.query(
@@ -1079,7 +1170,7 @@ export const api = new Elysia({ prefix: "/api" })
           DELETE FROM Towers
           WHERE building_id = ?
         `,
-        [BUILDING_ID],
+        [buildingId],
       );
 
       for (const [towerIndex, tower] of body.entries()) {
@@ -1088,7 +1179,7 @@ export const api = new Elysia({ prefix: "/api" })
             INSERT INTO Towers (id, building_id, tower_name, display_order)
             VALUES (?, ?, ?, ?)
           `,
-          [tower.id, BUILDING_ID, tower.tower_name.trim(), towerIndex + 1],
+          [tower.id, buildingId, tower.tower_name.trim(), towerIndex + 1],
         );
 
         for (const floor of tower.floors) {

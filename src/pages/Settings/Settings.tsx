@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import TowerCard from "../../components/Settings/TowerCard";
 import { preferenceItems } from "../../data/settingsData";
+import { supabase } from "../../lib/client";
 import {
   fetchSettings,
   saveGeneralSettings,
-  savePreferenceSettings,
   saveTowers,
 } from "../../services/settingsApi";
 import type {
@@ -18,11 +18,80 @@ import "./Settings.css";
 
 const emptyGeneralSettings: GeneralSettings = {
   building_name: "",
+  community_type: "",
   contact_email: "",
   reception_hours: "",
   address_line: "",
   access_password: "",
   is_active: true,
+};
+
+const getStructureLabels = (communityType: string) => {
+  const normalizedType = communityType
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  if (normalizedType.includes("condominio") || normalizedType.includes("residencial")) {
+    return {
+      title: "Sectores, etapas y viviendas",
+      addGroup: "Agregar sector",
+      groupSingular: "Sector",
+      groupPlural: "Sectores",
+      groupName: "Nombre del sector",
+      levelSingular: "Etapa",
+      levelPlural: "Etapas",
+      levelCount: "Cantidad de etapas",
+      unitSingular: "vivienda",
+      unitPlural: "viviendas",
+      totalUnits: "Viviendas registradas",
+      unitsByLevel: "Viviendas por etapa",
+      sectionLead:
+        "Cada sector queda visible como ficha fija. Si necesitas cambiar nombre, etapas o viviendas, entra a editar ese sector.",
+      previewText: "Selecciona una etapa para ver solo sus viviendas.",
+      addUnit: "Agregar vivienda",
+    };
+  }
+
+  if (normalizedType.includes("otro")) {
+    return {
+      title: "Áreas, niveles y unidades",
+      addGroup: "Agregar área",
+      groupSingular: "Área",
+      groupPlural: "Áreas",
+      groupName: "Nombre del área",
+      levelSingular: "Nivel",
+      levelPlural: "Niveles",
+      levelCount: "Cantidad de niveles",
+      unitSingular: "unidad",
+      unitPlural: "unidades",
+      totalUnits: "Unidades registradas",
+      unitsByLevel: "Unidades por nivel",
+      sectionLead:
+        "Cada área queda visible como ficha fija. Si necesitas cambiar nombre, niveles o unidades, entra a editar esa área.",
+      previewText: "Selecciona un nivel para ver solo sus unidades.",
+      addUnit: "Agregar unidad",
+    };
+  }
+
+  return {
+    title: "Torres, pisos y departamentos",
+    addGroup: "Agregar torre",
+    groupSingular: "Torre",
+    groupPlural: "Torres",
+    groupName: "Nombre de la torre",
+    levelSingular: "Piso",
+    levelPlural: "Pisos",
+    levelCount: "Cantidad de pisos",
+    unitSingular: "departamento",
+    unitPlural: "departamentos",
+    totalUnits: "Departamentos registrados",
+    unitsByLevel: "Departamentos por piso",
+    sectionLead:
+      "Cada torre queda visible como ficha fija. Si necesitas cambiar nombre, pisos o departamentos, entra a editar esa torre.",
+    previewText: "Selecciona un piso para ver solo sus departamentos.",
+    addUnit: "Agregar departamento",
+  };
 };
 
 const emptyPreferenceSettings: PreferenceSettings = {
@@ -39,6 +108,8 @@ export default function Settings() {
   const [team, setTeam] = useState<TeamItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditingGeneralSettings, setIsEditingGeneralSettings] = useState(false);
+  const [adminEmail, setAdminEmail] = useState<string | undefined>(undefined);
   const [statusMessage, setStatusMessage] = useState("");
 
   const loadSettings = async () => {
@@ -46,11 +117,15 @@ export default function Settings() {
     setStatusMessage("");
 
     try {
-      const response = await fetchSettings();
+      const { data } = await supabase.auth.getUser();
+      const userEmail = data.user?.email ?? undefined;
+      setAdminEmail(userEmail);
+      const response = await fetchSettings(userEmail);
       setGeneralSettings(response.general_settings);
       setPreferenceSettings(response.preference_settings);
       setTowers(response.towers);
       setTeam(response.team);
+      setIsEditingGeneralSettings(false);
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : "No se pudo cargar la configuración.");
     } finally {
@@ -68,11 +143,16 @@ export default function Settings() {
       sum + tower.floors.reduce((floorSum, floor) => floorSum + floor.apartments.length, 0),
     0,
   );
+  const structureLabels = getStructureLabels(generalSettings.community_type);
 
   const addTower = () => {
     setTowers((current) => [
       ...current,
-      createTower(Date.now(), `Torre ${String.fromCharCode(65 + current.length)}`, 3),
+      createTower(
+        Date.now(),
+        `${structureLabels.groupSingular} ${String.fromCharCode(65 + current.length)}`,
+        3,
+      ),
     ]);
   };
 
@@ -220,20 +300,39 @@ export default function Settings() {
     );
   };
 
-  const handleSave = async () => {
+
+
+  const handleSaveGeneralSettings = async () => {
     setIsSaving(true);
     setStatusMessage("");
 
     try {
-      await Promise.all([
-        saveGeneralSettings(generalSettings),
-        savePreferenceSettings(preferenceSettings),
-        saveTowers(towers),
-      ]);
-      setStatusMessage("Configuración guardada correctamente.");
+      await saveGeneralSettings(generalSettings, adminEmail);
+      setStatusMessage("Información del lobby guardada correctamente.");
+      setIsEditingGeneralSettings(false);
       await loadSettings();
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : "No se pudo guardar la configuración.");
+      setStatusMessage(error instanceof Error ? error.message : "No se pudo guardar la información del lobby.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const cancelGeneralSettingsEdit = async () => {
+    setIsEditingGeneralSettings(false);
+    await loadSettings();
+  };
+
+  const handleSaveStructure = async () => {
+    setIsSaving(true);
+    setStatusMessage("");
+
+    try {
+      await saveTowers(towers, adminEmail);
+      setStatusMessage("Estructura guardada correctamente.");
+      await loadSettings();
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : "No se pudo guardar la estructura.");
     } finally {
       setIsSaving(false);
     }
@@ -265,87 +364,97 @@ export default function Settings() {
             </span>
           </div>
 
-          <div className="settingsForm">
-            <label className="settingsField">
-              <span>Nombre del edificio</span>
-              <input
-                type="text"
-                value={generalSettings.building_name}
-                onChange={(event) =>
-                  setGeneralSettings((current) => ({
-                    ...current,
-                    building_name: event.target.value,
-                  }))
-                }
-              />
-            </label>
-            <label className="settingsField">
-              <span>Correo de contacto</span>
-              <input
-                type="email"
-                value={generalSettings.contact_email}
-                onChange={(event) =>
-                  setGeneralSettings((current) => ({
-                    ...current,
-                    contact_email: event.target.value,
-                  }))
-                }
-              />
-            </label>
-            <label className="settingsField">
-              <span>Horario de recepción</span>
-              <input
-                type="text"
-                value={generalSettings.reception_hours}
-                onChange={(event) =>
-                  setGeneralSettings((current) => ({
-                    ...current,
-                    reception_hours: event.target.value,
-                  }))
-                }
-              />
-            </label>
-            <label className="settingsField">
-              <span>Dirección</span>
-              <input
-                type="text"
-                value={generalSettings.address_line}
-                onChange={(event) =>
-                  setGeneralSettings((current) => ({
-                    ...current,
-                    address_line: event.target.value,
-                  }))
-                }
-              />
-            </label>
-            <label className="settingsField">
-              <span>Contraseña</span>
-              <input
-                type="password"
-                value={generalSettings.access_password}
-                onChange={(event) =>
-                  setGeneralSettings((current) => ({
-                    ...current,
-                    access_password: event.target.value,
-                  }))
-                }
-              />
-            </label>
-          </div>
+          {isEditingGeneralSettings ? (
+            <>
+              <div className="settingsForm">
+                <label className="settingsField">
+                  <span>Nombre del edificio</span>
+                  <input
+                    type="text"
+                    value={generalSettings.building_name}
+                    onChange={(event) =>
+                      setGeneralSettings((current) => ({
+                        ...current,
+                        building_name: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+                <label className="settingsField">
+                  <span>Horario de recepción</span>
+                  <input
+                    type="text"
+                    value={generalSettings.reception_hours}
+                    onChange={(event) =>
+                      setGeneralSettings((current) => ({
+                        ...current,
+                        reception_hours: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+                <label className="settingsField settingsFieldWide">
+                  <span>Dirección</span>
+                  <input
+                    type="text"
+                    value={generalSettings.address_line}
+                    onChange={(event) =>
+                      setGeneralSettings((current) => ({
+                        ...current,
+                        address_line: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+              </div>
 
-          <div className="settingsActions">
-            <button type="button" className="secondaryButton" onClick={() => void loadSettings()}>
-              Restaurar
-            </button>
-            <button
-              type="button"
-              className="primaryButton"
-              onClick={() => void handleSave()}
-              disabled={isSaving}
-            >
-              {isSaving ? "Guardando..." : "Guardar cambios"}
-            </button>
-          </div>
+              <div className="settingsActions">
+                <button
+                  type="button"
+                  className="secondaryButton"
+                  onClick={() => void cancelGeneralSettingsEdit()}
+                  disabled={isSaving}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="primaryButton"
+                  onClick={() => void handleSaveGeneralSettings()}
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Guardando..." : "Guardar información"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <dl className="settingsReadOnlyGrid">
+                <div className="settingsReadOnlyItem">
+                  <dt>Nombre del edificio</dt>
+                  <dd>{generalSettings.building_name || "Sin nombre registrado"}</dd>
+                </div>
+                <div className="settingsReadOnlyItem">
+                  <dt>Horario de recepción</dt>
+                  <dd>{generalSettings.reception_hours || "Sin horario registrado"}</dd>
+                </div>
+                <div className="settingsReadOnlyItem settingsReadOnlyItemWide">
+                  <dt>Dirección</dt>
+                  <dd>{generalSettings.address_line || "Sin dirección registrada"}</dd>
+                </div>
+              </dl>
+
+              <div className="settingsActions">
+                <button
+                  type="button"
+                  className="primaryButton"
+                  onClick={() => setIsEditingGeneralSettings(true)}
+                >
+                  Editar información
+                </button>
+              </div>
+            </>
+          )}
         </article>
 
         <article className="settingsCard">
@@ -382,34 +491,43 @@ export default function Settings() {
           <div className="settingsCardHeader">
             <div>
               <p className="settingsLabel">Estructura</p>
-              <h2>Torres, pisos y departamentos</h2>
+              <h2>{structureLabels.title}</h2>
             </div>
             <button type="button" className="secondaryButton" onClick={addTower}>
-              Agregar torre
+              {structureLabels.addGroup}
             </button>
           </div>
 
           <p className="settingsSectionLead">
-            Cada torre queda visible como ficha fija. Si necesitas cambiar nombre, pisos o
-            departamentos, entra a editar esa torre.
+            {structureLabels.sectionLead}
           </p>
 
           <div className="settingsStats">
             <div className="settingsStat">
               <strong>{towers.length}</strong>
-              <span>Torres registradas</span>
+              <span>{structureLabels.groupPlural} registrados</span>
             </div>
             <div className="settingsStat">
               <strong>{totalFloors}</strong>
-              <span>Pisos en total</span>
+              <span>{structureLabels.levelPlural} en total</span>
             </div>
             <div className="settingsStat">
               <strong>{totalUnits}</strong>
-              <span>Departamentos registrados</span>
+              <span>{structureLabels.totalUnits}</span>
             </div>
           </div>
 
           <div className="towerList">
+            {towers.length === 0 ? (
+              <div className="settingsEmptyState">
+                <strong>La estructura aun no esta configurada.</strong>
+                <p>
+                  Agrega {structureLabels.groupPlural.toLowerCase()} para comenzar a ordenar la
+                  comunidad.
+                </p>
+              </div>
+            ) : null}
+
             {towers.map((tower) => {
               const totalTowerUnits = tower.floors.reduce(
                 (sum, floor) => sum + floor.apartments.length,
@@ -420,6 +538,7 @@ export default function Settings() {
                 <TowerCard
                   key={tower.id}
                   tower={tower}
+                  labels={structureLabels}
                   totalTowerUnits={totalTowerUnits}
                   canRemove={towers.length > 1}
                   onToggleEditing={toggleTowerEditing}
@@ -433,6 +552,17 @@ export default function Settings() {
                 />
               );
             })}
+          </div>
+
+          <div className="settingsActions">
+            <button
+              type="button"
+              className="primaryButton"
+              onClick={() => void handleSaveStructure()}
+              disabled={isSaving}
+            >
+              {isSaving ? "Guardando..." : "Guardar estructura"}
+            </button>
           </div>
         </article>
 

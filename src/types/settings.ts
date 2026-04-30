@@ -26,6 +26,7 @@ export type TowerConfig = {
 
 export type GeneralSettings = {
   building_name: string;
+  community_type: string;
   contact_email: string;
   reception_hours: string;
   address_line: string;

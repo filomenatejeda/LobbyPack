@@ -2,6 +2,18 @@ import type { TowerConfig } from "../../types/settings";
 
 type TowerCardProps = {
   tower: TowerConfig;
+  labels: {
+    groupSingular: string;
+    groupName: string;
+    levelSingular: string;
+    levelPlural: string;
+    levelCount: string;
+    unitSingular: string;
+    unitPlural: string;
+    unitsByLevel: string;
+    previewText: string;
+    addUnit: string;
+  };
   totalTowerUnits: number;
   canRemove: boolean;
   onToggleEditing: (towerId: number) => void;
@@ -21,6 +33,7 @@ type TowerCardProps = {
 
 export default function TowerCard({
   tower,
+  labels,
   totalTowerUnits,
   canRemove,
   onToggleEditing,
@@ -39,7 +52,7 @@ export default function TowerCard({
     <section className="towerCard">
       <div className="towerCardHeader">
         <div>
-          <p className="settingsLabel">Torre</p>
+          <p className="settingsLabel">{labels.groupSingular}</p>
           <h3>{tower.tower_name}</h3>
         </div>
 
@@ -64,15 +77,15 @@ export default function TowerCard({
 
       <div className="towerSummaryGrid">
         <div className="towerSummaryItem">
-          <span>Nombre de la torre</span>
+          <span>{labels.groupName}</span>
           <strong>{tower.tower_name}</strong>
         </div>
         <div className="towerSummaryItem">
-          <span>Cantidad de pisos</span>
+          <span>{labels.levelCount}</span>
           <strong>{tower.floors.length}</strong>
         </div>
         <div className="towerSummaryItem">
-          <span>Departamentos totales</span>
+          <span>{labels.unitPlural} totales</span>
           <strong>{totalTowerUnits}</strong>
         </div>
       </div>
@@ -81,7 +94,7 @@ export default function TowerCard({
         <div className="towerEditor">
           <div className="settingsForm towerForm">
             <label className="settingsField">
-              <span>Nombre de la torre</span>
+              <span>{labels.groupName}</span>
               <input
                 type="text"
                 value={tower.tower_name}
@@ -90,7 +103,7 @@ export default function TowerCard({
             </label>
 
             <label className="settingsField">
-              <span>Cantidad de pisos</span>
+              <span>{labels.levelCount}</span>
               <input
                 type="number"
                 min="1"
@@ -106,15 +119,17 @@ export default function TowerCard({
               <section key={`${tower.id}-${floor.floor_number}`} className="floorEditor">
                 <div className="floorEditorHeader">
                   <div>
-                    <p className="settingsLabel">Piso</p>
-                    <h4>Piso {floor.floor_number}</h4>
+                    <p className="settingsLabel">{labels.levelSingular}</p>
+                    <h4>
+                      {labels.levelSingular} {floor.floor_number}
+                    </h4>
                   </div>
                   <button
                     type="button"
                     className="secondaryButton"
                     onClick={() => onAddApartment(tower.id, floor.floor_number)}
                   >
-                    Agregar departamento
+                    {labels.addUnit}
                   </button>
                 </div>
 
@@ -158,21 +173,21 @@ export default function TowerCard({
       <div className="towerPreview">
         <div className="towerPreviewHeader">
           <div>
-            <p className="towerPreviewTitle">Departamentos por piso</p>
+            <p className="towerPreviewTitle">{labels.unitsByLevel}</p>
             <p className="towerPreviewText">
-              Selecciona un piso para ver solo sus departamentos.
+              {labels.previewText}
             </p>
           </div>
 
           <label className="settingsField towerFloorField">
-            <span>Piso</span>
+            <span>{labels.levelSingular}</span>
             <select
               value={tower.selected_floor}
               onChange={(event) => onSelectFloor(tower.id, event.target.value)}
             >
               {tower.floors.map((floor) => (
                 <option key={`${tower.id}-floor-${floor.floor_number}`} value={floor.floor_number}>
-                  Piso {floor.floor_number}
+                  {labels.levelSingular} {floor.floor_number}
                 </option>
               ))}
             </select>
@@ -188,7 +203,8 @@ export default function TowerCard({
         </div>
 
         <p className="towerPreviewText">
-          {tower.tower_name} tiene {selectedFloor.apartments.length} departamentos en el piso{" "}
+          {tower.tower_name} tiene {selectedFloor.apartments.length} {labels.unitPlural} en{" "}
+          {labels.levelSingular.toLowerCase()}{" "}
           {selectedFloor.floor_number}.
         </p>
       </div>

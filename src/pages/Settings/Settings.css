@@ -117,6 +117,45 @@
   color: var(--text);
 }
 
+.settingsFieldWide {
+  grid-column: 1 / -1;
+}
+
+.settingsReadOnlyGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.settingsReadOnlyItem {
+  min-height: 86px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fcfcfa;
+}
+
+.settingsReadOnlyItemWide {
+  grid-column: 1 / -1;
+}
+
+.settingsReadOnlyItem dt {
+  margin-bottom: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.settingsReadOnlyItem dd {
+  margin: 0;
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .settingsActions {
   display: flex;
   justify-content: flex-end;
@@ -212,6 +251,23 @@
 
 .settingsRow p {
   margin-top: 6px;
+  color: var(--text-soft);
+}
+
+.settingsEmptyState {
+  padding: 24px;
+  border: 1px dashed var(--line);
+  border-radius: 18px;
+  background: #fcfcfa;
+}
+
+.settingsEmptyState strong {
+  display: block;
+  color: var(--text);
+}
+
+.settingsEmptyState p {
+  margin-top: 8px;
   color: var(--text-soft);
 }
 
