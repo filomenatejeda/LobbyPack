@@ -11,6 +11,25 @@ export type TeamItem = {
   team_status: string;
 };
 
+export type ResidentItem = {
+  user_id: string;
+  email: string;
+  resident_name: string;
+  user_phone_number: string;
+  department_address: string;
+  email_verified: boolean;
+  mfa_enabled: boolean;
+};
+
+export type ResidentAccountCreationResponse = ResidentItem & {
+  verification_code: string;
+};
+
+export type ResidentTotpSetup = {
+  totp_secret: string;
+  totp_uri: string;
+};
+
 export type FloorConfig = {
   floor_number: number;
   apartments: string[];

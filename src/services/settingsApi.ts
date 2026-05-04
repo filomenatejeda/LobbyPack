@@ -1,5 +1,13 @@
 import { apiRequest } from "../lib/api";
-import type { GeneralSettings, PreferenceSettings, SettingsPayload, TowerConfig } from "../types/settings";
+import type {
+  GeneralSettings,
+  PreferenceSettings,
+  ResidentAccountCreationResponse,
+  ResidentItem,
+  ResidentTotpSetup,
+  SettingsPayload,
+  TowerConfig,
+} from "../types/settings";
 
 export function fetchSettings(adminEmail?: string) {
   const params = new URLSearchParams();
@@ -41,5 +49,37 @@ export function saveTowers(towers: TowerConfig[], adminEmail?: string) {
   return apiRequest<TowerConfig[]>(settingsPath("/api/settings/towers", adminEmail), {
     method: "PUT",
     body: JSON.stringify(towers),
+  });
+}
+
+export function fetchResidentsByDepartment(departmentAddress: string) {
+  const params = new URLSearchParams({ department_address: departmentAddress });
+  return apiRequest<ResidentItem[]>(`/api/settings/residents?${params.toString()}`);
+}
+
+export function addResidentToDepartment(values: {
+  resident_email: string;
+  resident_name: string;
+  resident_password: string;
+  user_phone_number: string;
+  department_address: string;
+}) {
+  return apiRequest<ResidentAccountCreationResponse>("/api/settings/residents", {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
+}
+
+export function verifyResidentEmail(userId: string, verificationCode: string) {
+  return apiRequest<ResidentTotpSetup>(`/api/settings/residents/${userId}/verify-email`, {
+    method: "POST",
+    body: JSON.stringify({ verification_code: verificationCode }),
+  });
+}
+
+export function verifyResidentMfa(userId: string, mfaCode: string) {
+  return apiRequest<{ ok: boolean }>(`/api/settings/residents/${userId}/verify-mfa`, {
+    method: "POST",
+    body: JSON.stringify({ mfa_code: mfaCode }),
   });
 }

@@ -1,15 +1,22 @@
 import { useEffect, useState } from "react";
+import ApartmentResidentsModal from "../../components/Settings/ApartmentResidentsModal";
 import TowerCard from "../../components/Settings/TowerCard";
 import { preferenceItems } from "../../data/settingsData";
 import { supabase } from "../../lib/client";
 import {
   fetchSettings,
+  addResidentToDepartment,
+  fetchResidentsByDepartment,
   saveGeneralSettings,
   saveTowers,
+  verifyResidentEmail,
+  verifyResidentMfa,
 } from "../../services/settingsApi";
 import type {
   GeneralSettings,
   PreferenceSettings,
+  ResidentItem,
+  ResidentTotpSetup,
   TeamItem,
   TowerConfig,
 } from "../../types/settings";
@@ -111,6 +118,10 @@ export default function Settings() {
   const [isEditingGeneralSettings, setIsEditingGeneralSettings] = useState(false);
   const [adminEmail, setAdminEmail] = useState<string | undefined>(undefined);
   const [statusMessage, setStatusMessage] = useState("");
+  const [selectedApartment, setSelectedApartment] = useState<string | null>(null);
+  const [apartmentResidents, setApartmentResidents] = useState<ResidentItem[]>([]);
+  const [isLoadingResidents, setIsLoadingResidents] = useState(false);
+  const [isSavingResident, setIsSavingResident] = useState(false);
 
   const loadSettings = async () => {
     setIsLoading(true);
@@ -300,6 +311,98 @@ export default function Settings() {
     );
   };
 
+  const openApartmentResidents = async (apartmentName: string) => {
+    setSelectedApartment(apartmentName);
+    setApartmentResidents([]);
+    setIsLoadingResidents(true);
+    setStatusMessage("");
+
+    try {
+      const residents = await fetchResidentsByDepartment(apartmentName);
+      setApartmentResidents(residents);
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : "No se pudieron cargar las personas.");
+    } finally {
+      setIsLoadingResidents(false);
+    }
+  };
+
+  const closeApartmentResidents = () => {
+    setSelectedApartment(null);
+    setApartmentResidents([]);
+  };
+
+  const handleAddResident = async (values: {
+    resident_email: string;
+    resident_name: string;
+    resident_password: string;
+    user_phone_number: string;
+  }) => {
+    if (!selectedApartment) {
+      throw new Error("Selecciona un departamento.");
+    }
+
+    setIsSavingResident(true);
+    setStatusMessage("");
+
+    try {
+      const createdResident = await addResidentToDepartment({
+        ...values,
+        department_address: selectedApartment,
+      });
+      const residents = await fetchResidentsByDepartment(selectedApartment);
+      setApartmentResidents(residents);
+      setStatusMessage("Cuenta residente creada. Verifica el codigo para activar MFA.");
+      return createdResident;
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : "No se pudo agregar la persona.");
+      throw error;
+    } finally {
+      setIsSavingResident(false);
+    }
+  };
+
+  const handleVerifyResidentEmail = async (
+    residentId: string,
+    verificationCode: string,
+  ): Promise<ResidentTotpSetup> => {
+    setIsSavingResident(true);
+    setStatusMessage("");
+
+    try {
+      const setup = await verifyResidentEmail(residentId, verificationCode);
+      if (selectedApartment) {
+        setApartmentResidents(await fetchResidentsByDepartment(selectedApartment));
+      }
+      return setup;
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : "No se pudo verificar el codigo.");
+      throw error;
+    } finally {
+      setIsSavingResident(false);
+    }
+  };
+
+  const handleVerifyResidentMfa = async (residentId: string, mfaCode: string) => {
+    setIsSavingResident(true);
+    setStatusMessage("");
+
+    try {
+      await verifyResidentMfa(residentId, mfaCode);
+      if (selectedApartment) {
+        setApartmentResidents(await fetchResidentsByDepartment(selectedApartment));
+      }
+      setStatusMessage("Cuenta residente verificada correctamente.");
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error ? error.message : "No se pudo verificar el autenticador.",
+      );
+      throw error;
+    } finally {
+      setIsSavingResident(false);
+    }
+  };
+
 
 
   const handleSaveGeneralSettings = async () => {
@@ -336,6 +439,11 @@ export default function Settings() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const cancelStructureEdit = async () => {
+    setStatusMessage("");
+    await loadSettings();
   };
 
   return (
@@ -547,6 +655,7 @@ export default function Settings() {
                   onUpdateFloorCount={updateTowerFloorCount}
                   onSelectFloor={selectFloor}
                   onAddApartment={addApartment}
+                  onApartmentClick={(apartmentName) => void openApartmentResidents(apartmentName)}
                   onUpdateApartmentName={updateApartmentName}
                   onRemoveApartment={removeApartment}
                 />
@@ -555,6 +664,14 @@ export default function Settings() {
           </div>
 
           <div className="settingsActions">
+            <button
+              type="button"
+              className="secondaryButton"
+              onClick={() => void cancelStructureEdit()}
+              disabled={isSaving || isLoading}
+            >
+              Cancelar
+            </button>
             <button
               type="button"
               className="primaryButton"
@@ -590,6 +707,20 @@ export default function Settings() {
           </div>
         </article>
       </section>
+
+      {selectedApartment ? (
+        <ApartmentResidentsModal
+          apartmentName={selectedApartment}
+          unitSingular={structureLabels.unitSingular}
+          residents={apartmentResidents}
+          isLoading={isLoadingResidents}
+          isSaving={isSavingResident}
+          onClose={closeApartmentResidents}
+          onAddResident={handleAddResident}
+          onVerifyEmail={handleVerifyResidentEmail}
+          onVerifyMfa={handleVerifyResidentMfa}
+        />
+      ) : null}
     </main>
   );
 }

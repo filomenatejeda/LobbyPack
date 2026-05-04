@@ -453,8 +453,93 @@
   color: var(--accent-strong);
 }
 
-.towerFloorField {
-  min-width: 160px;
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.towerFloorControl {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.towerFloorControlLabel {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--text-soft);
+}
+
+.towerFloorStepper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  width: fit-content;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(42, 35, 30, 0.07);
+}
+
+.towerFloorIconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.towerFloorIconButton:hover:not(:disabled) {
+  background: rgba(206, 98, 58, 0.1);
+  color: var(--accent-strong);
+}
+
+.towerFloorIconButton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.towerFloorNumberField {
+  display: block;
+}
+
+.towerFloorNumberField input {
+  width: 56px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(206, 98, 58, 0.1);
+  padding: 9px 8px;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  text-align: center;
+  color: var(--text);
+}
+
+.towerFloorNumberField input:focus {
+  outline: 2px solid rgba(206, 98, 58, 0.28);
+  outline-offset: 2px;
+}
+
+.towerFloorTotal {
+  min-width: 38px;
+  color: var(--text-soft);
+  font-weight: 700;
+  text-align: center;
 }
 
 .towerPreviewChips {
@@ -469,17 +554,173 @@
   align-items: center;
   justify-content: center;
   min-width: 56px;
+  border: 1px solid transparent;
   padding: 7px 10px;
   border-radius: 999px;
   background: #ffffff;
   color: var(--accent-strong);
+  font: inherit;
   font-size: 0.84rem;
   font-weight: 700;
+  cursor: pointer;
+}
+
+.towerChip:hover {
+  border-color: rgba(206, 98, 58, 0.24);
+  background: rgba(206, 98, 58, 0.12);
 }
 
 .towerPreviewText {
   margin-top: 12px;
   color: var(--text-soft);
+}
+
+.residentModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(38, 34, 29, 0.42);
+}
+
+.residentModal {
+  width: min(100%, 520px);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface-strong);
+  padding: 22px;
+  box-shadow: 0 22px 48px rgba(38, 34, 29, 0.16);
+}
+
+.residentModalHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.residentModalHeader h3 {
+  margin: 0;
+  font-size: 1.8rem;
+  letter-spacing: -0.04em;
+}
+
+.residentModalLead {
+  margin-top: 8px;
+  color: var(--text-soft);
+}
+
+.residentModalClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.residentModalBody {
+  margin-top: 20px;
+}
+
+.residentList {
+  display: grid;
+  gap: 10px;
+}
+
+.residentItem {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fcfcfa;
+}
+
+.residentItem strong,
+.residentItem span {
+  display: block;
+}
+
+.residentItem span {
+  margin-top: 5px;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
+.residentEmptyText {
+  color: var(--text-soft);
+}
+
+.residentForm {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.residentVerificationBox,
+.residentMfaPanel {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fcfcfa;
+}
+
+.residentVerificationBox strong {
+  display: block;
+  color: var(--text);
+}
+
+.residentVerificationBox p,
+.residentMfaPanel p {
+  margin-top: 8px;
+  color: var(--text-soft);
+}
+
+.residentVerificationBox span {
+  display: inline-flex;
+  margin-left: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(206, 98, 58, 0.12);
+  color: var(--accent-strong);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.residentQrBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 208px;
+  height: 208px;
+  margin: 0 auto 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.residentSecret {
+  overflow-wrap: anywhere;
+}
+
+.residentError {
+  color: #b42318;
+  font-weight: 700;
+}
+
+.residentActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 @media (max-width: 900px) {
@@ -506,6 +747,7 @@
   .settingsRow,
   .settingsOption,
   .settingsActions,
+  .residentActions,
   .towerCardHeader,
   .towerPreviewHeader,
   .towerHeaderActions,
@@ -513,5 +755,14 @@
   .apartmentEditorItem {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .towerFloorControl {
+    justify-items: start;
+  }
+
+  .towerFloorStepper {
+    justify-content: flex-start;
+    max-width: 100%;
   }
 }

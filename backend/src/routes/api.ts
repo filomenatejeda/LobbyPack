@@ -1,4 +1,5 @@
 import { Elysia, t } from "elysia";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
 import { pool } from "../db/pool";
 import { createResidentEmail, createSequentialCode, createSequentialId } from "../utils/ids";
@@ -43,6 +44,22 @@ type TeamRow = RowDataPacket & {
   role: "admin" | "concierge" | "resident";
   team_name: string;
   team_status: string;
+};
+
+type ResidentRow = RowDataPacket & {
+  user_id: string;
+  email: string;
+  resident_name: string;
+  user_phone_number: string | null;
+  department_address: string;
+  email_verified: number | null;
+  totp_verified: number | null;
+};
+
+type ResidentSecurityRow = RowDataPacket & {
+  user_id: string;
+  email_verification_code_hash: string | null;
+  totp_secret: string | null;
 };
 
 type BuildingRow = RowDataPacket & {
@@ -126,6 +143,22 @@ const adminEmailSchema = t.Object({
   admin_email: t.String({ minLength: 1 }),
 });
 
+const residentSettingsSchema = t.Object({
+  resident_email: t.String({ minLength: 1 }),
+  resident_name: t.String({ minLength: 1 }),
+  resident_password: t.String({ minLength: 8 }),
+  user_phone_number: t.String(),
+  department_address: t.String({ minLength: 1 }),
+});
+
+const residentEmailVerificationSchema = t.Object({
+  verification_code: t.String({ minLength: 6 }),
+});
+
+const residentMfaVerificationSchema = t.Object({
+  mfa_code: t.String({ minLength: 6 }),
+});
+
 const preferenceSettingsSchema = t.Object({
   package_notifications: t.Boolean(),
   daily_summary: t.Boolean(),
@@ -184,6 +217,22 @@ async function ensureCommunityRegistrationsTable() {
       admin_email VARCHAR(255) UNIQUE NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci
+  `);
+}
+
+async function ensureResidentAccountSecurityTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ResidentAccountSecurity (
+      user_id VARCHAR(64) PRIMARY KEY,
+      email_verification_code_hash VARCHAR(64),
+      email_verification_expires_at TIMESTAMP NULL,
+      email_verified BOOLEAN DEFAULT FALSE,
+      totp_secret VARCHAR(64),
+      totp_verified BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
     ) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci
   `);
 }
@@ -300,6 +349,180 @@ async function getOrCreateResident(
   );
 
   return residentId;
+}
+
+function hashPassword(password: string) {
+  return createHash("sha256").update(password).digest("hex");
+}
+
+function createVerificationCode() {
+  return String(randomBytes(4).readUInt32BE(0) % 1_000_000).padStart(6, "0");
+}
+
+function hashVerificationCode(code: string) {
+  return createHash("sha256").update(code).digest("hex");
+}
+
+const base32Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+
+function toBase32(buffer: Buffer) {
+  let bits = "";
+  let output = "";
+
+  for (const byte of buffer) {
+    bits += byte.toString(2).padStart(8, "0");
+  }
+
+  for (let index = 0; index < bits.length; index += 5) {
+    const chunk = bits.slice(index, index + 5).padEnd(5, "0");
+    output += base32Alphabet[Number.parseInt(chunk, 2)];
+  }
+
+  return output;
+}
+
+function fromBase32(value: string) {
+  const cleanValue = value.replaceAll("=", "").replaceAll(/\s/g, "").toUpperCase();
+  let bits = "";
+  const bytes: number[] = [];
+
+  for (const character of cleanValue) {
+    const index = base32Alphabet.indexOf(character);
+    if (index === -1) {
+      continue;
+    }
+    bits += index.toString(2).padStart(5, "0");
+  }
+
+  for (let index = 0; index + 8 <= bits.length; index += 8) {
+    bytes.push(Number.parseInt(bits.slice(index, index + 8), 2));
+  }
+
+  return Buffer.from(bytes);
+}
+
+function createTotpSecret() {
+  return toBase32(randomBytes(20));
+}
+
+function createTotpCode(secret: string, step = Math.floor(Date.now() / 30_000)) {
+  const key = fromBase32(secret);
+  const counter = Buffer.alloc(8);
+  counter.writeBigUInt64BE(BigInt(step));
+
+  const hmac = createHmac("sha1", key).update(counter).digest();
+  const offset = hmac[hmac.length - 1] & 0xf;
+  const binary =
+    ((hmac[offset] & 0x7f) << 24) |
+    ((hmac[offset + 1] & 0xff) << 16) |
+    ((hmac[offset + 2] & 0xff) << 8) |
+    (hmac[offset + 3] & 0xff);
+
+  return String(binary % 1_000_000).padStart(6, "0");
+}
+
+function verifyTotpCode(secret: string, code: string) {
+  const cleanCode = code.replaceAll(/\D/g, "");
+  const currentStep = Math.floor(Date.now() / 30_000);
+
+  return [-1, 0, 1].some((window) => createTotpCode(secret, currentStep + window) === cleanCode);
+}
+
+function createTotpUri(email: string, secret: string) {
+  const issuer = "LobbyPack";
+  const label = encodeURIComponent(`${issuer}:${email}`);
+  const params = new URLSearchParams({
+    secret,
+    issuer,
+    algorithm: "SHA1",
+    digits: "6",
+    period: "30",
+  });
+
+  return `otpauth://totp/${label}?${params.toString()}`;
+}
+
+async function createResidentAccount(
+  connection: PoolConnection,
+  resident_email: string,
+  resident_name: string,
+  resident_password: string,
+  department_address: string,
+  user_phone_number: string,
+) {
+  await ensureResidentAccountSecurityTable();
+
+  const normalizedEmail = normalizeTextInput(resident_email).toLowerCase();
+  const normalizedResidentName = normalizeTextInput(resident_name);
+  const normalizedDepartmentAddress = normalizeTextInput(department_address);
+  const normalizedPhoneNumber = normalizeTextInput(user_phone_number);
+
+  const [existingUsers] = await connection.query<RowDataPacket[]>(
+    `
+      SELECT id
+      FROM Users
+      WHERE LOWER(email) = LOWER(?)
+      LIMIT 1
+    `,
+    [normalizedEmail],
+  );
+
+  if (existingUsers.length > 0) {
+    throw new Error("Este correo ya tiene una cuenta registrada.");
+  }
+
+  const verificationCode = createVerificationCode();
+
+  const residentId = await createSequentialId(connection, {
+    tableName: "Users",
+    columnName: "id",
+    prefix: "resident",
+    padLength: 3,
+  });
+
+  await connection.query(
+    `
+      INSERT INTO Users (id, email, role)
+      VALUES (?, ?, 'resident')
+    `,
+    [residentId, normalizedEmail],
+  );
+
+  await connection.query(
+    `
+      INSERT INTO Residents (
+        user_id,
+        resident_name,
+        resident_password_hash,
+        user_phone_number,
+        department_address
+      )
+      VALUES (?, ?, ?, ?, ?)
+    `,
+    [
+      residentId,
+      normalizedResidentName,
+      hashPassword(resident_password),
+      normalizedPhoneNumber || null,
+      normalizedDepartmentAddress,
+    ],
+  );
+
+  await connection.query(
+    `
+      INSERT INTO ResidentAccountSecurity (
+        user_id,
+        email_verification_code_hash,
+        email_verification_expires_at,
+        email_verified,
+        totp_verified
+      )
+      VALUES (?, ?, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 15 MINUTE), FALSE, FALSE)
+    `,
+    [residentId, hashVerificationCode(verificationCode)],
+  );
+
+  return { residentId, verificationCode };
 }
 
 async function getConciergeUserId(connection: PoolConnection, concierge_name: string) {
@@ -1092,6 +1315,198 @@ export const api = new Elysia({ prefix: "/api" })
     body: issueStatusSchema,
   })
   .get("/settings", async ({ query }) => getSettingsPayload(query.admin_email))
+  .get("/settings/residents", async ({ query }) => {
+    await ensureResidentAccountSecurityTable();
+    const departmentAddress = normalizeTextInput(String(query.department_address ?? ""));
+
+    if (!departmentAddress) {
+      return [];
+    }
+
+    const [residents] = await pool.query<ResidentRow[]>(
+      `
+        SELECT
+          r.user_id,
+          u.email,
+          r.resident_name,
+          r.user_phone_number,
+          r.department_address,
+          s.email_verified,
+          s.totp_verified
+        FROM Residents r
+        INNER JOIN Users u ON u.id = r.user_id
+        LEFT JOIN ResidentAccountSecurity s ON s.user_id = r.user_id
+        WHERE LOWER(r.department_address) = LOWER(?)
+        ORDER BY r.resident_name
+      `,
+      [departmentAddress],
+    );
+
+    return residents.map((resident) => ({
+      user_id: resident.user_id,
+      email: resident.email,
+      resident_name: repairPotentialMojibake(resident.resident_name),
+      user_phone_number: repairPotentialMojibake(resident.user_phone_number ?? ""),
+      department_address: repairPotentialMojibake(resident.department_address),
+      email_verified: Boolean(resident.email_verified),
+      mfa_enabled: Boolean(resident.totp_verified),
+    }));
+  })
+  .post("/settings/residents", async ({ body, set }) => {
+    const connection = await pool.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      const { residentId, verificationCode } = await createResidentAccount(
+        connection,
+        body.resident_email,
+        body.resident_name,
+        body.resident_password,
+        body.department_address,
+        body.user_phone_number,
+      );
+
+      await connection.commit();
+      set.status = 201;
+
+      const [residents] = await pool.query<ResidentRow[]>(
+        `
+          SELECT
+            r.user_id,
+            u.email,
+            r.resident_name,
+            r.user_phone_number,
+            r.department_address,
+            s.email_verified,
+            s.totp_verified
+          FROM Residents r
+          INNER JOIN Users u ON u.id = r.user_id
+          LEFT JOIN ResidentAccountSecurity s ON s.user_id = r.user_id
+          WHERE r.user_id = ?
+          LIMIT 1
+        `,
+        [residentId],
+      );
+
+      const resident = residents[0];
+      return {
+        user_id: resident.user_id,
+        email: resident.email,
+        resident_name: repairPotentialMojibake(resident.resident_name),
+        user_phone_number: repairPotentialMojibake(resident.user_phone_number ?? ""),
+        department_address: repairPotentialMojibake(resident.department_address),
+        email_verified: Boolean(resident.email_verified),
+        mfa_enabled: Boolean(resident.totp_verified),
+        verification_code: verificationCode,
+      };
+    } catch (error) {
+      await connection.rollback();
+      if (error instanceof Error && error.message === "Este correo ya tiene una cuenta registrada.") {
+        set.status = 409;
+        return { message: error.message };
+      }
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }, {
+    body: residentSettingsSchema,
+  })
+  .post("/settings/residents/:id/verify-email", async ({ params, body, set }) => {
+    await ensureResidentAccountSecurityTable();
+
+    const [securityRows] = await pool.query<ResidentSecurityRow[]>(
+      `
+        SELECT user_id, email_verification_code_hash, totp_secret
+        FROM ResidentAccountSecurity
+        WHERE user_id = ?
+          AND email_verification_expires_at > CURRENT_TIMESTAMP
+        LIMIT 1
+      `,
+      [params.id],
+    );
+
+    const security = securityRows[0];
+    if (
+      !security?.email_verification_code_hash ||
+      security.email_verification_code_hash !== hashVerificationCode(body.verification_code)
+    ) {
+      set.status = 400;
+      return { message: "Codigo de verificacion invalido o expirado." };
+    }
+
+    const [users] = await pool.query<Array<RowDataPacket & { email: string }>>(
+      `
+        SELECT email
+        FROM Users
+        WHERE id = ?
+        LIMIT 1
+      `,
+      [params.id],
+    );
+
+    const email = users[0]?.email;
+    if (!email) {
+      set.status = 404;
+      return { message: "Residente no encontrado." };
+    }
+
+    const secret = security.totp_secret ?? createTotpSecret();
+
+    await pool.query(
+      `
+        UPDATE ResidentAccountSecurity
+        SET
+          email_verified = TRUE,
+          email_verification_code_hash = NULL,
+          email_verification_expires_at = NULL,
+          totp_secret = ?
+        WHERE user_id = ?
+      `,
+      [secret, params.id],
+    );
+
+    return {
+      totp_secret: secret,
+      totp_uri: createTotpUri(email, secret),
+    };
+  }, {
+    body: residentEmailVerificationSchema,
+  })
+  .post("/settings/residents/:id/verify-mfa", async ({ params, body, set }) => {
+    await ensureResidentAccountSecurityTable();
+
+    const [securityRows] = await pool.query<ResidentSecurityRow[]>(
+      `
+        SELECT user_id, totp_secret
+        FROM ResidentAccountSecurity
+        WHERE user_id = ?
+          AND email_verified = TRUE
+        LIMIT 1
+      `,
+      [params.id],
+    );
+
+    const secret = securityRows[0]?.totp_secret;
+    if (!secret || !verifyTotpCode(secret, body.mfa_code)) {
+      set.status = 400;
+      return { message: "Codigo del autenticador invalido." };
+    }
+
+    await pool.query(
+      `
+        UPDATE ResidentAccountSecurity
+        SET totp_verified = TRUE
+        WHERE user_id = ?
+      `,
+      [params.id],
+    );
+
+    return { ok: true };
+  }, {
+    body: residentMfaVerificationSchema,
+  })
   .put("/settings/general", async ({ body, query }) => {
     const { buildingId } = await getSettingsContext(query.admin_email);
 

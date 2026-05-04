@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { TowerConfig } from "../../types/settings";
 
 type TowerCardProps = {
@@ -22,6 +23,7 @@ type TowerCardProps = {
   onUpdateFloorCount: (towerId: number, value: string) => void;
   onSelectFloor: (towerId: number, value: string) => void;
   onAddApartment: (towerId: number, floor_number: number) => void;
+  onApartmentClick: (apartmentName: string) => void;
   onUpdateApartmentName: (
     towerId: number,
     floor_number: number,
@@ -42,11 +44,14 @@ export default function TowerCard({
   onUpdateFloorCount,
   onSelectFloor,
   onAddApartment,
+  onApartmentClick,
   onUpdateApartmentName,
   onRemoveApartment,
 }: TowerCardProps) {
   const selectedFloor =
     tower.floors.find((floor) => floor.floor_number === tower.selected_floor) ?? tower.floors[0];
+  const selectedFloorNumber = selectedFloor?.floor_number ?? 1;
+  const maxFloor = tower.floors.length;
 
   return (
     <section className="towerCard">
@@ -179,26 +184,55 @@ export default function TowerCard({
             </p>
           </div>
 
-          <label className="settingsField towerFloorField">
-            <span>{labels.levelSingular}</span>
-            <select
-              value={tower.selected_floor}
-              onChange={(event) => onSelectFloor(tower.id, event.target.value)}
-            >
-              {tower.floors.map((floor) => (
-                <option key={`${tower.id}-floor-${floor.floor_number}`} value={floor.floor_number}>
-                  {labels.levelSingular} {floor.floor_number}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="towerFloorControl">
+            <span className="towerFloorControlLabel">{labels.levelSingular}</span>
+            <div className="towerFloorStepper" aria-label={`Seleccionar ${labels.levelSingular}`}>
+              <button
+                type="button"
+                className="towerFloorIconButton"
+                onClick={() => onSelectFloor(tower.id, String(selectedFloorNumber - 1))}
+                disabled={selectedFloorNumber <= 1}
+                aria-label={`${labels.levelSingular} anterior`}
+              >
+                <ChevronLeft size={18} aria-hidden="true" />
+              </button>
+
+              <label className="towerFloorNumberField">
+                <span className="srOnly">{labels.levelSingular}</span>
+                <input
+                  type="number"
+                  min="1"
+                  max={maxFloor}
+                  value={selectedFloorNumber}
+                  onChange={(event) => onSelectFloor(tower.id, event.target.value)}
+                />
+              </label>
+
+              <span className="towerFloorTotal">/ {maxFloor}</span>
+
+              <button
+                type="button"
+                className="towerFloorIconButton"
+                onClick={() => onSelectFloor(tower.id, String(selectedFloorNumber + 1))}
+                disabled={selectedFloorNumber >= maxFloor}
+                aria-label={`${labels.levelSingular} siguiente`}
+              >
+                <ChevronRight size={18} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="towerPreviewChips">
           {selectedFloor.apartments.map((apartment) => (
-            <span key={`${tower.id}-${selectedFloor.floor_number}-${apartment}`} className="towerChip">
+            <button
+              key={`${tower.id}-${selectedFloor.floor_number}-${apartment}`}
+              type="button"
+              className="towerChip"
+              onClick={() => onApartmentClick(apartment)}
+            >
               {apartment}
-            </span>
+            </button>
           ))}
         </div>
 
