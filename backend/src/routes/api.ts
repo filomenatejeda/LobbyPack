@@ -1,8 +1,18 @@
 import { Elysia, t } from "elysia";
 import { createHash, createHmac, randomBytes } from "node:crypto";
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
+import { AuthError, requireAppRole, type AuthSession } from "../auth/session";
 import { pool } from "../db/pool";
 import { createResidentEmail, createSequentialCode, createSequentialId } from "../utils/ids";
+import {
+  departmentAddressesMatch,
+  normalizeDepartmentAddress,
+} from "../utils/departments";
+import {
+  buildParcelQrValue,
+  createParcelQrToken,
+  parseParcelQrValue,
+} from "../utils/parcels";
 import { normalizeTextInput, repairPotentialMojibake } from "../utils/textEncoding";
 
 const DEMO_CONCIERGE_USER_ID = "concierge-demo";
@@ -12,11 +22,13 @@ type ParcelRow = RowDataPacket & {
   id: string;
   withdrawal_code: string | null;
   qr_code_url: string | null;
+  qr_token?: string | null;
   parcel_status: "pending" | "claimed";
   parcel_description: string | null;
   is_urgent: number;
   pending_date: string;
   claimed_date: string | null;
+  claimed_by_user_id?: string | null;
   id_concierge: string;
   id_resident: string;
   id_business: string;
@@ -102,6 +114,13 @@ type TowerRow = RowDataPacket & {
   apartment_display_order: number;
 };
 
+type ParcelClaimRow = RowDataPacket & {
+  id: string;
+  qr_token: string | null;
+  parcel_status: "pending" | "claimed";
+  delivery_department_address: string | null;
+};
+
 const parcelPayloadSchema = t.Object({
   department_address: t.String({ minLength: 1 }),
   resident_name: t.String({ minLength: 1 }),
@@ -157,6 +176,10 @@ const residentEmailVerificationSchema = t.Object({
 
 const residentMfaVerificationSchema = t.Object({
   mfa_code: t.String({ minLength: 6 }),
+});
+
+const residentParcelQrSchema = t.Object({
+  qr_value: t.String({ minLength: 1 }),
 });
 
 const preferenceSettingsSchema = t.Object({
@@ -279,7 +302,7 @@ async function getOrCreateResident(
   user_phone_number: string,
 ) {
   const normalizedResidentName = normalizeTextInput(resident_name);
-  const normalizedDepartmentAddress = normalizeTextInput(department_address);
+  const normalizedDepartmentAddress = normalizeDepartmentAddress(department_address);
   const normalizedPhoneNumber = normalizeTextInput(user_phone_number);
 
   const [existingResidents] = await connection.query<RowDataPacket[]>(
@@ -454,7 +477,7 @@ async function createResidentAccount(
 
   const normalizedEmail = normalizeTextInput(resident_email).toLowerCase();
   const normalizedResidentName = normalizeTextInput(resident_name);
-  const normalizedDepartmentAddress = normalizeTextInput(department_address);
+  const normalizedDepartmentAddress = normalizeDepartmentAddress(department_address);
   const normalizedPhoneNumber = normalizeTextInput(user_phone_number);
 
   const [existingUsers] = await connection.query<RowDataPacket[]>(
@@ -541,7 +564,31 @@ async function getConciergeUserId(connection: PoolConnection, concierge_name: st
   return concierges.length > 0 ? String(concierges[0].user_id) : DEMO_CONCIERGE_USER_ID;
 }
 
-async function listParcels(parcel_status: "pending" | "claimed") {
+function mapParcelRow(row: ParcelRow) {
+  return {
+    id: row.id,
+    withdrawal_code: row.withdrawal_code,
+    qr_code_url: row.qr_code_url,
+    parcel_status: row.parcel_status,
+    parcel_description: repairPotentialMojibake(row.parcel_description ?? ""),
+    is_urgent: Boolean(row.is_urgent),
+    pending_date: row.pending_date,
+    claimed_date: row.claimed_date,
+    id_concierge: row.id_concierge,
+    id_resident: row.id_resident,
+    id_business: row.id_business,
+    resident_name: repairPotentialMojibake(row.resident_name),
+    user_phone_number: repairPotentialMojibake(row.user_phone_number ?? ""),
+    department_address: repairPotentialMojibake(row.department_address),
+    concierge_name: repairPotentialMojibake(row.concierge_name),
+    business_name: repairPotentialMojibake(row.business_name),
+  };
+}
+
+async function listParcels(
+  parcel_status: "pending" | "claimed",
+  options?: { departmentAddress?: string },
+) {
   const [rows] = await pool.query<ParcelRow[]>(
     `
       SELECT
@@ -553,12 +600,13 @@ async function listParcels(parcel_status: "pending" | "claimed") {
         p.is_urgent,
         p.pending_date,
         p.claimed_date,
+        p.claimed_by_user_id,
         p.id_concierge,
         p.id_resident,
         p.id_business,
         r.resident_name,
         r.user_phone_number,
-        r.department_address,
+        COALESCE(p.delivery_department_address, r.department_address) AS department_address,
         c.concierge_name,
         b.business_name
       FROM Parcels p
@@ -576,24 +624,120 @@ async function listParcels(parcel_status: "pending" | "claimed") {
     [parcel_status],
   );
 
-  return rows.map((row) => ({
-    id: row.id,
-    withdrawal_code: row.withdrawal_code,
-    qr_code_url: row.qr_code_url,
-    parcel_status: row.parcel_status,
-    parcel_description: repairPotentialMojibake(row.parcel_description ?? ""),
-    is_urgent: Boolean(row.is_urgent),
-    pending_date: row.pending_date,
-    claimed_date: row.claimed_date,
-    id_concierge: row.id_concierge,
-    id_resident: row.id_resident,
-    id_business: row.id_business,
-    resident_name: repairPotentialMojibake(row.resident_name),
-    user_phone_number: repairPotentialMojibake(row.user_phone_number ?? ""),
-    department_address: repairPotentialMojibake(row.department_address),
-    concierge_name: repairPotentialMojibake(row.concierge_name),
-    business_name: repairPotentialMojibake(row.business_name),
-  }));
+  const mappedRows = rows.map(mapParcelRow);
+
+  if (!options?.departmentAddress) {
+    return mappedRows;
+  }
+
+  return mappedRows.filter((row) =>
+    departmentAddressesMatch(row.department_address, options.departmentAddress ?? ""),
+  );
+}
+
+async function getParcelById(parcelId: string) {
+  const [parcels] = await pool.query<ParcelRow[]>(
+    `
+      SELECT
+        p.id,
+        p.withdrawal_code,
+        p.qr_code_url,
+        p.qr_token,
+        p.parcel_status,
+        p.parcel_description,
+        p.is_urgent,
+        p.pending_date,
+        p.claimed_date,
+        p.claimed_by_user_id,
+        p.id_concierge,
+        p.id_resident,
+        p.id_business,
+        r.resident_name,
+        r.user_phone_number,
+        COALESCE(p.delivery_department_address, r.department_address) AS department_address,
+        c.concierge_name,
+        b.business_name
+      FROM Parcels p
+      INNER JOIN Residents r ON r.user_id = p.id_resident
+      INNER JOIN Concierges c ON c.user_id = p.id_concierge
+      INNER JOIN Businesses b ON b.id = p.id_business
+      WHERE p.id = ?
+      LIMIT 1
+    `,
+    [parcelId],
+  );
+
+  const parcel = parcels[0];
+  return parcel ? mapParcelRow(parcel) : null;
+}
+
+function buildDashboardCurrentUser(session: AuthSession) {
+  return {
+    user_id: session.userId,
+    email: session.email,
+    role: session.role,
+    display_name: session.residentName ?? session.email,
+    department_address: session.departmentAddress ?? null,
+  };
+}
+
+function parseParcelClaimPayload(qrValue: string) {
+  const parsed = parseParcelQrValue(qrValue);
+
+  if (!parsed) {
+    throw new AuthError(400, "El QR escaneado no tiene un formato valido.");
+  }
+
+  return parsed;
+}
+
+async function assertResidentParcelAccess(session: AuthSession, qrValue: string) {
+  if (!session.departmentAddress) {
+    throw new AuthError(403, "Tu cuenta residente no tiene un departamento asociado.");
+  }
+
+  const parsed = parseParcelClaimPayload(qrValue);
+  const [rows] = await pool.query<ParcelClaimRow[]>(
+    `
+      SELECT
+        id,
+        qr_token,
+        parcel_status,
+        delivery_department_address
+      FROM Parcels
+      WHERE id = ?
+      LIMIT 1
+    `,
+    [parsed.parcelId],
+  );
+
+  const parcel = rows[0];
+
+  if (!parcel || !parcel.qr_token || parcel.qr_token !== parsed.qrToken) {
+    throw new AuthError(404, "No se encontro un paquete asociado a ese QR.");
+  }
+
+  if (parcel.parcel_status !== "pending") {
+    throw new AuthError(409, "Ese paquete ya fue retirado o no esta disponible para entrega.");
+  }
+
+  if (
+    !departmentAddressesMatch(parcel.delivery_department_address ?? "", session.departmentAddress)
+  ) {
+    throw new AuthError(403, "Ese QR no corresponde al departamento de tu cuenta.");
+  }
+
+  const parcelData = await getParcelById(parcel.id);
+
+  if (!parcelData) {
+    throw new AuthError(404, "No se encontro el paquete asociado a ese QR.");
+  }
+
+  return {
+    parcelId: parcel.id,
+    qrToken: parsed.qrToken,
+    parcel: parcelData,
+  };
 }
 
 async function listIssues() {
@@ -823,6 +967,12 @@ async function getSettingsContext(adminEmail?: string): Promise<SettingsContext>
 }
 
 export const api = new Elysia({ prefix: "/api" })
+  .onError(({ error, set }) => {
+    if (error instanceof AuthError) {
+      set.status = error.status;
+      return { message: error.message };
+    }
+  })
   .post("/auth/check-community-address", async ({ body }) => {
     await ensureCommunityRegistrationsTable();
 
@@ -1031,15 +1181,21 @@ export const api = new Elysia({ prefix: "/api" })
   }, {
     body: communityRegistrationSchema,
   })
-  .get("/parcels", async ({ query }) => {
+  .get("/parcels", async ({ headers, query }) => {
+    await requireAppRole(headers.authorization, ["admin", "concierge"]);
+
     const parcel_status = query.parcel_status === "claimed" ? "claimed" : "pending";
     return listParcels(parcel_status);
   })
-  .post("/parcels", async ({ body, set }) => {
+  .post("/parcels", async ({ headers, body, set }) => {
+    await requireAppRole(headers.authorization, ["admin", "concierge"]);
+
     const connection = await pool.getConnection();
     const normalizedDescription = body.parcel_description
       ? normalizeTextInput(body.parcel_description)
       : "";
+    const normalizedDepartmentAddress = normalizeDepartmentAddress(body.department_address);
+    const qrToken = createParcelQrToken();
 
     try {
       await connection.beginTransaction();
@@ -1072,21 +1228,25 @@ export const api = new Elysia({ prefix: "/api" })
             id_concierge,
             id_resident,
             id_business,
+            delivery_department_address,
             withdrawal_code,
             qr_code_url,
+            qr_token,
             parcel_status,
             parcel_description,
             is_urgent
           )
-          VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
         `,
         [
           parcelId,
           conciergeUserId,
           residentUserId,
           businessId,
+          normalizedDepartmentAddress,
           withdrawalCode,
-          `LobbyPack:${parcelId}`,
+          buildParcelQrValue(parcelId, qrToken),
+          qrToken,
           normalizedDescription,
           body.is_urgent ?? false,
         ],
@@ -1094,9 +1254,7 @@ export const api = new Elysia({ prefix: "/api" })
 
       await connection.commit();
       set.status = 201;
-
-      const parcels = await listParcels("pending");
-      return parcels.find((parcel) => parcel.id === parcelId);
+      return getParcelById(parcelId);
     } catch (error) {
       await connection.rollback();
       throw error;
@@ -1106,18 +1264,21 @@ export const api = new Elysia({ prefix: "/api" })
   }, {
     body: parcelPayloadSchema,
   })
-  .patch("/parcels/:id", async ({ params, body, set }) => {
+  .patch("/parcels/:id", async ({ headers, params, body, set }) => {
+    await requireAppRole(headers.authorization, ["admin", "concierge"]);
+
     const connection = await pool.getConnection();
     const normalizedDescription = body.parcel_description
       ? normalizeTextInput(body.parcel_description)
       : "";
+    const normalizedDepartmentAddress = normalizeDepartmentAddress(body.department_address);
 
     try {
       await connection.beginTransaction();
 
       const [parcels] = await connection.query<RowDataPacket[]>(
         `
-          SELECT id
+          SELECT id, parcel_status
           FROM Parcels
           WHERE id = ?
           LIMIT 1
@@ -1138,6 +1299,8 @@ export const api = new Elysia({ prefix: "/api" })
         body.user_phone_number,
       );
       const businessId = await getOrCreateBusiness(connection, body.business_name);
+      const qrToken =
+        String(parcels[0].parcel_status) === "pending" ? createParcelQrToken() : null;
 
       await connection.query(
         `
@@ -1146,6 +1309,9 @@ export const api = new Elysia({ prefix: "/api" })
             id_concierge = ?,
             id_resident = ?,
             id_business = ?,
+            delivery_department_address = ?,
+            qr_code_url = COALESCE(?, qr_code_url),
+            qr_token = COALESCE(?, qr_token),
             parcel_description = ?,
             is_urgent = ?
           WHERE id = ?
@@ -1154,6 +1320,9 @@ export const api = new Elysia({ prefix: "/api" })
           conciergeUserId,
           residentUserId,
           businessId,
+          normalizedDepartmentAddress,
+          qrToken ? buildParcelQrValue(params.id, qrToken) : null,
+          qrToken,
           normalizedDescription,
           body.is_urgent ?? false,
           params.id,
@@ -1161,55 +1330,7 @@ export const api = new Elysia({ prefix: "/api" })
       );
 
       await connection.commit();
-
-      const [updatedParcels] = await pool.query<ParcelRow[]>(
-        `
-          SELECT
-            p.id,
-            p.withdrawal_code,
-            p.qr_code_url,
-            p.parcel_status,
-            p.parcel_description,
-            p.is_urgent,
-            p.pending_date,
-            p.claimed_date,
-            p.id_concierge,
-            p.id_resident,
-            p.id_business,
-            r.resident_name,
-            r.user_phone_number,
-            r.department_address,
-            c.concierge_name,
-            b.business_name
-          FROM Parcels p
-          INNER JOIN Residents r ON r.user_id = p.id_resident
-          INNER JOIN Concierges c ON c.user_id = p.id_concierge
-          INNER JOIN Businesses b ON b.id = p.id_business
-          WHERE p.id = ?
-          LIMIT 1
-        `,
-        [params.id],
-      );
-
-      const parcel = updatedParcels[0];
-      return {
-        id: parcel.id,
-        withdrawal_code: parcel.withdrawal_code,
-        qr_code_url: parcel.qr_code_url,
-        parcel_status: parcel.parcel_status,
-        parcel_description: repairPotentialMojibake(parcel.parcel_description ?? ""),
-        is_urgent: Boolean(parcel.is_urgent),
-        pending_date: parcel.pending_date,
-        claimed_date: parcel.claimed_date,
-        id_concierge: parcel.id_concierge,
-        id_resident: parcel.id_resident,
-        id_business: parcel.id_business,
-        resident_name: repairPotentialMojibake(parcel.resident_name),
-        user_phone_number: repairPotentialMojibake(parcel.user_phone_number ?? ""),
-        department_address: repairPotentialMojibake(parcel.department_address),
-        concierge_name: repairPotentialMojibake(parcel.concierge_name),
-        business_name: repairPotentialMojibake(parcel.business_name),
-      };
+      return getParcelById(params.id);
     } catch (error) {
       await connection.rollback();
       throw error;
@@ -1219,7 +1340,8 @@ export const api = new Elysia({ prefix: "/api" })
   }, {
     body: parcelPayloadSchema,
   })
-  .post("/parcels/:id/claim", async ({ params, set }) => {
+  .post("/parcels/:id/claim", async ({ headers, params, set }) => {
+    const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
     const connection = await pool.getConnection();
 
     try {
@@ -1227,7 +1349,7 @@ export const api = new Elysia({ prefix: "/api" })
 
       const [result] = await connection.query<RowDataPacket[]>(
         `
-          SELECT id
+          SELECT id, parcel_status
           FROM Parcels
           WHERE id = ?
           LIMIT 1
@@ -1239,6 +1361,12 @@ export const api = new Elysia({ prefix: "/api" })
         await connection.rollback();
         set.status = 404;
         return { message: "Parcel not found" };
+      }
+
+      if (String(result[0].parcel_status) !== "pending") {
+        await connection.rollback();
+        set.status = 409;
+        return { message: "El paquete ya fue retirado." };
       }
 
       const withdrawalCode = await createSequentialCode(connection, {
@@ -1254,10 +1382,11 @@ export const api = new Elysia({ prefix: "/api" })
           SET
             withdrawal_code = ?,
             parcel_status = 'claimed',
-            claimed_date = CURRENT_TIMESTAMP
+            claimed_date = CURRENT_TIMESTAMP,
+            claimed_by_user_id = ?
           WHERE id = ?
         `,
-        [withdrawalCode, params.id],
+        [withdrawalCode, session.userId, params.id],
       );
 
       await connection.commit();
@@ -1268,10 +1397,107 @@ export const api = new Elysia({ prefix: "/api" })
       connection.release();
     }
 
-    const parcels = await listParcels("claimed");
-    return parcels.find((parcel) => parcel.id === params.id);
+    return getParcelById(params.id);
   })
-  .delete("/parcels/:id", async ({ params, set }) => {
+  .post("/resident/parcels/scan", async ({ headers, body }) => {
+    const session = await requireAppRole(headers.authorization, ["resident"]);
+    const parcelAccess = await assertResidentParcelAccess(session, body.qr_value);
+
+    return {
+      parcel: parcelAccess.parcel,
+      current_user: buildDashboardCurrentUser(session),
+    };
+  }, {
+    body: residentParcelQrSchema,
+  })
+  .post("/resident/parcels/:id/claim", async ({ headers, params, body, set }) => {
+    const session = await requireAppRole(headers.authorization, ["resident"]);
+    const parcelAccess = await assertResidentParcelAccess(session, body.qr_value);
+
+    if (parcelAccess.parcelId !== params.id) {
+      set.status = 400;
+      return { message: "El paquete indicado no coincide con el QR escaneado." };
+    }
+
+    const connection = await pool.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      const [rows] = await connection.query<ParcelClaimRow[]>(
+        `
+          SELECT
+            id,
+            qr_token,
+            parcel_status,
+            delivery_department_address
+          FROM Parcels
+          WHERE id = ?
+          LIMIT 1
+          FOR UPDATE
+        `,
+        [params.id],
+      );
+
+      const parcel = rows[0];
+
+      if (!parcel || !parcel.qr_token || parcel.qr_token !== parcelAccess.qrToken) {
+        await connection.rollback();
+        set.status = 404;
+        return { message: "No se encontro un paquete asociado a ese QR." };
+      }
+
+      if (parcel.parcel_status !== "pending") {
+        await connection.rollback();
+        set.status = 409;
+        return { message: "Ese paquete ya fue retirado o ya no esta disponible." };
+      }
+
+      if (!departmentAddressesMatch(parcel.delivery_department_address ?? "", session.departmentAddress ?? "")) {
+        await connection.rollback();
+        set.status = 403;
+        return { message: "Ese QR no corresponde al departamento de tu cuenta." };
+      }
+
+      const withdrawalCode = await createSequentialCode(connection, {
+        tableName: "Parcels",
+        columnName: "withdrawal_code",
+        prefix: "RET",
+        padLength: 4,
+      });
+
+      await connection.query(
+        `
+          UPDATE Parcels
+          SET
+            withdrawal_code = ?,
+            parcel_status = 'claimed',
+            claimed_date = CURRENT_TIMESTAMP,
+            claimed_by_user_id = ?
+          WHERE id = ?
+        `,
+        [withdrawalCode, session.userId, params.id],
+      );
+
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+
+    const updatedParcel = await getParcelById(params.id);
+    return {
+      parcel: updatedParcel,
+      current_user: buildDashboardCurrentUser(session),
+    };
+  }, {
+    body: residentParcelQrSchema,
+  })
+  .delete("/parcels/:id", async ({ headers, params, set }) => {
+    await requireAppRole(headers.authorization, ["admin", "concierge"]);
+
     await pool.query(
       `
         DELETE FROM Parcels
@@ -1283,8 +1509,13 @@ export const api = new Elysia({ prefix: "/api" })
     set.status = 204;
     return null;
   })
-  .get("/issues", async () => listIssues())
-  .patch("/issues/:id", async ({ params, body, set }) => {
+  .get("/issues", async ({ headers }) => {
+    await requireAppRole(headers.authorization, ["admin", "concierge"]);
+    return listIssues();
+  })
+  .patch("/issues/:id", async ({ headers, params, body, set }) => {
+    await requireAppRole(headers.authorization, ["admin", "concierge"]);
+
     const [issues] = await pool.query<RowDataPacket[]>(
       `
         SELECT id
@@ -1314,10 +1545,14 @@ export const api = new Elysia({ prefix: "/api" })
   }, {
     body: issueStatusSchema,
   })
-  .get("/settings", async ({ query }) => getSettingsPayload(query.admin_email))
-  .get("/settings/residents", async ({ query }) => {
+  .get("/settings", async ({ headers, query }) => {
+    await requireAppRole(headers.authorization, ["admin"]);
+    return getSettingsPayload(query.admin_email);
+  })
+  .get("/settings/residents", async ({ headers, query }) => {
+    await requireAppRole(headers.authorization, ["admin"]);
     await ensureResidentAccountSecurityTable();
-    const departmentAddress = normalizeTextInput(String(query.department_address ?? ""));
+    const departmentAddress = normalizeDepartmentAddress(String(query.department_address ?? ""));
 
     if (!departmentAddress) {
       return [];
@@ -1336,23 +1571,27 @@ export const api = new Elysia({ prefix: "/api" })
         FROM Residents r
         INNER JOIN Users u ON u.id = r.user_id
         LEFT JOIN ResidentAccountSecurity s ON s.user_id = r.user_id
-        WHERE LOWER(r.department_address) = LOWER(?)
         ORDER BY r.resident_name
       `,
-      [departmentAddress],
     );
 
-    return residents.map((resident) => ({
-      user_id: resident.user_id,
-      email: resident.email,
-      resident_name: repairPotentialMojibake(resident.resident_name),
-      user_phone_number: repairPotentialMojibake(resident.user_phone_number ?? ""),
-      department_address: repairPotentialMojibake(resident.department_address),
-      email_verified: Boolean(resident.email_verified),
-      mfa_enabled: Boolean(resident.totp_verified),
-    }));
+    return residents
+      .filter((resident) =>
+        departmentAddressesMatch(resident.department_address, departmentAddress),
+      )
+      .map((resident) => ({
+        user_id: resident.user_id,
+        email: resident.email,
+        resident_name: repairPotentialMojibake(resident.resident_name),
+        user_phone_number: repairPotentialMojibake(resident.user_phone_number ?? ""),
+        department_address: repairPotentialMojibake(resident.department_address),
+        email_verified: Boolean(resident.email_verified),
+        mfa_enabled: Boolean(resident.totp_verified),
+      }));
   })
-  .post("/settings/residents", async ({ body, set }) => {
+  .post("/settings/residents", async ({ headers, body, set }) => {
+    await requireAppRole(headers.authorization, ["admin"]);
+
     const connection = await pool.getConnection();
 
     try {
@@ -1413,7 +1652,8 @@ export const api = new Elysia({ prefix: "/api" })
   }, {
     body: residentSettingsSchema,
   })
-  .post("/settings/residents/:id/verify-email", async ({ params, body, set }) => {
+  .post("/settings/residents/:id/verify-email", async ({ headers, params, body, set }) => {
+    await requireAppRole(headers.authorization, ["admin"]);
     await ensureResidentAccountSecurityTable();
 
     const [securityRows] = await pool.query<ResidentSecurityRow[]>(
@@ -1474,7 +1714,8 @@ export const api = new Elysia({ prefix: "/api" })
   }, {
     body: residentEmailVerificationSchema,
   })
-  .post("/settings/residents/:id/verify-mfa", async ({ params, body, set }) => {
+  .post("/settings/residents/:id/verify-mfa", async ({ headers, params, body, set }) => {
+    await requireAppRole(headers.authorization, ["admin"]);
     await ensureResidentAccountSecurityTable();
 
     const [securityRows] = await pool.query<ResidentSecurityRow[]>(
@@ -1507,7 +1748,8 @@ export const api = new Elysia({ prefix: "/api" })
   }, {
     body: residentMfaVerificationSchema,
   })
-  .put("/settings/general", async ({ body, query }) => {
+  .put("/settings/general", async ({ headers, body, query }) => {
+    await requireAppRole(headers.authorization, ["admin"]);
     const { buildingId } = await getSettingsContext(query.admin_email);
 
     await pool.query(
@@ -1533,7 +1775,8 @@ export const api = new Elysia({ prefix: "/api" })
   }, {
     body: generalSettingsSchema,
   })
-  .put("/settings/preferences", async ({ body, query }) => {
+  .put("/settings/preferences", async ({ headers, body, query }) => {
+    await requireAppRole(headers.authorization, ["admin"]);
     const { buildingId } = await getSettingsContext(query.admin_email);
 
     await pool.query(
@@ -1552,7 +1795,8 @@ export const api = new Elysia({ prefix: "/api" })
   }, {
     body: preferenceSettingsSchema,
   })
-  .put("/settings/towers", async ({ body, query }) => {
+  .put("/settings/towers", async ({ headers, body, query }) => {
+    await requireAppRole(headers.authorization, ["admin"]);
     const { buildingId } = await getSettingsContext(query.admin_email);
     const connection = await pool.getConnection();
 
@@ -1631,8 +1875,24 @@ export const api = new Elysia({ prefix: "/api" })
   }, {
     body: towersSchema,
   })
-  .get("/dashboard", async () => ({
-    pending_parcels: await listParcels("pending"),
-    claimed_parcels: await listParcels("claimed"),
-    issues: await listIssues(),
-  }));
+  .get("/dashboard", async ({ headers }) => {
+    const session = await requireAppRole(headers.authorization, ["admin", "concierge", "resident"]);
+
+    if (session.role === "resident") {
+      const departmentAddress = session.departmentAddress ?? "";
+
+      return {
+        current_user: buildDashboardCurrentUser(session),
+        pending_parcels: await listParcels("pending", { departmentAddress }),
+        claimed_parcels: await listParcels("claimed", { departmentAddress }),
+        issues: [],
+      };
+    }
+
+    return {
+      current_user: buildDashboardCurrentUser(session),
+      pending_parcels: await listParcels("pending"),
+      claimed_parcels: await listParcels("claimed"),
+      issues: await listIssues(),
+    };
+  });

@@ -1,9 +1,14 @@
+import { supabase, supabaseConfigError } from "./client";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 
 export async function apiRequest<T>(path: string, init?: RequestInit) {
+  const session = supabaseConfigError ? null : await supabase.auth.getSession();
+  const accessToken = session?.data.session?.access_token;
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(init?.headers ?? {}),
     },
     ...init,

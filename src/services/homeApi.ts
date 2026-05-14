@@ -1,6 +1,12 @@
 import { apiRequest } from "../lib/api";
 import type { AddPackageFormValues } from "../components/Home/packageFormTypes";
-import type { HomeDashboardResponse, IssueItem, IssueStatus, ParcelItem } from "../types/home";
+import type {
+  DashboardCurrentUser,
+  HomeDashboardResponse,
+  IssueItem,
+  IssueStatus,
+  ParcelItem,
+} from "../types/home";
 import { buildParcelPayload } from "../utils/packageUtils";
 
 export function fetchDashboard() {
@@ -25,6 +31,26 @@ export function claimParcel(id: string) {
   return apiRequest<ParcelItem>(`/api/parcels/${id}/claim`, {
     method: "POST",
   });
+}
+
+export function scanResidentParcel(qr_value: string) {
+  return apiRequest<{ parcel: ParcelItem; current_user: DashboardCurrentUser }>(
+    "/api/resident/parcels/scan",
+    {
+      method: "POST",
+      body: JSON.stringify({ qr_value }),
+    },
+  );
+}
+
+export function confirmResidentParcelClaim(id: string, qr_value: string) {
+  return apiRequest<{ parcel: ParcelItem | null; current_user: DashboardCurrentUser }>(
+    `/api/resident/parcels/${id}/claim`,
+    {
+      method: "POST",
+      body: JSON.stringify({ qr_value }),
+    },
+  );
 }
 
 export function deleteParcel(id: string) {

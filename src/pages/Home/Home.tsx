@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import AddPackageModal from "../../components/Home/AddPackageModal";
-import type { AddPackageFormValues } from "../../components/Home/packageFormTypes";
 import ComplaintPanel from "../../components/Home/ComplaintPanel";
 import PackagePanel from "../../components/Home/PackagePanel";
 import QrModal from "../../components/Home/QrModal";
+import ResidentDashboard from "../../components/Home/ResidentDashboard";
+import type { AddPackageFormValues } from "../../components/Home/packageFormTypes";
 import {
   claimParcel,
+  confirmResidentParcelClaim,
   createParcel,
   deleteParcel,
   fetchDashboard,
+  scanResidentParcel,
   updateIssueStatus,
   updateParcel,
 } from "../../services/homeApi";
 import type {
+  DashboardCurrentUser,
   IssueItem,
   PackageServiceView,
   ParcelItem,
@@ -22,6 +26,7 @@ import { formatIssueStatus, normalizeSearchText, pageSizeOptions } from "../../u
 import "./Home.css";
 
 export default function Home() {
+  const [currentUser, setCurrentUser] = useState<DashboardCurrentUser | null>(null);
   const [activeView, setActiveView] = useState<ServiceView>("received");
   const [pending_parcels, setPendingParcels] = useState<ParcelItem[]>([]);
   const [claimed_parcels, setClaimedParcels] = useState<ParcelItem[]>([]);
@@ -38,6 +43,13 @@ export default function Home() {
   const [isAddPackageOpen, setIsAddPackageOpen] = useState(false);
   const [editingParcel, setEditingParcel] = useState<ParcelItem | null>(null);
   const [updatingIssueId, setUpdatingIssueId] = useState<string | null>(null);
+  const [residentScannedParcel, setResidentScannedParcel] = useState<ParcelItem | null>(null);
+  const [residentScannedQrValue, setResidentScannedQrValue] = useState("");
+  const [residentFeedbackMessage, setResidentFeedbackMessage] = useState("");
+  const [residentFeedbackTone, setResidentFeedbackTone] = useState<"neutral" | "success" | "error">(
+    "neutral",
+  );
+  const [isResidentProcessing, setIsResidentProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -47,11 +59,12 @@ export default function Home() {
 
     try {
       const response = await fetchDashboard();
+      setCurrentUser(response.current_user);
       setPendingParcels(response.pending_parcels);
       setClaimedParcels(response.claimed_parcels);
       setIssues(response.issues);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "No se pudo cargar la información.");
+      setErrorMessage(error instanceof Error ? error.message : "No se pudo cargar la informacion.");
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +74,7 @@ export default function Home() {
     void loadDashboard();
   }, [loadDashboard]);
 
+  const isResident = currentUser?.role === "resident";
   const currentPackageView =
     activeView === "complaints"
       ? null
@@ -118,6 +132,11 @@ export default function Home() {
     paginatedPackages.length > 0 &&
     paginatedPackages.every((item) => currentSelections.includes(item.id));
 
+  const resetResidentClaimFlow = () => {
+    setResidentScannedParcel(null);
+    setResidentScannedQrValue("");
+  };
+
   const handlePackageSelection = (view: PackageServiceView, id: string, checked: boolean) => {
     setSelectedIds((current) => ({
       ...current,
@@ -144,8 +163,8 @@ export default function Home() {
     if (ids.length === 0) return;
     const confirmed = window.confirm(
       ids.length === 1
-        ? "¿Quieres borrar este paquete?"
-        : `¿Quieres borrar ${ids.length} paquetes?`,
+        ? "Quieres borrar este paquete?"
+        : `Quieres borrar ${ids.length} paquetes?`,
     );
     if (!confirmed) return;
 
@@ -189,12 +208,12 @@ export default function Home() {
 
   const handleQrScan = useCallback(
     async (decodedText: string) => {
-      const packageId = decodedText.replace("LobbyPack:", "").trim();
+      const packageId = decodedText.split(":")[2]?.trim() || decodedText.replace("LobbyPack:", "").trim();
       const existsInReceived = pending_parcels.some((item) => item.id === packageId);
       const existsInPickedUp = claimed_parcels.some((item) => item.id === packageId);
 
       if (!existsInReceived && !existsInPickedUp) {
-        setQrScanMessage("No se encontró el paquete asociado a ese QR.");
+        setQrScanMessage("No se encontro el paquete asociado a ese QR.");
         return;
       }
 
@@ -222,6 +241,64 @@ export default function Home() {
     },
     [claimed_parcels, closeQrModal, pending_parcels],
   );
+
+  const handleResidentScan = async (qrValue: string) => {
+    setResidentFeedbackTone("neutral");
+    setResidentFeedbackMessage("Validando QR con tu departamento...");
+    setIsResidentProcessing(true);
+
+    try {
+      const response = await scanResidentParcel(qrValue);
+      setResidentScannedQrValue(qrValue);
+      setResidentScannedParcel(response.parcel);
+      setResidentFeedbackTone("success");
+      setResidentFeedbackMessage(
+        `El QR corresponde al paquete ${response.parcel.id}. Revisa los datos y confirma el retiro.`,
+      );
+      setErrorMessage("");
+    } catch (error) {
+      resetResidentClaimFlow();
+      setResidentFeedbackTone("error");
+      setResidentFeedbackMessage(
+        error instanceof Error ? error.message : "No se pudo validar el QR escaneado.",
+      );
+    } finally {
+      setIsResidentProcessing(false);
+    }
+  };
+
+  const handleResidentConfirmClaim = async () => {
+    if (!residentScannedParcel || !residentScannedQrValue) {
+      return;
+    }
+
+    setIsResidentProcessing(true);
+
+    try {
+      const response = await confirmResidentParcelClaim(
+        residentScannedParcel.id,
+        residentScannedQrValue,
+      );
+      const movedParcel = response.parcel;
+
+      if (!movedParcel) {
+        throw new Error("No se pudo confirmar el retiro del paquete.");
+      }
+
+      setPendingParcels((current) => current.filter((item) => item.id !== movedParcel.id));
+      setClaimedParcels((current) => [movedParcel, ...current.filter((item) => item.id !== movedParcel.id)]);
+      setResidentFeedbackTone("success");
+      setResidentFeedbackMessage(`Retiro confirmado. El paquete ${movedParcel.id} quedo entregado.`);
+      resetResidentClaimFlow();
+    } catch (error) {
+      setResidentFeedbackTone("error");
+      setResidentFeedbackMessage(
+        error instanceof Error ? error.message : "No se pudo confirmar el retiro del paquete.",
+      );
+    } finally {
+      setIsResidentProcessing(false);
+    }
+  };
 
   const handleAddPackage = async (values: AddPackageFormValues) => {
     try {
@@ -293,127 +370,146 @@ export default function Home() {
     <main>
       <section className="hero" id="inicio">
         <div className="main">
-          <p className="eyebrow">Gestión de paquetes</p>
+          <p className="eyebrow">{isResident ? "Retiro de paquetes" : "Gestion de paquetes"}</p>
           <h1>
             <span className="titlePrimary">Lobby</span>
             <span className="titleAccent">Pack</span>
           </h1>
           <p className="lead">
-            Administra paquetes recepcionados y retirados desde una sola vista.
+            {isResident
+              ? "Valida tu departamento, escanea el QR y confirma la entrega sin depender de un boton interno."
+              : "Administra paquetes recepcionados y retirados desde una sola vista."}
           </p>
-
-          <div className="serviceToggle" aria-label="Selecciona recepción o retiro">
-            <button
-              type="button"
-              className={activeView === "received" ? "toggleButton active" : "toggleButton"}
-              onClick={() => {
-                setActiveView("received");
-                setCurrentPage(1);
-              }}
-            >
-              Recepción
-            </button>
-            <button
-              type="button"
-              className={activeView === "pickedUp" ? "toggleButton active" : "toggleButton"}
-              onClick={() => {
-                setActiveView("pickedUp");
-                setCurrentPage(1);
-              }}
-            >
-              Retiro
-            </button>
-            <button
-              type="button"
-              className={activeView === "complaints" ? "toggleButton active" : "toggleButton"}
-              onClick={() => {
-                setActiveView("complaints");
-                setCurrentPage(1);
-              }}
-            >
-              Reclamos
-            </button>
-          </div>
 
           {errorMessage ? <p className="emptyState">{errorMessage}</p> : null}
           {isLoading ? <p className="resultsText">Cargando datos desde la base de datos...</p> : null}
 
-          {!isLoading && activeView === "complaints" ? (
-            <ComplaintPanel
-              title="Reclamos"
-              searchTerm={searchTerm}
-              pageSize={pageSize}
-              pageSizeOptions={pageSizeOptions}
-              filteredCount={filteredComplaints.length}
-              safePage={safePage}
-              totalPages={totalPages}
-              paginatedComplaints={paginatedComplaints}
-              updatingIssueId={updatingIssueId}
-              onSearchChange={(value) => {
-                setSearchTerm(value);
-                setCurrentPage(1);
-              }}
-              onPageSizeChange={(value) => {
-                setPageSize(value);
-                setCurrentPage(1);
-              }}
-              onPrevPage={() => setCurrentPage((page) => Math.max(1, page - 1))}
-              onNextPage={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-              onIssueStatusChange={(issueId, nextStatus) =>
-                void handleIssueStatusChange(issueId, nextStatus)
-              }
-              startIndex={startIndex}
+          {!isLoading && isResident && currentUser ? (
+            <ResidentDashboard
+              currentUser={currentUser}
+              pendingParcels={pending_parcels}
+              claimedParcels={claimed_parcels}
+              scannedParcel={residentScannedParcel}
+              feedbackMessage={residentFeedbackMessage}
+              feedbackTone={residentFeedbackTone}
+              isProcessing={isResidentProcessing}
+              onScan={handleResidentScan}
+              onConfirmClaim={handleResidentConfirmClaim}
+              onResetScan={resetResidentClaimFlow}
             />
           ) : null}
 
-          {!isLoading && activeView !== "complaints" ? (
-            <PackagePanel
-              title={currentPackageView?.title ?? "Paquetes"}
-              searchTerm={searchTerm}
-              pageSize={pageSize}
-              pageSizeOptions={pageSizeOptions}
-              allVisibleSelected={allVisibleSelected}
-              filteredCount={filteredPackages.length}
-              safePage={safePage}
-              totalPages={totalPages}
-              selectedVisibleCount={selectedVisibleIds.length}
-              paginatedPackages={paginatedPackages}
-              currentSelections={currentSelections}
-              activeView={activeView}
-              onSearchChange={(value) => {
-                setSearchTerm(value);
-                setCurrentPage(1);
-              }}
-              onPageSizeChange={(value) => {
-                setPageSize(value);
-                setCurrentPage(1);
-              }}
-              onSelectAllVisible={handleSelectAllVisible}
-              onEditSelected={handleEditSelected}
-              onDeleteSelected={() => void handleDeletePackages(activeView, selectedVisibleIds)}
-              onSelect={handlePackageSelection}
-              onShowQr={openQrModal}
-              onEdit={handleEditPackage}
-              onDelete={(view, ids) => void handleDeletePackages(view, ids)}
-              onPrevPage={() => setCurrentPage((page) => Math.max(1, page - 1))}
-              onNextPage={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-              startIndex={startIndex}
-            />
-          ) : null}
+          {!isLoading && !isResident ? (
+            <>
+              <div className="serviceToggle" aria-label="Selecciona recepcion o retiro">
+                <button
+                  type="button"
+                  className={activeView === "received" ? "toggleButton active" : "toggleButton"}
+                  onClick={() => {
+                    setActiveView("received");
+                    setCurrentPage(1);
+                  }}
+                >
+                  Recepcion
+                </button>
+                <button
+                  type="button"
+                  className={activeView === "pickedUp" ? "toggleButton active" : "toggleButton"}
+                  onClick={() => {
+                    setActiveView("pickedUp");
+                    setCurrentPage(1);
+                  }}
+                >
+                  Retiro
+                </button>
+                <button
+                  type="button"
+                  className={activeView === "complaints" ? "toggleButton active" : "toggleButton"}
+                  onClick={() => {
+                    setActiveView("complaints");
+                    setCurrentPage(1);
+                  }}
+                >
+                  Reclamos
+                </button>
+              </div>
 
-          {activeView === "received" ? (
-            <button
-              type="button"
-              className="addPackageButton floatingAddButton"
-              onClick={() => setIsAddPackageOpen(true)}
-            >
-              + Agregar paquete
-            </button>
+              {activeView === "complaints" ? (
+                <ComplaintPanel
+                  title="Reclamos"
+                  searchTerm={searchTerm}
+                  pageSize={pageSize}
+                  pageSizeOptions={pageSizeOptions}
+                  filteredCount={filteredComplaints.length}
+                  safePage={safePage}
+                  totalPages={totalPages}
+                  paginatedComplaints={paginatedComplaints}
+                  updatingIssueId={updatingIssueId}
+                  onSearchChange={(value) => {
+                    setSearchTerm(value);
+                    setCurrentPage(1);
+                  }}
+                  onPageSizeChange={(value) => {
+                    setPageSize(value);
+                    setCurrentPage(1);
+                  }}
+                  onPrevPage={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  onNextPage={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  onIssueStatusChange={(issueId, nextStatus) =>
+                    void handleIssueStatusChange(issueId, nextStatus)
+                  }
+                  startIndex={startIndex}
+                />
+              ) : (
+                <PackagePanel
+                  title={currentPackageView?.title ?? "Paquetes"}
+                  searchTerm={searchTerm}
+                  pageSize={pageSize}
+                  pageSizeOptions={pageSizeOptions}
+                  allVisibleSelected={allVisibleSelected}
+                  filteredCount={filteredPackages.length}
+                  safePage={safePage}
+                  totalPages={totalPages}
+                  selectedVisibleCount={selectedVisibleIds.length}
+                  paginatedPackages={paginatedPackages}
+                  currentSelections={currentSelections}
+                  activeView={activeView}
+                  onSearchChange={(value) => {
+                    setSearchTerm(value);
+                    setCurrentPage(1);
+                  }}
+                  onPageSizeChange={(value) => {
+                    setPageSize(value);
+                    setCurrentPage(1);
+                  }}
+                  onSelectAllVisible={handleSelectAllVisible}
+                  onEditSelected={handleEditSelected}
+                  onDeleteSelected={() => void handleDeletePackages(activeView, selectedVisibleIds)}
+                  onSelect={handlePackageSelection}
+                  onShowQr={openQrModal}
+                  onEdit={handleEditPackage}
+                  onDelete={(view, ids) => void handleDeletePackages(view, ids)}
+                  onPrevPage={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  onNextPage={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  startIndex={startIndex}
+                />
+              )}
+
+              {activeView === "received" ? (
+                <button
+                  type="button"
+                  className="addPackageButton floatingAddButton"
+                  onClick={() => setIsAddPackageOpen(true)}
+                >
+                  + Agregar paquete
+                </button>
+              ) : null}
+            </>
           ) : null}
         </div>
       </section>
 
-      {qrPackage ? (
+      {!isResident && qrPackage ? (
         <QrModal
           qrPackage={qrPackage}
           onClose={closeQrModal}
@@ -422,11 +518,11 @@ export default function Home() {
         />
       ) : null}
 
-      {isAddPackageOpen ? (
+      {!isResident && isAddPackageOpen ? (
         <AddPackageModal onClose={() => setIsAddPackageOpen(false)} onSubmit={handleAddPackage} />
       ) : null}
 
-      {editingParcel ? (
+      {!isResident && editingParcel ? (
         <AddPackageModal
           title={`Editar paquete ${editingParcel.id}`}
           initialValues={{

@@ -23,7 +23,7 @@ type TowerCardProps = {
   onUpdateFloorCount: (towerId: number, value: string) => void;
   onSelectFloor: (towerId: number, value: string) => void;
   onAddApartment: (towerId: number, floor_number: number) => void;
-  onApartmentClick: (apartmentName: string) => void;
+  onApartmentClick: (departmentAddress: string) => void;
   onUpdateApartmentName: (
     towerId: number,
     floor_number: number,
@@ -229,7 +229,7 @@ export default function TowerCard({
               key={`${tower.id}-${selectedFloor.floor_number}-${apartment}`}
               type="button"
               className="towerChip"
-              onClick={() => onApartmentClick(apartment)}
+              onClick={() => onApartmentClick(`${tower.tower_name} ${apartment}`)}
             >
               {apartment}
             </button>

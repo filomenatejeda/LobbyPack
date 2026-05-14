@@ -1,5 +1,6 @@
 import mysql, { type RowDataPacket } from "mysql2/promise";
 import { createSequentialCode } from "../utils/ids";
+import { buildParcelQrValue, createParcelQrToken } from "../utils/parcels";
 import { repairPotentialMojibake } from "../utils/textEncoding";
 
 const requiredEnv = [
@@ -273,5 +274,88 @@ export async function repairParcelWithdrawalCodes() {
     throw error;
   } finally {
     connection.release();
+  }
+}
+
+async function columnExists(tableName: string, columnName: string) {
+  const databaseName = process.env.MYSQL_DB;
+
+  if (!databaseName) {
+    throw new Error("Missing required environment variable: MYSQL_DB");
+  }
+
+  const [rows] = await pool.query<Array<RowDataPacket & { count: number }>>(
+    `
+      SELECT COUNT(*) AS count
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ?
+        AND TABLE_NAME = ?
+        AND COLUMN_NAME = ?
+    `,
+    [databaseName, tableName, columnName],
+  );
+
+  return Number(rows[0]?.count ?? 0) > 0;
+}
+
+export async function ensureParcelQrSecurityColumns() {
+  if (!(await columnExists("Parcels", "delivery_department_address"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN delivery_department_address VARCHAR(100) NULL
+        AFTER id_business
+    `);
+  }
+
+  if (!(await columnExists("Parcels", "qr_token"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN qr_token VARCHAR(64) NULL
+        AFTER qr_code_url
+    `);
+  }
+
+  if (!(await columnExists("Parcels", "claimed_by_user_id"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN claimed_by_user_id VARCHAR(64) NULL
+        AFTER claimed_date
+    `);
+  }
+
+  await pool.query(
+    `
+      UPDATE Parcels p
+      INNER JOIN Residents r ON r.user_id = p.id_resident
+      SET p.delivery_department_address = r.department_address
+      WHERE p.delivery_department_address IS NULL
+         OR p.delivery_department_address = ''
+    `,
+  );
+
+  const [parcels] = await pool.query<
+    Array<RowDataPacket & { id: string; qr_token: string | null }>
+  >(
+    `
+      SELECT id, qr_token
+      FROM Parcels
+      WHERE qr_token IS NULL
+         OR qr_token = ''
+         OR qr_code_url IS NULL
+         OR qr_code_url NOT LIKE 'LobbyPack:claim:%'
+    `,
+  );
+
+  for (const parcel of parcels) {
+    const qrToken = parcel.qr_token?.trim() || createParcelQrToken();
+
+    await pool.query(
+      `
+        UPDATE Parcels
+        SET qr_token = ?, qr_code_url = ?
+        WHERE id = ?
+      `,
+      [qrToken, buildParcelQrValue(parcel.id, qrToken), parcel.id],
+    );
   }
 }

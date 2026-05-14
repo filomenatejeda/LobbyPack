@@ -28,6 +28,8 @@ export default function QrModal({
   onConfirm,
   qrScanMessage,
 }: QrModalProps) {
+  const qrValue = qrPackage.qr_code_url ?? `LobbyPack:claim:${qrPackage.id}:demo`;
+
   return (
     <div className="qrModalOverlay" onClick={onClose}>
       <div className="qrModal" onClick={(event) => event.stopPropagation()}>
@@ -39,26 +41,27 @@ export default function QrModal({
             onClick={onClose}
             aria-label="Cerrar QR"
           >
-            ×
+            x
           </button>
         </div>
 
         <div className="qrCodeBox">
           {QRCodeComponent ? (
-            <QRCodeComponent value={`LobbyPack:${qrPackage.id}`} size={180} />
+            <QRCodeComponent value={qrValue} size={180} />
           ) : (
             <p className="qrFallback">No se pudo cargar el componente QR.</p>
           )}
         </div>
 
         <p className="qrHint">
-          Este código QR identifica el paquete y puede usarse para marcarlo como retirado.
+          Este QR representa un retiro seguro y solo debe escanearlo un residente del mismo
+          departamento.
         </p>
 
         <button
           type="button"
           className="simulateScanButton"
-          onClick={() => onConfirm(`LobbyPack:${qrPackage.id}`)}
+          onClick={() => onConfirm(qrValue)}
         >
           Marcar como retirado
         </button>

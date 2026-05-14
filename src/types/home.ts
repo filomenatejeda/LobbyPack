@@ -3,6 +3,15 @@ export type PackageServiceView = Exclude<ServiceView, "complaints">;
 
 export type ParcelStatus = "pending" | "claimed";
 export type IssueStatus = "open" | "under_review" | "resolved";
+export type AppRole = "admin" | "concierge" | "resident";
+
+export type DashboardCurrentUser = {
+  user_id: string;
+  email: string;
+  role: AppRole;
+  display_name: string;
+  department_address: string | null;
+};
 
 export type ParcelItem = {
   id: string;
@@ -41,6 +50,7 @@ export type IssueItem = {
 };
 
 export type HomeDashboardResponse = {
+  current_user: DashboardCurrentUser;
   pending_parcels: ParcelItem[];
   claimed_parcels: ParcelItem[];
   issues: IssueItem[];

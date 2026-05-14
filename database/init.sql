@@ -109,13 +109,16 @@ CREATE TABLE IF NOT EXISTS Parcels (
   id_concierge VARCHAR(64) NOT NULL,
   id_resident VARCHAR(64) NOT NULL,
   id_business VARCHAR(64) NOT NULL,
+  delivery_department_address VARCHAR(100),
   withdrawal_code VARCHAR(64),
   qr_code_url TEXT,
+  qr_token VARCHAR(64),
   parcel_status ENUM('pending', 'claimed') NOT NULL DEFAULT 'pending',
   parcel_description TEXT,
   is_urgent BOOLEAN DEFAULT FALSE,
   pending_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   claimed_date TIMESTAMP NULL,
+  claimed_by_user_id VARCHAR(64) NULL,
   FOREIGN KEY (id_concierge) REFERENCES Users(id),
   FOREIGN KEY (id_resident) REFERENCES Users(id),
   FOREIGN KEY (id_business) REFERENCES Businesses(id)
@@ -524,25 +527,31 @@ INSERT INTO Parcels (
   id_concierge,
   id_resident,
   id_business,
+  delivery_department_address,
   withdrawal_code,
   qr_code_url,
+  qr_token,
   parcel_status,
   parcel_description,
   is_urgent,
   pending_date,
-  claimed_date
+  claimed_date,
+  claimed_by_user_id
 )
 SELECT
   'parcel-0001',
   'concierge-demo',
   'resident-001',
   'business-001',
+  'Torre A 302',
   'REC-0001',
-  'LobbyPack:parcel-0001',
+  'LobbyPack:claim:parcel-0001:token-parcel-0001',
+  'token-parcel-0001',
   'pending',
   'Caja pequeña recepcionada en conserjería.',
   FALSE,
   '2026-03-28 09:15:00',
+  NULL,
   NULL
 WHERE NOT EXISTS (SELECT 1 FROM Parcels WHERE id = 'parcel-0001');
 
@@ -551,25 +560,31 @@ INSERT INTO Parcels (
   id_concierge,
   id_resident,
   id_business,
+  delivery_department_address,
   withdrawal_code,
   qr_code_url,
+  qr_token,
   parcel_status,
   parcel_description,
   is_urgent,
   pending_date,
-  claimed_date
+  claimed_date,
+  claimed_by_user_id
 )
 SELECT
   'parcel-0002',
   'concierge-002',
   'resident-002',
   'business-002',
+  'Torre B 511',
   'REC-0002',
-  'LobbyPack:parcel-0002',
+  'LobbyPack:claim:parcel-0002:token-parcel-0002',
+  'token-parcel-0002',
   'pending',
   'Sobre de mensajería.',
   FALSE,
   '2026-03-28 10:02:00',
+  NULL,
   NULL
 WHERE NOT EXISTS (SELECT 1 FROM Parcels WHERE id = 'parcel-0002');
 
@@ -578,25 +593,31 @@ INSERT INTO Parcels (
   id_concierge,
   id_resident,
   id_business,
+  delivery_department_address,
   withdrawal_code,
   qr_code_url,
+  qr_token,
   parcel_status,
   parcel_description,
   is_urgent,
   pending_date,
-  claimed_date
+  claimed_date,
+  claimed_by_user_id
 )
 SELECT
   'parcel-0003',
   'concierge-demo',
   'resident-003',
   'business-003',
+  'Torre C 110',
   'REC-0003',
-  'LobbyPack:parcel-0003',
+  'LobbyPack:claim:parcel-0003:token-parcel-0003',
+  'token-parcel-0003',
   'pending',
   'Pedido de supermercado.',
   TRUE,
   '2026-03-28 11:28:00',
+  NULL,
   NULL
 WHERE NOT EXISTS (SELECT 1 FROM Parcels WHERE id = 'parcel-0003');
 
@@ -605,26 +626,32 @@ INSERT INTO Parcels (
   id_concierge,
   id_resident,
   id_business,
+  delivery_department_address,
   withdrawal_code,
   qr_code_url,
+  qr_token,
   parcel_status,
   parcel_description,
   is_urgent,
   pending_date,
-  claimed_date
+  claimed_date,
+  claimed_by_user_id
 )
 SELECT
   'parcel-0004',
   'admin-001',
   'resident-004',
   'business-004',
+  'Torre D 205',
   'RET-0001',
-  'LobbyPack:parcel-0004',
+  'LobbyPack:claim:parcel-0004:token-parcel-0004',
+  'token-parcel-0004',
   'claimed',
   'Documento recepcionado.',
   FALSE,
   '2026-03-28 08:42:00',
-  '2026-03-28 18:10:00'
+  '2026-03-28 18:10:00',
+  'resident-004'
 WHERE NOT EXISTS (SELECT 1 FROM Parcels WHERE id = 'parcel-0004');
 
 INSERT INTO Parcels (
@@ -632,26 +659,32 @@ INSERT INTO Parcels (
   id_concierge,
   id_resident,
   id_business,
+  delivery_department_address,
   withdrawal_code,
   qr_code_url,
+  qr_token,
   parcel_status,
   parcel_description,
   is_urgent,
   pending_date,
-  claimed_date
+  claimed_date,
+  claimed_by_user_id
 )
 SELECT
   'parcel-0005',
   'concierge-002',
   'resident-005',
   'business-005',
+  'Torre B 410',
   'RET-0002',
-  'LobbyPack:parcel-0005',
+  'LobbyPack:claim:parcel-0005:token-parcel-0005',
+  'token-parcel-0005',
   'claimed',
   'Paquete mediano retirado por residente.',
   FALSE,
   '2026-03-28 09:57:00',
-  '2026-03-28 14:22:00'
+  '2026-03-28 14:22:00',
+  'resident-005'
 WHERE NOT EXISTS (SELECT 1 FROM Parcels WHERE id = 'parcel-0005');
 
 INSERT INTO Parcels (
@@ -659,26 +692,32 @@ INSERT INTO Parcels (
   id_concierge,
   id_resident,
   id_business,
+  delivery_department_address,
   withdrawal_code,
   qr_code_url,
+  qr_token,
   parcel_status,
   parcel_description,
   is_urgent,
   pending_date,
-  claimed_date
+  claimed_date,
+  claimed_by_user_id
 )
 SELECT
   'parcel-0006',
   'concierge-demo',
   'resident-006',
   'business-001',
+  'Torre A 214',
   'RET-0003',
-  'LobbyPack:parcel-0006',
+  'LobbyPack:claim:parcel-0006:token-parcel-0006',
+  'token-parcel-0006',
   'claimed',
   'Entrega estándar.',
   FALSE,
   '2026-03-27 17:40:00',
-  '2026-03-28 11:05:00'
+  '2026-03-28 11:05:00',
+  'resident-006'
 WHERE NOT EXISTS (SELECT 1 FROM Parcels WHERE id = 'parcel-0006');
 
 INSERT INTO Issues (
