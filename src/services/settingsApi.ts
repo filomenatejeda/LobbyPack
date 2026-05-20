@@ -4,7 +4,6 @@ import type {
   PreferenceSettings,
   ResidentAccountCreationResponse,
   ResidentItem,
-  ResidentTotpSetup,
   SettingsPayload,
   TowerConfig,
 } from "../types/settings";
@@ -71,7 +70,7 @@ export function addResidentToDepartment(values: {
 }
 
 export function verifyResidentEmail(userId: string, verificationCode: string) {
-  return apiRequest<ResidentTotpSetup>(`/api/settings/residents/${userId}/verify-email`, {
+  return apiRequest<{ ok: boolean }>(`/api/settings/residents/${userId}/verify-email`, {
     method: "POST",
     body: JSON.stringify({ verification_code: verificationCode }),
   });

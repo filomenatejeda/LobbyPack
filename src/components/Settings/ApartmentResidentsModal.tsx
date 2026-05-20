@@ -1,6 +1,7 @@
-import { useState, type ComponentType, type FormEvent } from "react";
+import { useMemo, useState, type ComponentType, type FormEvent } from "react";
 import { X } from "lucide-react";
 import QRCodeImport from "react-qr-code";
+import { createIsolatedSupabaseClient, supabaseConfigError } from "../../lib/client";
 import type {
   ResidentAccountCreationResponse,
   ResidentItem,
@@ -39,7 +40,7 @@ type ApartmentResidentsModalProps = {
     resident_password: string;
     user_phone_number: string;
   }) => Promise<ResidentAccountCreationResponse>;
-  onVerifyEmail: (residentId: string, verificationCode: string) => Promise<ResidentTotpSetup>;
+  onVerifyEmail: (residentId: string, verificationCode: string) => Promise<void>;
   onVerifyMfa: (residentId: string, mfaCode: string) => Promise<void>;
 };
 
@@ -59,6 +60,7 @@ export default function ApartmentResidentsModal({
   const [createdResident, setCreatedResident] =
     useState<ResidentAccountCreationResponse | null>(null);
   const [totpSetup, setTotpSetup] = useState<ResidentTotpSetup | null>(null);
+  const [mfaFactorId, setMfaFactorId] = useState("");
   const [residentEmail, setResidentEmail] = useState("");
   const [residentName, setResidentName] = useState("");
   const [residentPassword, setResidentPassword] = useState("");
@@ -66,12 +68,29 @@ export default function ApartmentResidentsModal({
   const [verificationCode, setVerificationCode] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [formError, setFormError] = useState("");
+  const residentSupabase = useMemo(
+    () => (supabaseConfigError ? null : createIsolatedSupabaseClient()),
+    [],
+  );
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError("");
 
     try {
+      if (!residentSupabase) {
+        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+      }
+
+      const signedUp = await residentSupabase.auth.signUp({
+        email: residentEmail,
+        password: residentPassword,
+      });
+
+      if (signedUp.error) {
+        throw signedUp.error;
+      }
+
       const resident = await onAddResident({
         resident_email: residentEmail,
         resident_name: residentName,
@@ -96,8 +115,35 @@ export default function ApartmentResidentsModal({
     setFormError("");
 
     try {
-      const setup = await onVerifyEmail(createdResident.user_id, verificationCode);
-      setTotpSetup(setup);
+      if (!residentSupabase) {
+        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+      }
+
+      const verifiedOtp = await residentSupabase.auth.verifyOtp({
+        email: createdResident.email,
+        token: verificationCode,
+        type: "signup",
+      });
+
+      if (verifiedOtp.error) {
+        throw verifiedOtp.error;
+      }
+
+      const enrolledFactor = await residentSupabase.auth.mfa.enroll({
+        factorType: "totp",
+        friendlyName: `LobbyPack ${createdResident.email}`,
+      });
+
+      if (enrolledFactor.error) {
+        throw enrolledFactor.error;
+      }
+
+      await onVerifyEmail(createdResident.user_id, verificationCode);
+      setMfaFactorId(enrolledFactor.data.id);
+      setTotpSetup({
+        totp_secret: enrolledFactor.data.totp.secret,
+        totp_uri: enrolledFactor.data.totp.uri,
+      });
       setMfaCode("");
       setAccountPhase(ResidentAccountPhase.Mfa);
     } catch (error) {
@@ -115,7 +161,32 @@ export default function ApartmentResidentsModal({
     setFormError("");
 
     try {
+      if (!residentSupabase) {
+        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+      }
+
+      if (!mfaFactorId) {
+        throw new Error("No se encontro el autenticador pendiente de configuracion.");
+      }
+
+      const challenge = await residentSupabase.auth.mfa.challenge({ factorId: mfaFactorId });
+
+      if (challenge.error) {
+        throw challenge.error;
+      }
+
+      const verifiedMfa = await residentSupabase.auth.mfa.verify({
+        factorId: mfaFactorId,
+        challengeId: challenge.data.id,
+        code: mfaCode,
+      });
+
+      if (verifiedMfa.error) {
+        throw verifiedMfa.error;
+      }
+
       await onVerifyMfa(createdResident.user_id, mfaCode);
+      await residentSupabase.auth.signOut();
       setAccountPhase(ResidentAccountPhase.Done);
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Codigo del autenticador invalido.");
@@ -131,9 +202,11 @@ export default function ApartmentResidentsModal({
     setMfaCode("");
     setCreatedResident(null);
     setTotpSetup(null);
+    setMfaFactorId("");
     setFormError("");
     setAccountPhase(ResidentAccountPhase.Form);
     setIsAdding(false);
+    void residentSupabase?.auth.signOut();
   };
 
   return (
@@ -246,8 +319,7 @@ export default function ApartmentResidentsModal({
               <div className="residentVerificationBox">
                 <strong>Codigo de verificacion</strong>
                 <p>
-                  Ingresa el codigo enviado al correo {createdResident.email}. En desarrollo:
-                  <span>{createdResident.verification_code}</span>
+                  Ingresa el codigo enviado al correo {createdResident.email}.
                 </p>
               </div>
               <label className="settingsField">

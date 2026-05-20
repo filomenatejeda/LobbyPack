@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { createHash, createHmac, randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
 import { AuthError, requireAppRole, type AuthSession } from "../auth/session";
 import { pool } from "../db/pool";
@@ -385,85 +385,6 @@ function createVerificationCode() {
 
 function hashVerificationCode(code: string) {
   return createHash("sha256").update(code).digest("hex");
-}
-
-const base32Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-
-function toBase32(buffer: Buffer) {
-  let bits = "";
-  let output = "";
-
-  for (const byte of buffer) {
-    bits += byte.toString(2).padStart(8, "0");
-  }
-
-  for (let index = 0; index < bits.length; index += 5) {
-    const chunk = bits.slice(index, index + 5).padEnd(5, "0");
-    output += base32Alphabet[Number.parseInt(chunk, 2)];
-  }
-
-  return output;
-}
-
-function fromBase32(value: string) {
-  const cleanValue = value.replaceAll("=", "").replaceAll(/\s/g, "").toUpperCase();
-  let bits = "";
-  const bytes: number[] = [];
-
-  for (const character of cleanValue) {
-    const index = base32Alphabet.indexOf(character);
-    if (index === -1) {
-      continue;
-    }
-    bits += index.toString(2).padStart(5, "0");
-  }
-
-  for (let index = 0; index + 8 <= bits.length; index += 8) {
-    bytes.push(Number.parseInt(bits.slice(index, index + 8), 2));
-  }
-
-  return Buffer.from(bytes);
-}
-
-function createTotpSecret() {
-  return toBase32(randomBytes(20));
-}
-
-function createTotpCode(secret: string, step = Math.floor(Date.now() / 30_000)) {
-  const key = fromBase32(secret);
-  const counter = Buffer.alloc(8);
-  counter.writeBigUInt64BE(BigInt(step));
-
-  const hmac = createHmac("sha1", key).update(counter).digest();
-  const offset = hmac[hmac.length - 1] & 0xf;
-  const binary =
-    ((hmac[offset] & 0x7f) << 24) |
-    ((hmac[offset + 1] & 0xff) << 16) |
-    ((hmac[offset + 2] & 0xff) << 8) |
-    (hmac[offset + 3] & 0xff);
-
-  return String(binary % 1_000_000).padStart(6, "0");
-}
-
-function verifyTotpCode(secret: string, code: string) {
-  const cleanCode = code.replaceAll(/\D/g, "");
-  const currentStep = Math.floor(Date.now() / 30_000);
-
-  return [-1, 0, 1].some((window) => createTotpCode(secret, currentStep + window) === cleanCode);
-}
-
-function createTotpUri(email: string, secret: string) {
-  const issuer = "LobbyPack";
-  const label = encodeURIComponent(`${issuer}:${email}`);
-  const params = new URLSearchParams({
-    secret,
-    issuer,
-    algorithm: "SHA1",
-    digits: "6",
-    period: "30",
-  });
-
-  return `otpauth://totp/${label}?${params.toString()}`;
 }
 
 async function createResidentAccount(
@@ -1746,7 +1667,7 @@ export const api = new Elysia({ prefix: "/api" })
   }, {
     body: residentSettingsSchema,
   })
-  .post("/settings/residents/:id/verify-email", async ({ headers, params, body, set }) => {
+  .post("/settings/residents/:id/verify-email", async ({ headers, params, set }) => {
     await requireAppRole(headers.authorization, ["admin"]);
     await ensureResidentAccountSecurityTable();
 
@@ -1755,20 +1676,12 @@ export const api = new Elysia({ prefix: "/api" })
         SELECT user_id, email_verification_code_hash, totp_secret
         FROM ResidentAccountSecurity
         WHERE user_id = ?
-          AND email_verification_expires_at > CURRENT_TIMESTAMP
         LIMIT 1
       `,
       [params.id],
     );
 
     const security = securityRows[0];
-    if (
-      !security?.email_verification_code_hash ||
-      security.email_verification_code_hash !== hashVerificationCode(body.verification_code)
-    ) {
-      set.status = 400;
-      return { message: "Codigo de verificacion invalido o expirado." };
-    }
 
     const [users] = await pool.query<Array<RowDataPacket & { email: string }>>(
       `
@@ -1786,7 +1699,10 @@ export const api = new Elysia({ prefix: "/api" })
       return { message: "Residente no encontrado." };
     }
 
-    const secret = security.totp_secret ?? createTotpSecret();
+    if (!security) {
+      set.status = 404;
+      return { message: "Seguridad de residente no encontrada." };
+    }
 
     await pool.query(
       `
@@ -1794,21 +1710,17 @@ export const api = new Elysia({ prefix: "/api" })
         SET
           email_verified = TRUE,
           email_verification_code_hash = NULL,
-          email_verification_expires_at = NULL,
-          totp_secret = ?
+          email_verification_expires_at = NULL
         WHERE user_id = ?
       `,
-      [secret, params.id],
+      [params.id],
     );
 
-    return {
-      totp_secret: secret,
-      totp_uri: createTotpUri(email, secret),
-    };
+    return { ok: true };
   }, {
     body: residentEmailVerificationSchema,
   })
-  .post("/settings/residents/:id/verify-mfa", async ({ headers, params, body, set }) => {
+  .post("/settings/residents/:id/verify-mfa", async ({ headers, params, set }) => {
     await requireAppRole(headers.authorization, ["admin"]);
     await ensureResidentAccountSecurityTable();
 
@@ -1823,10 +1735,9 @@ export const api = new Elysia({ prefix: "/api" })
       [params.id],
     );
 
-    const secret = securityRows[0]?.totp_secret;
-    if (!secret || !verifyTotpCode(secret, body.mfa_code)) {
+    if (!securityRows[0]) {
       set.status = 400;
-      return { message: "Codigo del autenticador invalido." };
+      return { message: "El correo del residente debe estar verificado antes de activar MFA." };
     }
 
     await pool.query(

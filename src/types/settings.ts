@@ -22,7 +22,7 @@ export type ResidentItem = {
 };
 
 export type ResidentAccountCreationResponse = ResidentItem & {
-  verification_code: string;
+  verification_code?: string;
 };
 
 export type ResidentTotpSetup = {

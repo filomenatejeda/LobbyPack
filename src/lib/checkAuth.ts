@@ -73,9 +73,6 @@ export default function useCheckIfAuth() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => {
-      if (isActive) {
-        setIsCheckingAuth(true);
-      }
       void validateSession();
     });
 

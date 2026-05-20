@@ -16,7 +16,6 @@ import type {
   GeneralSettings,
   PreferenceSettings,
   ResidentItem,
-  ResidentTotpSetup,
   TeamItem,
   TowerConfig,
 } from "../../types/settings";
@@ -367,16 +366,15 @@ export default function Settings() {
   const handleVerifyResidentEmail = async (
     residentId: string,
     verificationCode: string,
-  ): Promise<ResidentTotpSetup> => {
+  ): Promise<void> => {
     setIsSavingResident(true);
     setStatusMessage("");
 
     try {
-      const setup = await verifyResidentEmail(residentId, verificationCode);
+      await verifyResidentEmail(residentId, verificationCode);
       if (selectedApartment) {
         setApartmentResidents(await fetchResidentsByDepartment(selectedApartment));
       }
-      return setup;
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : "No se pudo verificar el codigo.");
       throw error;

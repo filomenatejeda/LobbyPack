@@ -17,3 +17,13 @@ export const supabase = createClient(
     ? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder.signature"
     : (supabasePublishableKey ?? ""),
 );
+
+export function createIsolatedSupabaseClient() {
+  return createClient(supabaseUrl ?? "", supabasePublishableKey ?? "", {
+    auth: {
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      persistSession: false,
+    },
+  });
+}
