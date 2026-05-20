@@ -77,6 +77,7 @@ type ResidentSecurityRow = RowDataPacket & {
 type BuildingRow = RowDataPacket & {
   id: string;
   building_name: string;
+  community_type: string | null;
   contact_email: string;
   reception_hours: string;
   address_line: string;
@@ -137,7 +138,7 @@ const generalSettingsSchema = t.Object({
   contact_email: t.String({ minLength: 1 }),
   reception_hours: t.String({ minLength: 1 }),
   address_line: t.String({ minLength: 1 }),
-  access_password: t.String({ minLength: 1 }),
+  access_password: t.String(),
   is_active: t.Boolean(),
 });
 
@@ -548,6 +549,84 @@ async function createResidentAccount(
   return { residentId, verificationCode };
 }
 
+async function ensureAdminAccountForCommunityRegistration(
+  admin_email: string,
+  admin_first_name: string,
+  admin_last_name: string,
+) {
+  const connection = await pool.getConnection();
+  const normalizedAdminEmail = normalizeTextInput(admin_email).toLowerCase();
+  const adminName = `${normalizeTextInput(admin_first_name)} ${normalizeTextInput(admin_last_name)}`.trim();
+
+  try {
+    await connection.beginTransaction();
+
+    const [existingUsers] = await connection.query<
+      Array<RowDataPacket & { id: string; role: "admin" | "concierge" | "resident" }>
+    >(
+      `
+        SELECT id, role
+        FROM Users
+        WHERE LOWER(email) = LOWER(?)
+        LIMIT 1
+        FOR UPDATE
+      `,
+      [normalizedAdminEmail],
+    );
+
+    const existingUser = existingUsers[0];
+
+    if (existingUser) {
+      if (existingUser.role !== "admin") {
+        throw new Error("Este correo ya existe con otro rol en LobbyPack.");
+      }
+
+      await connection.query(
+        `
+          INSERT INTO Admins (user_id, admin_name, admin_password_hash)
+          VALUES (?, ?, NULL)
+          ON DUPLICATE KEY UPDATE admin_name = VALUES(admin_name)
+        `,
+        [existingUser.id, adminName || normalizedAdminEmail],
+      );
+
+      await connection.commit();
+      return existingUser.id;
+    }
+
+    const adminId = await createSequentialId(connection, {
+      tableName: "Users",
+      columnName: "id",
+      prefix: "admin",
+      padLength: 3,
+    });
+
+    await connection.query(
+      `
+        INSERT INTO Users (id, email, role)
+        VALUES (?, ?, 'admin')
+      `,
+      [adminId, normalizedAdminEmail],
+    );
+
+    await connection.query(
+      `
+        INSERT INTO Admins (user_id, admin_name, admin_password_hash)
+        VALUES (?, ?, NULL)
+      `,
+      [adminId, adminName || normalizedAdminEmail],
+    );
+
+    await connection.commit();
+    return adminId;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
 async function getConciergeUserId(connection: PoolConnection, concierge_name: string) {
   const normalizedConciergeName = normalizeTextInput(concierge_name);
 
@@ -876,7 +955,7 @@ async function getSettingsPayload(adminEmail?: string) {
   return {
     general_settings: {
       building_name: building.building_name,
-      community_type: communityRegistration?.community_type ?? "Edificio",
+      community_type: communityRegistration?.community_type ?? building.community_type ?? "Edificio",
       contact_email: building.contact_email,
       reception_hours: building.reception_hours,
       address_line: building.address_line,
@@ -931,19 +1010,22 @@ async function getSettingsContext(adminEmail?: string): Promise<SettingsContext>
       INSERT INTO Buildings (
         id,
         building_name,
+        community_type,
         contact_email,
         reception_hours,
         address_line,
         access_password,
         is_active
       )
-      VALUES (?, ?, ?, '', ?, '', TRUE)
+      VALUES (?, ?, ?, ?, '', ?, '', TRUE)
       ON DUPLICATE KEY UPDATE
-        contact_email = VALUES(contact_email)
+        contact_email = VALUES(contact_email),
+        community_type = VALUES(community_type)
     `,
     [
       buildingId,
       communityRegistration.community_name,
+      communityRegistration.community_type,
       communityRegistration.admin_email,
       communityRegistration.community_address,
     ],
@@ -1145,6 +1227,12 @@ export const api = new Elysia({ prefix: "/api" })
         ],
       );
 
+      await ensureAdminAccountForCommunityRegistration(
+        normalizedAdminEmail,
+        normalizedAdminFirstName,
+        normalizedAdminLastName,
+      );
+
       return { ok: true };
     }
 
@@ -1174,6 +1262,12 @@ export const api = new Elysia({ prefix: "/api" })
         normalizedAdminLastName,
         normalizedAdminEmail,
       ],
+    );
+
+    await ensureAdminAccountForCommunityRegistration(
+      normalizedAdminEmail,
+      normalizedAdminFirstName,
+      normalizedAdminLastName,
     );
 
     set.status = 201;
@@ -1750,28 +1844,57 @@ export const api = new Elysia({ prefix: "/api" })
   })
   .put("/settings/general", async ({ headers, body, query }) => {
     await requireAppRole(headers.authorization, ["admin"]);
-    const { buildingId } = await getSettingsContext(query.admin_email);
+    const { buildingId, communityRegistration } = await getSettingsContext(query.admin_email);
+    const communityType = normalizeTextInput(body.community_type ?? "Edificio") || "Edificio";
 
     await pool.query(
       `
         UPDATE Buildings
         SET
           building_name = ?,
+          community_type = ?,
+          contact_email = ?,
           reception_hours = ?,
           address_line = ?,
+          access_password = ?,
           is_active = ?
         WHERE id = ?
       `,
       [
         body.building_name.trim(),
+        communityType,
+        body.contact_email.trim(),
         body.reception_hours.trim(),
         body.address_line.trim(),
+        body.access_password.trim(),
         body.is_active,
         buildingId,
       ],
     );
 
-    return body;
+    if (communityRegistration) {
+      await pool.query(
+        `
+          UPDATE CommunityRegistrations
+          SET
+            community_name = ?,
+            community_type = ?,
+            community_address = ?
+          WHERE id = ?
+        `,
+        [
+          body.building_name.trim(),
+          communityType,
+          body.address_line.trim(),
+          communityRegistration.id,
+        ],
+      );
+    }
+
+    return {
+      ...body,
+      community_type: communityType,
+    };
   }, {
     body: generalSettingsSchema,
   })

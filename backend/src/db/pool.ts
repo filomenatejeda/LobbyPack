@@ -3,26 +3,26 @@ import { createSequentialCode } from "../utils/ids";
 import { buildParcelQrValue, createParcelQrToken } from "../utils/parcels";
 import { repairPotentialMojibake } from "../utils/textEncoding";
 
-const requiredEnv = [
-  "MYSQL_HOST",
-  "MYSQL_PORT",
-  "MYSQL_USER",
-  "MYSQL_PASSWORD",
-  "MYSQL_DB",
-] as const;
+const mysqlConfig = {
+  host: process.env.MYSQL_HOST ?? process.env.DB_HOST,
+  port: process.env.MYSQL_PORT ?? process.env.MYSQL_DOCKER_PORT ?? process.env.MYSQL_LOCAL_PORT,
+  user: process.env.MYSQL_USER ?? process.env.DB_USER,
+  password: process.env.MYSQL_PASSWORD ?? process.env.DB_PASSWORD,
+  database: process.env.MYSQL_DB ?? process.env.DB_NAME,
+};
 
-for (const envName of requiredEnv) {
-  if (!process.env[envName]) {
-    throw new Error(`Missing required environment variable: ${envName}`);
+for (const [configName, configValue] of Object.entries(mysqlConfig)) {
+  if (!configValue) {
+    throw new Error(`Missing required MySQL configuration: ${configName}`);
   }
 }
 
 export const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,
-  port: Number(process.env.MYSQL_PORT),
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DB,
+  host: mysqlConfig.host,
+  port: Number(mysqlConfig.port),
+  user: mysqlConfig.user,
+  password: mysqlConfig.password,
+  database: mysqlConfig.database,
   charset: "utf8mb4",
   waitForConnections: true,
   connectionLimit: 10,
@@ -30,7 +30,7 @@ export const pool = mysql.createPool({
 });
 
 export async function ensureUtf8mb4() {
-  const databaseName = process.env.MYSQL_DB;
+  const databaseName = mysqlConfig.database;
 
   if (!databaseName) {
     throw new Error("Missing required environment variable: MYSQL_DB");
@@ -278,7 +278,7 @@ export async function repairParcelWithdrawalCodes() {
 }
 
 async function columnExists(tableName: string, columnName: string) {
-  const databaseName = process.env.MYSQL_DB;
+  const databaseName = mysqlConfig.database;
 
   if (!databaseName) {
     throw new Error("Missing required environment variable: MYSQL_DB");
@@ -296,6 +296,16 @@ async function columnExists(tableName: string, columnName: string) {
   );
 
   return Number(rows[0]?.count ?? 0) > 0;
+}
+
+export async function ensureBuildingCommunityColumns() {
+  if (!(await columnExists("Buildings", "community_type"))) {
+    await pool.query(`
+      ALTER TABLE Buildings
+      ADD COLUMN community_type VARCHAR(100) NOT NULL DEFAULT 'Edificio'
+        AFTER building_name
+    `);
+  }
 }
 
 export async function ensureParcelQrSecurityColumns() {

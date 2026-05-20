@@ -1,5 +1,6 @@
 import type { RowDataPacket } from "mysql2/promise";
 import { pool } from "../db/pool";
+import { createSequentialId } from "../utils/ids";
 
 export type AppRole = "admin" | "concierge" | "resident";
 
@@ -21,6 +22,12 @@ type AppUserRow = RowDataPacket & {
 type ResidentProfileRow = RowDataPacket & {
   resident_name: string;
   department_address: string;
+};
+
+type CommunityRegistrationRoleRow = RowDataPacket & {
+  admin_email: string;
+  admin_first_name: string;
+  admin_last_name: string;
 };
 
 type SupabaseUserResponse = {
@@ -103,6 +110,98 @@ async function fetchSupabaseUser(accessToken: string) {
   };
 }
 
+async function createAdminFromCommunityRegistration(email: string) {
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const [registrations] = await connection.query<CommunityRegistrationRoleRow[]>(
+      `
+        SELECT admin_email, admin_first_name, admin_last_name
+        FROM CommunityRegistrations
+        WHERE LOWER(admin_email) = LOWER(?)
+        LIMIT 1
+      `,
+      [email],
+    );
+
+    const registration = registrations[0];
+    if (!registration) {
+      await connection.rollback();
+      return null;
+    }
+
+    const [existingUsers] = await connection.query<AppUserRow[]>(
+      `
+        SELECT id, email, role
+        FROM Users
+        WHERE LOWER(email) = LOWER(?)
+        LIMIT 1
+        FOR UPDATE
+      `,
+      [email],
+    );
+
+    const existingUser = existingUsers[0];
+    const adminName = `${registration.admin_first_name} ${registration.admin_last_name}`.trim();
+
+    if (existingUser) {
+      if (existingUser.role !== "admin") {
+        await connection.rollback();
+        return existingUser;
+      }
+
+      await connection.query(
+        `
+          INSERT INTO Admins (user_id, admin_name, admin_password_hash)
+          VALUES (?, ?, NULL)
+          ON DUPLICATE KEY UPDATE admin_name = VALUES(admin_name)
+        `,
+        [existingUser.id, adminName || existingUser.email],
+      );
+
+      await connection.commit();
+      return existingUser;
+    }
+
+    const adminId = await createSequentialId(connection, {
+      tableName: "Users",
+      columnName: "id",
+      prefix: "admin",
+      padLength: 3,
+    });
+
+    await connection.query(
+      `
+        INSERT INTO Users (id, email, role)
+        VALUES (?, ?, 'admin')
+      `,
+      [adminId, email],
+    );
+
+    await connection.query(
+      `
+        INSERT INTO Admins (user_id, admin_name, admin_password_hash)
+        VALUES (?, ?, NULL)
+      `,
+      [adminId, adminName || email],
+    );
+
+    await connection.commit();
+    return {
+      id: adminId,
+      email,
+      role: "admin",
+    } as AppUserRow;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
 export async function requireAppRole(
   authorization: string | undefined,
   allowedRoles: readonly AppRole[],
@@ -120,7 +219,7 @@ export async function requireAppRole(
     [email],
   );
 
-  const user = users[0];
+  const user = users[0] ?? (await createAdminFromCommunityRegistration(email));
 
   if (!user) {
     throw new AuthError(403, "Tu cuenta no tiene acceso a LobbyPack.");

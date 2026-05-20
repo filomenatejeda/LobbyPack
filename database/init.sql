@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS Businesses (
 CREATE TABLE IF NOT EXISTS Buildings (
   id VARCHAR(64) PRIMARY KEY,
   building_name VARCHAR(100) NOT NULL,
+  community_type VARCHAR(100) NOT NULL DEFAULT 'Edificio',
   contact_email VARCHAR(255) NOT NULL,
   reception_hours VARCHAR(100) NOT NULL,
   address_line VARCHAR(255) NOT NULL,

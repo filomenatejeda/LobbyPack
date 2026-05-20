@@ -235,7 +235,7 @@ export function LoginForm() {
     }
   };
 
-  const handleError = (message: string) => {
+  function handleError(message: string) {
     switch (message) {
       case "Invalid login credentials":
         return "Error: correo o contraseña inválidos.";
@@ -256,7 +256,7 @@ export function LoginForm() {
     }
 
     return message;
-  };
+  }
 
   return (
     <form className="authCard" onSubmit={handleLogin}>

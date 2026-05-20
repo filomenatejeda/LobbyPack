@@ -33,6 +33,8 @@ const emptyGeneralSettings: GeneralSettings = {
   is_active: true,
 };
 
+const communityTypeOptions = ["Edificio", "Condominio", "Comunidad residencial", "Otro"];
+
 const getStructureLabels = (communityType: string) => {
   const normalizedType = communityType
     .normalize("NFD")
@@ -489,6 +491,24 @@ export default function Settings() {
                   />
                 </label>
                 <label className="settingsField">
+                  <span>Tipo de comunidad</span>
+                  <select
+                    value={generalSettings.community_type || communityTypeOptions[0]}
+                    onChange={(event) =>
+                      setGeneralSettings((current) => ({
+                        ...current,
+                        community_type: event.target.value,
+                      }))
+                    }
+                  >
+                    {communityTypeOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="settingsField">
                   <span>Horario de recepción</span>
                   <input
                     type="text"
@@ -541,6 +561,10 @@ export default function Settings() {
                 <div className="settingsReadOnlyItem">
                   <dt>Nombre del edificio</dt>
                   <dd>{generalSettings.building_name || "Sin nombre registrado"}</dd>
+                </div>
+                <div className="settingsReadOnlyItem">
+                  <dt>Tipo de comunidad</dt>
+                  <dd>{generalSettings.community_type || "Edificio"}</dd>
                 </div>
                 <div className="settingsReadOnlyItem">
                   <dt>Horario de recepción</dt>

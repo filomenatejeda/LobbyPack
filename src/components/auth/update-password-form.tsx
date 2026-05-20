@@ -122,7 +122,7 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
     }
   };
 
-  const handleError = (message: string) => {
+  function handleError(message: string) {
     switch (message) {
       case "email rate limit exceeded":
         return "Error: espera 1 minuto antes de volver a intentarlo.";
@@ -143,7 +143,7 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
     }
 
     return message;
-  };
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
