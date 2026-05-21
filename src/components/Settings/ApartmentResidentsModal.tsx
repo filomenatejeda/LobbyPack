@@ -327,7 +327,7 @@ export default function ApartmentResidentsModal({
                 <input
                   type="text"
                   inputMode="numeric"
-                  maxLength={6}
+                  maxLength={8}
                   value={verificationCode}
                   onChange={(event) => setVerificationCode(event.target.value)}
                   required
