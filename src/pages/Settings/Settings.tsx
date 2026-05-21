@@ -1,115 +1,34 @@
 import { useEffect, useState } from "react";
 import ApartmentResidentsModal from "../../components/Settings/ApartmentResidentsModal";
-import TowerCard from "../../components/Settings/TowerCard";
-import { preferenceItems } from "../../data/settingsData";
-import { supabase } from "../../lib/client";
 import {
   fetchSettings,
-  addResidentToDepartment,
-  fetchResidentsByDepartment,
   saveGeneralSettings,
   saveTowers,
-  verifyResidentEmail,
-  verifyResidentMfa,
 } from "../../services/settingsApi";
-import type {
-  GeneralSettings,
-  PreferenceSettings,
-  ResidentItem,
-  TeamItem,
-  TowerConfig,
-} from "../../types/settings";
-import { buildApartmentName, clampCount, createTower, syncFloors } from "../../utils/towerUtils";
+import { supabase } from "../../lib/client";
+import type { GeneralSettings, PreferenceSettings, TeamItem, TowerConfig } from "../../types/settings";
+import {
+  buildApartmentName,
+  clampCount,
+  createTower,
+  syncFloors,
+} from "../../utils/towerUtils";
+import SettingsGeneralCard from "./components/SettingsGeneralCard";
+import SettingsPreferencesCard from "./components/SettingsPreferencesCard";
+import SettingsStructureCard from "./components/SettingsStructureCard";
+import SettingsTeamCard from "./components/SettingsTeamCard";
+import { useApartmentResidents } from "./hooks/useApartmentResidents";
+import {
+  communityTypeOptions,
+  emptyGeneralSettings,
+  emptyPreferenceSettings,
+  getStructureLabels,
+} from "./settingsConfig";
 import "./Settings.css";
 
-const emptyGeneralSettings: GeneralSettings = {
-  building_name: "",
-  community_type: "",
-  contact_email: "",
-  reception_hours: "",
-  address_line: "",
-  access_password: "",
-  is_active: true,
-};
-
-const communityTypeOptions = ["Edificio", "Condominio", "Comunidad residencial", "Otro"];
-
-const getStructureLabels = (communityType: string) => {
-  const normalizedType = communityType
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-
-  if (normalizedType.includes("condominio") || normalizedType.includes("residencial")) {
-    return {
-      title: "Sectores, etapas y viviendas",
-      addGroup: "Agregar sector",
-      groupSingular: "Sector",
-      groupPlural: "Sectores",
-      groupName: "Nombre del sector",
-      levelSingular: "Etapa",
-      levelPlural: "Etapas",
-      levelCount: "Cantidad de etapas",
-      unitSingular: "vivienda",
-      unitPlural: "viviendas",
-      totalUnits: "Viviendas registradas",
-      unitsByLevel: "Viviendas por etapa",
-      sectionLead:
-        "Cada sector queda visible como ficha fija. Si necesitas cambiar nombre, etapas o viviendas, entra a editar ese sector.",
-      previewText: "Selecciona una etapa para ver solo sus viviendas.",
-      addUnit: "Agregar vivienda",
-    };
-  }
-
-  if (normalizedType.includes("otro")) {
-    return {
-      title: "Áreas, niveles y unidades",
-      addGroup: "Agregar área",
-      groupSingular: "Área",
-      groupPlural: "Áreas",
-      groupName: "Nombre del área",
-      levelSingular: "Nivel",
-      levelPlural: "Niveles",
-      levelCount: "Cantidad de niveles",
-      unitSingular: "unidad",
-      unitPlural: "unidades",
-      totalUnits: "Unidades registradas",
-      unitsByLevel: "Unidades por nivel",
-      sectionLead:
-        "Cada área queda visible como ficha fija. Si necesitas cambiar nombre, niveles o unidades, entra a editar esa área.",
-      previewText: "Selecciona un nivel para ver solo sus unidades.",
-      addUnit: "Agregar unidad",
-    };
-  }
-
-  return {
-    title: "Torres, pisos y departamentos",
-    addGroup: "Agregar torre",
-    groupSingular: "Torre",
-    groupPlural: "Torres",
-    groupName: "Nombre de la torre",
-    levelSingular: "Piso",
-    levelPlural: "Pisos",
-    levelCount: "Cantidad de pisos",
-    unitSingular: "departamento",
-    unitPlural: "departamentos",
-    totalUnits: "Departamentos registrados",
-    unitsByLevel: "Departamentos por piso",
-    sectionLead:
-      "Cada torre queda visible como ficha fija. Si necesitas cambiar nombre, pisos o departamentos, entra a editar esa torre.",
-    previewText: "Selecciona un piso para ver solo sus departamentos.",
-    addUnit: "Agregar departamento",
-  };
-};
-
-const emptyPreferenceSettings: PreferenceSettings = {
-  package_notifications: true,
-  daily_summary: true,
-  qr_access: true,
-};
-
 export default function Settings() {
-  const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(emptyGeneralSettings);
+  const [generalSettings, setGeneralSettings] =
+    useState<GeneralSettings>(emptyGeneralSettings);
   const [preferenceSettings, setPreferenceSettings] =
     useState<PreferenceSettings>(emptyPreferenceSettings);
   const [towers, setTowers] = useState<TowerConfig[]>([]);
@@ -119,10 +38,9 @@ export default function Settings() {
   const [isEditingGeneralSettings, setIsEditingGeneralSettings] = useState(false);
   const [adminEmail, setAdminEmail] = useState<string | undefined>(undefined);
   const [statusMessage, setStatusMessage] = useState("");
-  const [selectedApartment, setSelectedApartment] = useState<string | null>(null);
-  const [apartmentResidents, setApartmentResidents] = useState<ResidentItem[]>([]);
-  const [isLoadingResidents, setIsLoadingResidents] = useState(false);
-  const [isSavingResident, setIsSavingResident] = useState(false);
+  const apartmentResidents = useApartmentResidents({
+    onStatusMessage: setStatusMessage,
+  });
 
   const loadSettings = async () => {
     setIsLoading(true);
@@ -139,7 +57,9 @@ export default function Settings() {
       setTeam(response.team);
       setIsEditingGeneralSettings(false);
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : "No se pudo cargar la configuración.");
+      setStatusMessage(
+        error instanceof Error ? error.message : "No se pudo cargar la configuracion.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -156,6 +76,26 @@ export default function Settings() {
     0,
   );
   const structureLabels = getStructureLabels(generalSettings.community_type);
+
+  const updateGeneralSettings = <K extends keyof GeneralSettings>(
+    field: K,
+    value: GeneralSettings[K],
+  ) => {
+    setGeneralSettings((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const updatePreferenceSettings = <K extends keyof PreferenceSettings>(
+    field: K,
+    value: PreferenceSettings[K],
+  ) => {
+    setPreferenceSettings((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
 
   const addTower = () => {
     setTowers((current) => [
@@ -232,7 +172,7 @@ export default function Settings() {
 
   const updateApartmentName = (
     towerId: number,
-    floor_number: number,
+    floorNumber: number,
     apartmentIndex: number,
     value: string,
   ) => {
@@ -245,7 +185,7 @@ export default function Settings() {
         return {
           ...tower,
           floors: tower.floors.map((floor) => {
-            if (floor.floor_number !== floor_number) {
+            if (floor.floor_number !== floorNumber) {
               return floor;
             }
 
@@ -261,7 +201,7 @@ export default function Settings() {
     );
   };
 
-  const addApartment = (towerId: number, floor_number: number) => {
+  const addApartment = (towerId: number, floorNumber: number) => {
     setTowers((current) =>
       current.map((tower) => {
         if (tower.id !== towerId) {
@@ -271,7 +211,7 @@ export default function Settings() {
         return {
           ...tower,
           floors: tower.floors.map((floor) => {
-            if (floor.floor_number !== floor_number) {
+            if (floor.floor_number !== floorNumber) {
               return floor;
             }
 
@@ -288,7 +228,11 @@ export default function Settings() {
     );
   };
 
-  const removeApartment = (towerId: number, floor_number: number, apartmentIndex: number) => {
+  const removeApartment = (
+    towerId: number,
+    floorNumber: number,
+    apartmentIndex: number,
+  ) => {
     setTowers((current) =>
       current.map((tower) => {
         if (tower.id !== towerId) {
@@ -298,7 +242,7 @@ export default function Settings() {
         return {
           ...tower,
           floors: tower.floors.map((floor) => {
-            if (floor.floor_number !== floor_number || floor.apartments.length === 1) {
+            if (floor.floor_number !== floorNumber || floor.apartments.length === 1) {
               return floor;
             }
 
@@ -312,110 +256,21 @@ export default function Settings() {
     );
   };
 
-  const openApartmentResidents = async (apartmentName: string) => {
-    setSelectedApartment(apartmentName);
-    setApartmentResidents([]);
-    setIsLoadingResidents(true);
-    setStatusMessage("");
-
-    try {
-      const residents = await fetchResidentsByDepartment(apartmentName);
-      setApartmentResidents(residents);
-    } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : "No se pudieron cargar las personas.");
-    } finally {
-      setIsLoadingResidents(false);
-    }
-  };
-
-  const closeApartmentResidents = () => {
-    setSelectedApartment(null);
-    setApartmentResidents([]);
-  };
-
-  const handleAddResident = async (values: {
-    resident_email: string;
-    resident_name: string;
-    resident_password: string;
-    user_phone_number: string;
-  }) => {
-    if (!selectedApartment) {
-      throw new Error("Selecciona un departamento.");
-    }
-
-    setIsSavingResident(true);
-    setStatusMessage("");
-
-    try {
-      const createdResident = await addResidentToDepartment({
-        ...values,
-        department_address: selectedApartment,
-      });
-      const residents = await fetchResidentsByDepartment(selectedApartment);
-      setApartmentResidents(residents);
-      setStatusMessage("Cuenta residente creada. Verifica el codigo para activar MFA.");
-      return createdResident;
-    } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : "No se pudo agregar la persona.");
-      throw error;
-    } finally {
-      setIsSavingResident(false);
-    }
-  };
-
-  const handleVerifyResidentEmail = async (
-    residentId: string,
-    verificationCode: string,
-  ): Promise<void> => {
-    setIsSavingResident(true);
-    setStatusMessage("");
-
-    try {
-      await verifyResidentEmail(residentId, verificationCode);
-      if (selectedApartment) {
-        setApartmentResidents(await fetchResidentsByDepartment(selectedApartment));
-      }
-    } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : "No se pudo verificar el codigo.");
-      throw error;
-    } finally {
-      setIsSavingResident(false);
-    }
-  };
-
-  const handleVerifyResidentMfa = async (residentId: string, mfaCode: string) => {
-    setIsSavingResident(true);
-    setStatusMessage("");
-
-    try {
-      await verifyResidentMfa(residentId, mfaCode);
-      if (selectedApartment) {
-        setApartmentResidents(await fetchResidentsByDepartment(selectedApartment));
-      }
-      setStatusMessage("Cuenta residente verificada correctamente.");
-    } catch (error) {
-      setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo verificar el autenticador.",
-      );
-      throw error;
-    } finally {
-      setIsSavingResident(false);
-    }
-  };
-
-
-
   const handleSaveGeneralSettings = async () => {
     setIsSaving(true);
     setStatusMessage("");
 
     try {
       await saveGeneralSettings(generalSettings, adminEmail);
-      setStatusMessage("Información del lobby guardada correctamente.");
+      setStatusMessage("Informacion del lobby guardada correctamente.");
       setIsEditingGeneralSettings(false);
       await loadSettings();
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : "No se pudo guardar la información del lobby.");
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : "No se pudo guardar la informacion del lobby.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -435,7 +290,9 @@ export default function Settings() {
       setStatusMessage("Estructura guardada correctamente.");
       await loadSettings();
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : "No se pudo guardar la estructura.");
+      setStatusMessage(
+        error instanceof Error ? error.message : "No se pudo guardar la estructura.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -449,298 +306,71 @@ export default function Settings() {
   return (
     <main className="settingsPage">
       <section className="settingsHero">
-        <p className="settingsEyebrow">Configuración general</p>
+        <p className="settingsEyebrow">Configuracion general</p>
         <h1>Configura LobbyPack a tu manera</h1>
         <p className="settingsLead">
-          Ajusta notificaciones, recepción de paquetes y permisos del equipo desde un solo
+          Ajusta notificaciones, recepcion de paquetes y permisos del equipo desde un solo
           panel.
         </p>
       </section>
 
       {statusMessage ? <p className="settingsLead">{statusMessage}</p> : null}
-      {isLoading ? <p className="settingsLead">Cargando configuración desde MySQL...</p> : null}
+      {isLoading ? <p className="settingsLead">Cargando configuracion desde MySQL...</p> : null}
 
       <section className="settingsGrid">
-        <article className="settingsCard">
-          <div className="settingsCardHeader">
-            <div>
-              <p className="settingsLabel">Condominio</p>
-              <h2>Lobby principal</h2>
-            </div>
-            <span className="settingsBadge">
-              {generalSettings.is_active ? "Activo" : "Inactivo"}
-            </span>
-          </div>
+        <SettingsGeneralCard
+          communityTypeOptions={communityTypeOptions}
+          generalSettings={generalSettings}
+          isEditing={isEditingGeneralSettings}
+          isSaving={isSaving}
+          onCancel={() => void cancelGeneralSettingsEdit()}
+          onChange={updateGeneralSettings}
+          onEdit={() => setIsEditingGeneralSettings(true)}
+          onSave={() => void handleSaveGeneralSettings()}
+        />
 
-          {isEditingGeneralSettings ? (
-            <>
-              <div className="settingsForm">
-                <label className="settingsField">
-                  <span>Nombre del edificio</span>
-                  <input
-                    type="text"
-                    value={generalSettings.building_name}
-                    onChange={(event) =>
-                      setGeneralSettings((current) => ({
-                        ...current,
-                        building_name: event.target.value,
-                      }))
-                    }
-                  />
-                </label>
-                <label className="settingsField">
-                  <span>Tipo de comunidad</span>
-                  <select
-                    value={generalSettings.community_type || communityTypeOptions[0]}
-                    onChange={(event) =>
-                      setGeneralSettings((current) => ({
-                        ...current,
-                        community_type: event.target.value,
-                      }))
-                    }
-                  >
-                    {communityTypeOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="settingsField">
-                  <span>Horario de recepción</span>
-                  <input
-                    type="text"
-                    value={generalSettings.reception_hours}
-                    onChange={(event) =>
-                      setGeneralSettings((current) => ({
-                        ...current,
-                        reception_hours: event.target.value,
-                      }))
-                    }
-                  />
-                </label>
-                <label className="settingsField settingsFieldWide">
-                  <span>Dirección</span>
-                  <input
-                    type="text"
-                    value={generalSettings.address_line}
-                    onChange={(event) =>
-                      setGeneralSettings((current) => ({
-                        ...current,
-                        address_line: event.target.value,
-                      }))
-                    }
-                  />
-                </label>
-              </div>
+        <SettingsPreferencesCard
+          preferenceSettings={preferenceSettings}
+          onToggle={updatePreferenceSettings}
+        />
 
-              <div className="settingsActions">
-                <button
-                  type="button"
-                  className="secondaryButton"
-                  onClick={() => void cancelGeneralSettingsEdit()}
-                  disabled={isSaving}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  className="primaryButton"
-                  onClick={() => void handleSaveGeneralSettings()}
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Guardando..." : "Guardar información"}
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <dl className="settingsReadOnlyGrid">
-                <div className="settingsReadOnlyItem">
-                  <dt>Nombre del edificio</dt>
-                  <dd>{generalSettings.building_name || "Sin nombre registrado"}</dd>
-                </div>
-                <div className="settingsReadOnlyItem">
-                  <dt>Tipo de comunidad</dt>
-                  <dd>{generalSettings.community_type || "Edificio"}</dd>
-                </div>
-                <div className="settingsReadOnlyItem">
-                  <dt>Horario de recepción</dt>
-                  <dd>{generalSettings.reception_hours || "Sin horario registrado"}</dd>
-                </div>
-                <div className="settingsReadOnlyItem settingsReadOnlyItemWide">
-                  <dt>Dirección</dt>
-                  <dd>{generalSettings.address_line || "Sin dirección registrada"}</dd>
-                </div>
-              </dl>
+        <SettingsStructureCard
+          towers={towers}
+          labels={structureLabels}
+          totalFloors={totalFloors}
+          totalUnits={totalUnits}
+          isSaving={isSaving}
+          isLoading={isLoading}
+          onAddApartment={addApartment}
+          onAddTower={addTower}
+          onApartmentClick={(apartmentName) =>
+            void apartmentResidents.openApartmentResidents(apartmentName)
+          }
+          onCancel={() => void cancelStructureEdit()}
+          onRemoveApartment={removeApartment}
+          onRemoveTower={removeTower}
+          onSave={() => void handleSaveStructure()}
+          onSelectFloor={selectFloor}
+          onToggleEditing={toggleTowerEditing}
+          onUpdateApartmentName={updateApartmentName}
+          onUpdateFloorCount={updateTowerFloorCount}
+          onUpdateTowerName={updateTowerName}
+        />
 
-              <div className="settingsActions">
-                <button
-                  type="button"
-                  className="primaryButton"
-                  onClick={() => setIsEditingGeneralSettings(true)}
-                >
-                  Editar información
-                </button>
-              </div>
-            </>
-          )}
-        </article>
-
-        <article className="settingsCard">
-          <div className="settingsCardHeader">
-            <div>
-              <p className="settingsLabel">Preferencias</p>
-              <h2>Automatizaciones</h2>
-            </div>
-          </div>
-
-          <div className="settingsOptionList">
-            {preferenceItems.map((item) => (
-              <label key={item.title} className="settingsOption">
-                <div>
-                  <strong>{item.title}</strong>
-                  <p>{item.description}</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={preferenceSettings[item.preference_key]}
-                  onChange={(event) =>
-                    setPreferenceSettings((current) => ({
-                      ...current,
-                      [item.preference_key]: event.target.checked,
-                    }))
-                  }
-                />
-              </label>
-            ))}
-          </div>
-        </article>
-
-        <article className="settingsCard settingsCardWide">
-          <div className="settingsCardHeader">
-            <div>
-              <p className="settingsLabel">Estructura</p>
-              <h2>{structureLabels.title}</h2>
-            </div>
-            <button type="button" className="secondaryButton" onClick={addTower}>
-              {structureLabels.addGroup}
-            </button>
-          </div>
-
-          <p className="settingsSectionLead">
-            {structureLabels.sectionLead}
-          </p>
-
-          <div className="settingsStats">
-            <div className="settingsStat">
-              <strong>{towers.length}</strong>
-              <span>{structureLabels.groupPlural} registrados</span>
-            </div>
-            <div className="settingsStat">
-              <strong>{totalFloors}</strong>
-              <span>{structureLabels.levelPlural} en total</span>
-            </div>
-            <div className="settingsStat">
-              <strong>{totalUnits}</strong>
-              <span>{structureLabels.totalUnits}</span>
-            </div>
-          </div>
-
-          <div className="towerList">
-            {towers.length === 0 ? (
-              <div className="settingsEmptyState">
-                <strong>La estructura aun no esta configurada.</strong>
-                <p>
-                  Agrega {structureLabels.groupPlural.toLowerCase()} para comenzar a ordenar la
-                  comunidad.
-                </p>
-              </div>
-            ) : null}
-
-            {towers.map((tower) => {
-              const totalTowerUnits = tower.floors.reduce(
-                (sum, floor) => sum + floor.apartments.length,
-                0,
-              );
-
-              return (
-                <TowerCard
-                  key={tower.id}
-                  tower={tower}
-                  labels={structureLabels}
-                  totalTowerUnits={totalTowerUnits}
-                  canRemove={towers.length > 1}
-                  onToggleEditing={toggleTowerEditing}
-                  onRemove={removeTower}
-                  onUpdateName={updateTowerName}
-                  onUpdateFloorCount={updateTowerFloorCount}
-                  onSelectFloor={selectFloor}
-                  onAddApartment={addApartment}
-                  onApartmentClick={(apartmentName) => void openApartmentResidents(apartmentName)}
-                  onUpdateApartmentName={updateApartmentName}
-                  onRemoveApartment={removeApartment}
-                />
-              );
-            })}
-          </div>
-
-          <div className="settingsActions">
-            <button
-              type="button"
-              className="secondaryButton"
-              onClick={() => void cancelStructureEdit()}
-              disabled={isSaving || isLoading}
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              className="primaryButton"
-              onClick={() => void handleSaveStructure()}
-              disabled={isSaving}
-            >
-              {isSaving ? "Guardando..." : "Guardar estructura"}
-            </button>
-          </div>
-        </article>
-
-        <article className="settingsCard settingsCardWide">
-          <div className="settingsCardHeader">
-            <div>
-              <p className="settingsLabel">Equipo</p>
-              <h2>Accesos y permisos</h2>
-            </div>
-            <button type="button" className="secondaryButton">
-              Invitar usuario
-            </button>
-          </div>
-
-          <div className="settingsTable">
-            {team.map((item) => (
-              <div key={item.user_id} className="settingsRow">
-                <div>
-                  <strong>{item.team_name}</strong>
-                  <p>{item.role}</p>
-                </div>
-                <span className="settingsRole">{item.team_status}</span>
-              </div>
-            ))}
-          </div>
-        </article>
+        <SettingsTeamCard team={team} />
       </section>
 
-      {selectedApartment ? (
+      {apartmentResidents.selectedApartment ? (
         <ApartmentResidentsModal
-          apartmentName={selectedApartment}
+          apartmentName={apartmentResidents.selectedApartment}
           unitSingular={structureLabels.unitSingular}
-          residents={apartmentResidents}
-          isLoading={isLoadingResidents}
-          isSaving={isSavingResident}
-          onClose={closeApartmentResidents}
-          onAddResident={handleAddResident}
-          onVerifyEmail={handleVerifyResidentEmail}
-          onVerifyMfa={handleVerifyResidentMfa}
+          residents={apartmentResidents.apartmentResidents}
+          isLoading={apartmentResidents.isLoadingResidents}
+          isSaving={apartmentResidents.isSavingResident}
+          onClose={apartmentResidents.closeApartmentResidents}
+          onAddResident={apartmentResidents.handleAddResident}
+          onVerifyEmail={apartmentResidents.handleVerifyResidentEmail}
+          onVerifyMfa={apartmentResidents.handleVerifyResidentMfa}
         />
       ) : null}
     </main>

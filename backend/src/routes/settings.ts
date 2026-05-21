@@ -1,0 +1,420 @@
+import { Elysia } from "elysia";
+import { requireAppRole } from "../auth/session";
+import { pool } from "../db/pool";
+import { normalizeTextInput } from "../utils/textEncoding";
+import { generalSettingsSchema, preferenceSettingsSchema, residentEmailVerificationSchema, residentMfaVerificationSchema, residentSettingsSchema, towersSchema } from "./shared/schemas";
+import type { BuildingRow, PreferenceRow, TeamRow, TowerRow } from "./shared/types";
+import { getSettingsContext } from "./shared/community";
+import {
+  createResidentAccount,
+  getResidentById,
+  getResidentEmail,
+  getResidentSecurity,
+  getResidentSecurityForMfa,
+  listResidentsByDepartment,
+  markResidentEmailVerified,
+  markResidentMfaVerified,
+} from "./shared/residents";
+
+async function getSettingsPayload(adminEmail?: string) {
+  const { buildingId, communityRegistration } = await getSettingsContext(adminEmail);
+  const [buildings] = await pool.query<BuildingRow[]>(
+    `
+      SELECT *
+      FROM Buildings
+      WHERE id = ?
+      LIMIT 1
+    `,
+    [buildingId],
+  );
+
+  const [preferences] = await pool.query<PreferenceRow[]>(
+    `
+      SELECT package_notifications, daily_summary, qr_access
+      FROM BuildingPreferences
+      WHERE building_id = ?
+      LIMIT 1
+    `,
+    [buildingId],
+  );
+
+  const [team] = await pool.query<TeamRow[]>(
+    `
+      SELECT
+        u.id AS user_id,
+        u.role,
+        COALESCE(c.concierge_name, a.admin_name, r.resident_name, u.email) AS team_name,
+        CASE
+          WHEN u.role = 'admin' THEN 'Admin'
+          ELSE 'Activo'
+        END AS team_status
+      FROM Users u
+      LEFT JOIN Concierges c ON c.user_id = u.id
+      LEFT JOIN Admins a ON a.user_id = u.id
+      LEFT JOIN Residents r ON r.user_id = u.id
+      WHERE u.role IN ('admin', 'concierge')
+      ORDER BY FIELD(u.role, 'admin', 'concierge'), team_name
+    `,
+  );
+
+  const [towerRows] = await pool.query<TowerRow[]>(
+    `
+      SELECT
+        t.id AS tower_id,
+        t.tower_name,
+        t.display_order,
+        f.floor_number,
+        a.apartment_name,
+        a.display_order AS apartment_display_order
+      FROM Towers t
+      LEFT JOIN Floors f ON f.tower_id = t.id
+      LEFT JOIN Apartments a ON a.floor_id = f.id
+      WHERE t.building_id = ?
+      ORDER BY t.display_order, f.floor_number, a.display_order
+    `,
+    [buildingId],
+  );
+
+  const building = buildings[0];
+  const preference = preferences[0] ?? {
+    package_notifications: 1,
+    daily_summary: 1,
+    qr_access: 1,
+  };
+  const towers = new Map<
+    number,
+    {
+      id: number;
+      tower_name: string;
+      selected_floor: number;
+      is_editing: boolean;
+      floors: Array<{ floor_number: number; apartments: string[] }>;
+    }
+  >();
+
+  for (const row of towerRows) {
+    if (!towers.has(row.tower_id)) {
+      towers.set(row.tower_id, {
+        id: row.tower_id,
+        tower_name: row.tower_name,
+        selected_floor: 1,
+        is_editing: false,
+        floors: [],
+      });
+    }
+
+    const tower = towers.get(row.tower_id);
+    if (!tower || row.floor_number == null) {
+      continue;
+    }
+
+    let floor = tower.floors.find((item) => item.floor_number === row.floor_number);
+    if (!floor) {
+      floor = { floor_number: row.floor_number, apartments: [] };
+      tower.floors.push(floor);
+    }
+
+    if (row.apartment_name) {
+      floor.apartments.push(row.apartment_name);
+    }
+  }
+
+  return {
+    general_settings: {
+      building_name: building.building_name,
+      community_type: communityRegistration?.community_type ?? building.community_type ?? "Edificio",
+      contact_email: building.contact_email,
+      reception_hours: building.reception_hours,
+      address_line: building.address_line,
+      access_password: building.access_password,
+      is_active: Boolean(building.is_active),
+    },
+    preference_settings: {
+      package_notifications: Boolean(preference.package_notifications),
+      daily_summary: Boolean(preference.daily_summary),
+      qr_access: Boolean(preference.qr_access),
+    },
+    towers: Array.from(towers.values()),
+    team: team.map((row) => ({
+      user_id: row.user_id,
+      role: row.role,
+      team_name: row.team_name,
+      team_status: row.team_status,
+    })),
+  };
+}
+
+export const settingsRoutes = new Elysia()
+  .get("/settings", async ({ headers, query }) => {
+    await requireAppRole(headers.authorization, ["admin"]);
+    return getSettingsPayload(query.admin_email);
+  })
+  .get("/settings/residents", async ({ headers, query }) => {
+    await requireAppRole(headers.authorization, ["admin"]);
+    return listResidentsByDepartment(String(query.department_address ?? ""));
+  })
+  .post(
+    "/settings/residents",
+    async ({ headers, body, set }) => {
+      await requireAppRole(headers.authorization, ["admin"]);
+
+      const connection = await pool.getConnection();
+
+      try {
+        await connection.beginTransaction();
+
+        const { residentId, verificationCode } = await createResidentAccount(
+          connection,
+          body.resident_email,
+          body.resident_name,
+          body.resident_password,
+          body.department_address,
+          body.user_phone_number,
+        );
+
+        await connection.commit();
+        set.status = 201;
+
+        const resident = await getResidentById(residentId);
+        if (!resident) {
+          throw new Error("No se pudo recuperar la cuenta residente creada.");
+        }
+
+        return {
+          ...resident,
+          verification_code: verificationCode,
+        };
+      } catch (error) {
+        await connection.rollback();
+
+        if (
+          error instanceof Error &&
+          error.message === "Este correo ya tiene una cuenta registrada."
+        ) {
+          set.status = 409;
+          return { message: error.message };
+        }
+
+        throw error;
+      } finally {
+        connection.release();
+      }
+    },
+    {
+      body: residentSettingsSchema,
+    },
+  )
+  .post(
+    "/settings/residents/:id/verify-email",
+    async ({ headers, params, set }) => {
+      await requireAppRole(headers.authorization, ["admin"]);
+
+      const security = await getResidentSecurity(params.id);
+      const email = await getResidentEmail(params.id);
+
+      if (!email) {
+        set.status = 404;
+        return { message: "Residente no encontrado." };
+      }
+
+      if (!security) {
+        set.status = 404;
+        return { message: "Seguridad de residente no encontrada." };
+      }
+
+      await markResidentEmailVerified(params.id);
+      return { ok: true };
+    },
+    {
+      body: residentEmailVerificationSchema,
+    },
+  )
+  .post(
+    "/settings/residents/:id/verify-mfa",
+    async ({ headers, params, set }) => {
+      await requireAppRole(headers.authorization, ["admin"]);
+
+      const security = await getResidentSecurityForMfa(params.id);
+
+      if (!security) {
+        set.status = 400;
+        return {
+          message: "El correo del residente debe estar verificado antes de activar MFA.",
+        };
+      }
+
+      await markResidentMfaVerified(params.id);
+      return { ok: true };
+    },
+    {
+      body: residentMfaVerificationSchema,
+    },
+  )
+  .put(
+    "/settings/general",
+    async ({ headers, body, query }) => {
+      await requireAppRole(headers.authorization, ["admin"]);
+      const { buildingId, communityRegistration } = await getSettingsContext(query.admin_email);
+      const communityType = normalizeTextInput(body.community_type ?? "Edificio") || "Edificio";
+
+      await pool.query(
+        `
+          UPDATE Buildings
+          SET
+            building_name = ?,
+            community_type = ?,
+            contact_email = ?,
+            reception_hours = ?,
+            address_line = ?,
+            access_password = ?,
+            is_active = ?
+          WHERE id = ?
+        `,
+        [
+          body.building_name.trim(),
+          communityType,
+          body.contact_email.trim(),
+          body.reception_hours.trim(),
+          body.address_line.trim(),
+          body.access_password.trim(),
+          body.is_active,
+          buildingId,
+        ],
+      );
+
+      if (communityRegistration) {
+        await pool.query(
+          `
+            UPDATE CommunityRegistrations
+            SET
+              community_name = ?,
+              community_type = ?,
+              community_address = ?
+            WHERE id = ?
+          `,
+          [
+            body.building_name.trim(),
+            communityType,
+            body.address_line.trim(),
+            communityRegistration.id,
+          ],
+        );
+      }
+
+      return {
+        ...body,
+        community_type: communityType,
+      };
+    },
+    {
+      body: generalSettingsSchema,
+    },
+  )
+  .put(
+    "/settings/preferences",
+    async ({ headers, body, query }) => {
+      await requireAppRole(headers.authorization, ["admin"]);
+      const { buildingId } = await getSettingsContext(query.admin_email);
+
+      await pool.query(
+        `
+          UPDATE BuildingPreferences
+          SET
+            package_notifications = ?,
+            daily_summary = ?,
+            qr_access = ?
+          WHERE building_id = ?
+        `,
+        [body.package_notifications, body.daily_summary, body.qr_access, buildingId],
+      );
+
+      return body;
+    },
+    {
+      body: preferenceSettingsSchema,
+    },
+  )
+  .put(
+    "/settings/towers",
+    async ({ headers, body, query }) => {
+      await requireAppRole(headers.authorization, ["admin"]);
+      const { buildingId } = await getSettingsContext(query.admin_email);
+      const connection = await pool.getConnection();
+
+      try {
+        await connection.beginTransaction();
+
+        await connection.query(
+          `
+            DELETE a
+            FROM Apartments a
+            INNER JOIN Floors f ON f.id = a.floor_id
+            INNER JOIN Towers t ON t.id = f.tower_id
+            WHERE t.building_id = ?
+          `,
+          [buildingId],
+        );
+
+        await connection.query(
+          `
+            DELETE f
+            FROM Floors f
+            INNER JOIN Towers t ON t.id = f.tower_id
+            WHERE t.building_id = ?
+          `,
+          [buildingId],
+        );
+
+        await connection.query(
+          `
+            DELETE FROM Towers
+            WHERE building_id = ?
+          `,
+          [buildingId],
+        );
+
+        for (const [towerIndex, tower] of body.entries()) {
+          await connection.query(
+            `
+              INSERT INTO Towers (id, building_id, tower_name, display_order)
+              VALUES (?, ?, ?, ?)
+            `,
+            [tower.id, buildingId, tower.tower_name.trim(), towerIndex + 1],
+          );
+
+          for (const floor of tower.floors) {
+            const [floorInsert] = await connection.query(
+              `
+                INSERT INTO Floors (tower_id, floor_number)
+                VALUES (?, ?)
+              `,
+              [tower.id, floor.floor_number],
+            );
+
+            const floorId = Number((floorInsert as { insertId: number }).insertId);
+
+            for (const [apartmentIndex, apartmentName] of floor.apartments.entries()) {
+              await connection.query(
+                `
+                  INSERT INTO Apartments (floor_id, apartment_name, display_order)
+                  VALUES (?, ?, ?)
+                `,
+                [floorId, apartmentName.trim(), apartmentIndex + 1],
+              );
+            }
+          }
+        }
+
+        await connection.commit();
+        return body;
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
+    },
+    {
+      body: towersSchema,
+    },
+  );
