@@ -1,9 +1,12 @@
 import { useState, type FormEvent } from "react";
 import AddPackageFormSection from "./AddPackageFormSection";
 import type { AddPackageFormValues } from "./packageFormTypes";
+import type { CommunityStructureTower } from "../../types/home";
+import { validateParcelForm } from "../../utils/parcelValidation";
 import "./AddPackageModal.css";
 
 type AddPackageModalProps = {
+  communityStructure?: CommunityStructureTower[];
   initialValues?: AddPackageFormValues;
   title?: string;
   onClose: () => void;
@@ -21,20 +24,30 @@ const baseValues: AddPackageFormValues = {
 };
 
 export default function AddPackageModal({
+  communityStructure = [],
   initialValues,
   title = "Completa los datos del paquete",
   onClose,
   onSubmit,
 }: AddPackageModalProps) {
   const [values, setValues] = useState<AddPackageFormValues>(() => initialValues ?? baseValues);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (field: keyof AddPackageFormValues, value: string | boolean) => {
+    setErrorMessage("");
     setValues((current) => ({ ...current, [field]: value }));
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await onSubmit(values);
+    const validation = validateParcelForm(values, communityStructure);
+
+    if (validation.message) {
+      setErrorMessage(validation.message);
+      return;
+    }
+
+    await onSubmit(validation.values);
     setValues(baseValues);
   };
 
@@ -56,6 +69,7 @@ export default function AddPackageModal({
           </button>
         </div>
         <AddPackageFormSection
+          errorMessage={errorMessage}
           values={values}
           onCancel={onClose}
           onChange={handleChange}

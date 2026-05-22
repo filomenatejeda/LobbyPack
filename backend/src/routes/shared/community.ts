@@ -187,3 +187,29 @@ export async function getSettingsContext(adminEmail?: string): Promise<SettingsC
 
   return { buildingId, communityRegistration };
 }
+
+export async function resolveBuildingIdForUserEmail(email?: string) {
+  const normalizedEmail = email ? normalizeTextInput(email).toLowerCase() : "";
+
+  if (!normalizedEmail) {
+    return BUILDING_ID;
+  }
+
+  const settingsContext = await getSettingsContext(normalizedEmail);
+
+  if (settingsContext.buildingId !== BUILDING_ID) {
+    return settingsContext.buildingId;
+  }
+
+  const [buildings] = await pool.query<Array<RowDataPacket & { id: string }>>(
+    `
+      SELECT id
+      FROM Buildings
+      WHERE LOWER(contact_email) = LOWER(?)
+      LIMIT 1
+    `,
+    [normalizedEmail],
+  );
+
+  return buildings[0]?.id ?? settingsContext.buildingId;
+}

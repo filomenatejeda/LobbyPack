@@ -1,5 +1,6 @@
 import type { AddPackageFormValues } from "../components/Home/packageFormTypes";
 import type { IssueStatus, ParcelItem, ParcelStatus } from "../types/home";
+import { normalizeParcelFormValues } from "./parcelValidation";
 
 export const pageSizeOptions = [25, 50, 100] as const;
 
@@ -67,13 +68,15 @@ export function normalizeSearchText(value: string) {
 }
 
 export function buildParcelPayload(values: AddPackageFormValues) {
+  const normalizedValues = normalizeParcelFormValues(values);
+
   return {
-    department_address: values.department_address,
-    resident_name: values.resident_name,
-    user_phone_number: values.user_phone_number,
-    business_name: values.business_name,
-    concierge_name: values.concierge_name,
-    parcel_description: values.parcel_description,
-    is_urgent: values.is_urgent,
+    department_address: normalizedValues.department_address,
+    resident_name: normalizedValues.resident_name,
+    user_phone_number: normalizedValues.user_phone_number,
+    business_name: normalizedValues.business_name,
+    concierge_name: normalizedValues.concierge_name,
+    parcel_description: normalizedValues.parcel_description,
+    is_urgent: normalizedValues.is_urgent,
   };
 }

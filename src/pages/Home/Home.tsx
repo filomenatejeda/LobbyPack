@@ -167,6 +167,7 @@ export default function Home() {
 
       {!dashboard.isResident && dashboard.isAddPackageOpen ? (
         <AddPackageModal
+          communityStructure={dashboard.communityStructure}
           onClose={() => dashboard.setIsAddPackageOpen(false)}
           onSubmit={dashboard.handleAddPackage}
         />
@@ -174,6 +175,7 @@ export default function Home() {
 
       {!dashboard.isResident && dashboard.editingParcel ? (
         <AddPackageModal
+          communityStructure={dashboard.communityStructure}
           title={`Editar paquete ${dashboard.editingParcel.id}`}
           initialValues={{
             department_address: dashboard.editingParcel.department_address,

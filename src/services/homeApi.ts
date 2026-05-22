@@ -1,6 +1,7 @@
 import { apiRequest } from "../lib/api";
 import type { AddPackageFormValues } from "../components/Home/packageFormTypes";
 import type {
+  CommunityStructureTower,
   DashboardCurrentUser,
   HomeDashboardResponse,
   IssueItem,
@@ -52,6 +53,8 @@ export function confirmResidentParcelClaim(id: string, qr_value: string) {
     },
   );
 }
+
+export type { CommunityStructureTower };
 
 export function deleteParcel(id: string) {
   return apiRequest<null>(`/api/parcels/${id}`, {

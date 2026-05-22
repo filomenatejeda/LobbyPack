@@ -13,6 +13,11 @@ export type DashboardCurrentUser = {
   department_address: string | null;
 };
 
+export type CommunityStructureTower = {
+  tower_name: string;
+  apartments: string[];
+};
+
 export type ParcelItem = {
   id: string;
   withdrawal_code: string | null;
@@ -54,4 +59,5 @@ export type HomeDashboardResponse = {
   pending_parcels: ParcelItem[];
   claimed_parcels: ParcelItem[];
   issues: IssueItem[];
+  community_structure: CommunityStructureTower[];
 };

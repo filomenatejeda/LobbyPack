@@ -11,6 +11,7 @@ import {
   updateParcel,
 } from "../../../services/homeApi";
 import type {
+  CommunityStructureTower,
   DashboardCurrentUser,
   IssueItem,
   PackageServiceView,
@@ -30,6 +31,7 @@ export function useHomeDashboard() {
   const [pendingParcels, setPendingParcels] = useState<ParcelItem[]>([]);
   const [claimedParcels, setClaimedParcels] = useState<ParcelItem[]>([]);
   const [issues, setIssues] = useState<IssueItem[]>([]);
+  const [communityStructure, setCommunityStructure] = useState<CommunityStructureTower[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [pageSize, setPageSize] = useState<number>(25);
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,6 +64,7 @@ export function useHomeDashboard() {
         setPendingParcels(response.pending_parcels);
         setClaimedParcels(response.claimed_parcels);
         setIssues(response.issues);
+        setCommunityStructure(response.community_structure);
       } catch (error) {
         setErrorMessage(
           error instanceof Error ? error.message : "No se pudo cargar la informacion.",
@@ -433,6 +436,7 @@ export function useHomeDashboard() {
     activeView,
     allVisibleSelected,
     claimedParcels,
+    communityStructure,
     currentPage,
     currentPackageView,
     currentSelections,

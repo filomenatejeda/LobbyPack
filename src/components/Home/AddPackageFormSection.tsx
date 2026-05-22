@@ -2,6 +2,7 @@ import type { FormEvent } from "react";
 import type { AddPackageFormValues } from "./packageFormTypes";
 
 type AddPackageFormSectionProps = {
+  errorMessage?: string;
   values: AddPackageFormValues;
   onCancel: () => void;
   onChange: (field: keyof AddPackageFormValues, value: string | boolean) => void;
@@ -9,6 +10,7 @@ type AddPackageFormSectionProps = {
 };
 
 export default function AddPackageFormSection({
+  errorMessage,
   values,
   onCancel,
   onChange,
@@ -24,6 +26,7 @@ export default function AddPackageFormSection({
             value={values.department_address}
             onChange={(event) => onChange("department_address", event.target.value)}
             placeholder="Torre A 302"
+            maxLength={11}
             required
           />
         </label>
@@ -35,6 +38,7 @@ export default function AddPackageFormSection({
             value={values.resident_name}
             onChange={(event) => onChange("resident_name", event.target.value)}
             placeholder="Nombre del residente"
+            maxLength={30}
             required
           />
         </label>
@@ -46,6 +50,7 @@ export default function AddPackageFormSection({
             value={values.business_name}
             onChange={(event) => onChange("business_name", event.target.value)}
             placeholder="Chilexpress"
+            maxLength={30}
             required
           />
         </label>
@@ -57,6 +62,9 @@ export default function AddPackageFormSection({
             value={values.user_phone_number}
             onChange={(event) => onChange("user_phone_number", event.target.value)}
             placeholder="+56912345678"
+            inputMode="tel"
+            maxLength={12}
+            required
           />
         </label>
 
@@ -67,6 +75,7 @@ export default function AddPackageFormSection({
             value={values.concierge_name}
             onChange={(event) => onChange("concierge_name", event.target.value)}
             placeholder="Nombre de quien recibe"
+            maxLength={30}
             required
           />
         </label>
@@ -78,6 +87,7 @@ export default function AddPackageFormSection({
             value={values.parcel_description}
             onChange={(event) => onChange("parcel_description", event.target.value)}
             placeholder="Detalle opcional del paquete"
+            maxLength={150}
           />
         </label>
 
@@ -90,6 +100,8 @@ export default function AddPackageFormSection({
           />
         </label>
       </div>
+
+      {errorMessage ? <p className="authError">{errorMessage}</p> : null}
 
       <div className="addPackageActions">
         <button type="button" className="modalSecondaryButton" onClick={onCancel}>

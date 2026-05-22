@@ -9,6 +9,9 @@ import {
 import { normalizeTextInput } from "../../utils/textEncoding";
 import { parcelPayloadSchema, residentParcelQrSchema } from "../shared/schemas";
 import type { ParcelClaimRow } from "../shared/types";
+import { resolveBuildingIdForUserEmail } from "../shared/community";
+import { assertDepartmentExistsInStructure } from "../shared/structure";
+import { validateParcelPayload } from "./validation";
 import {
   assertResidentParcelAccess,
   buildDashboardCurrentUser,
@@ -33,26 +36,37 @@ export const parcelRoutes = new Elysia()
   .post(
     "/parcels",
     async ({ headers, body, set }) => {
-      await requireAppRole(headers.authorization, ["admin", "concierge"]);
+      const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
+      const validatedPayload = validateParcelPayload(body);
+      const buildingId = await resolveBuildingIdForUserEmail(session.email);
+      await assertDepartmentExistsInStructure(
+        buildingId,
+        validatedPayload.department_address,
+      );
 
       const connection = await pool.getConnection();
-      const normalizedDescription = body.parcel_description
-        ? normalizeTextInput(body.parcel_description)
+      const normalizedDescription = validatedPayload.parcel_description
+        ? normalizeTextInput(validatedPayload.parcel_description)
         : "";
-      const normalizedDepartmentAddress = normalizeDepartmentAddress(body.department_address);
+      const normalizedDepartmentAddress = normalizeDepartmentAddress(
+        validatedPayload.department_address,
+      );
       const qrToken = createParcelQrToken();
 
       try {
         await connection.beginTransaction();
 
-        const conciergeUserId = await getConciergeUserId(connection, body.concierge_name);
+        const conciergeUserId = await getConciergeUserId(
+          connection,
+          validatedPayload.concierge_name,
+        );
         const residentUserId = await getOrCreateResident(
           connection,
-          body.resident_name,
-          body.department_address,
-          body.user_phone_number,
+          validatedPayload.resident_name,
+          validatedPayload.department_address,
+          validatedPayload.user_phone_number,
         );
-        const businessId = await getOrCreateBusiness(connection, body.business_name);
+        const businessId = await getOrCreateBusiness(connection, validatedPayload.business_name);
         const parcelId = await createSequentialId(connection, {
           tableName: "Parcels",
           columnName: "id",
@@ -93,7 +107,7 @@ export const parcelRoutes = new Elysia()
             buildParcelQrValue(parcelId, qrToken),
             qrToken,
             normalizedDescription,
-            body.is_urgent ?? false,
+            validatedPayload.is_urgent,
           ],
         );
 
@@ -114,13 +128,21 @@ export const parcelRoutes = new Elysia()
   .patch(
     "/parcels/:id",
     async ({ headers, params, body, set }) => {
-      await requireAppRole(headers.authorization, ["admin", "concierge"]);
+      const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
+      const validatedPayload = validateParcelPayload(body);
+      const buildingId = await resolveBuildingIdForUserEmail(session.email);
+      await assertDepartmentExistsInStructure(
+        buildingId,
+        validatedPayload.department_address,
+      );
 
       const connection = await pool.getConnection();
-      const normalizedDescription = body.parcel_description
-        ? normalizeTextInput(body.parcel_description)
+      const normalizedDescription = validatedPayload.parcel_description
+        ? normalizeTextInput(validatedPayload.parcel_description)
         : "";
-      const normalizedDepartmentAddress = normalizeDepartmentAddress(body.department_address);
+      const normalizedDepartmentAddress = normalizeDepartmentAddress(
+        validatedPayload.department_address,
+      );
 
       try {
         await connection.beginTransaction();
@@ -140,14 +162,17 @@ export const parcelRoutes = new Elysia()
           return { message: "Parcel not found" };
         }
 
-        const conciergeUserId = await getConciergeUserId(connection, body.concierge_name);
+        const conciergeUserId = await getConciergeUserId(
+          connection,
+          validatedPayload.concierge_name,
+        );
         const residentUserId = await getOrCreateResident(
           connection,
-          body.resident_name,
-          body.department_address,
-          body.user_phone_number,
+          validatedPayload.resident_name,
+          validatedPayload.department_address,
+          validatedPayload.user_phone_number,
         );
-        const businessId = await getOrCreateBusiness(connection, body.business_name);
+        const businessId = await getOrCreateBusiness(connection, validatedPayload.business_name);
         const qrToken =
           String(parcels[0].parcel_status) === "pending" ? createParcelQrToken() : null;
 
@@ -173,7 +198,7 @@ export const parcelRoutes = new Elysia()
             qrToken ? buildParcelQrValue(params.id, qrToken) : null,
             qrToken,
             normalizedDescription,
-            body.is_urgent ?? false,
+            validatedPayload.is_urgent,
             params.id,
           ],
         );
