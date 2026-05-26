@@ -171,6 +171,12 @@ export default function PackageRow({
           <dt>Conserje</dt>
           <dd>{item.concierge_name}</dd>
         </div>
+        {item.parcel_status === "claimed" ? (
+          <div>
+            <dt>Retirado por</dt>
+            <dd>{item.claimed_by_name || item.resident_name}</dd>
+          </div>
+        ) : null}
         <div>
           <dt>Hora</dt>
           <dd>{formatParcelTime(parcelDate)}</dd>

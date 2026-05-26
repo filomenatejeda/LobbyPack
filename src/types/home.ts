@@ -35,6 +35,7 @@ export type ParcelItem = {
   department_address: string;
   concierge_name: string;
   business_name: string;
+  claimed_by_name: string | null;
 };
 
 export type PackageView = {

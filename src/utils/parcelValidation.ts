@@ -129,7 +129,6 @@ export function validateParcelForm(
     "resident_name",
     "user_phone_number",
     "business_name",
-    "concierge_name",
     "parcel_description",
   ];
 

@@ -16,7 +16,6 @@ import {
   parseParcelQrValue,
 } from "../../utils/parcels";
 import { normalizeTextInput, repairPotentialMojibake } from "../../utils/textEncoding";
-import { DEMO_CONCIERGE_USER_ID } from "../shared/constants";
 import type { ParcelClaimRow, ParcelRow } from "../shared/types";
 
 export { buildParcelQrValue, createParcelQrToken, createSequentialCode, createSequentialId };
@@ -135,22 +134,6 @@ export async function getOrCreateResident(
   return residentId;
 }
 
-export async function getConciergeUserId(connection: PoolConnection, conciergeName: string) {
-  const normalizedConciergeName = normalizeTextInput(conciergeName);
-
-  const [concierges] = await connection.query<RowDataPacket[]>(
-    `
-      SELECT c.user_id
-      FROM Concierges c
-      WHERE LOWER(c.concierge_name) = LOWER(?)
-      LIMIT 1
-    `,
-    [normalizedConciergeName],
-  );
-
-  return concierges.length > 0 ? String(concierges[0].user_id) : DEMO_CONCIERGE_USER_ID;
-}
-
 function mapParcelRow(row: ParcelRow) {
   return {
     id: row.id,
@@ -169,6 +152,9 @@ function mapParcelRow(row: ParcelRow) {
     department_address: repairPotentialMojibake(row.department_address),
     concierge_name: repairPotentialMojibake(row.concierge_name),
     business_name: repairPotentialMojibake(row.business_name),
+    claimed_by_name: row.claimed_by_name
+      ? repairPotentialMojibake(row.claimed_by_name)
+      : null,
   };
 }
 
@@ -194,12 +180,19 @@ export async function listParcels(
         r.resident_name,
         r.user_phone_number,
         COALESCE(p.delivery_department_address, r.department_address) AS department_address,
-        c.concierge_name,
-        b.business_name
+        COALESCE(c.concierge_name, a.admin_name, concierge_user.email) AS concierge_name,
+        b.business_name,
+        COALESCE(cr.resident_name, cc.concierge_name, ca.admin_name, claimed_user.email) AS claimed_by_name
       FROM Parcels p
       INNER JOIN Residents r ON r.user_id = p.id_resident
-      INNER JOIN Concierges c ON c.user_id = p.id_concierge
+      INNER JOIN Users concierge_user ON concierge_user.id = p.id_concierge
+      LEFT JOIN Concierges c ON c.user_id = p.id_concierge
+      LEFT JOIN Admins a ON a.user_id = p.id_concierge
       INNER JOIN Businesses b ON b.id = p.id_business
+      LEFT JOIN Users claimed_user ON claimed_user.id = p.claimed_by_user_id
+      LEFT JOIN Residents cr ON cr.user_id = claimed_user.id
+      LEFT JOIN Concierges cc ON cc.user_id = claimed_user.id
+      LEFT JOIN Admins ca ON ca.user_id = claimed_user.id
       WHERE p.parcel_status = ?
       ORDER BY
         CASE
@@ -242,12 +235,19 @@ export async function getParcelById(parcelId: string) {
         r.resident_name,
         r.user_phone_number,
         COALESCE(p.delivery_department_address, r.department_address) AS department_address,
-        c.concierge_name,
-        b.business_name
+        COALESCE(c.concierge_name, a.admin_name, concierge_user.email) AS concierge_name,
+        b.business_name,
+        COALESCE(cr.resident_name, cc.concierge_name, ca.admin_name, claimed_user.email) AS claimed_by_name
       FROM Parcels p
       INNER JOIN Residents r ON r.user_id = p.id_resident
-      INNER JOIN Concierges c ON c.user_id = p.id_concierge
+      INNER JOIN Users concierge_user ON concierge_user.id = p.id_concierge
+      LEFT JOIN Concierges c ON c.user_id = p.id_concierge
+      LEFT JOIN Admins a ON a.user_id = p.id_concierge
       INNER JOIN Businesses b ON b.id = p.id_business
+      LEFT JOIN Users claimed_user ON claimed_user.id = p.claimed_by_user_id
+      LEFT JOIN Residents cr ON cr.user_id = claimed_user.id
+      LEFT JOIN Concierges cc ON cc.user_id = claimed_user.id
+      LEFT JOIN Admins ca ON ca.user_id = claimed_user.id
       WHERE p.id = ?
       LIMIT 1
     `,
@@ -263,7 +263,7 @@ export function buildDashboardCurrentUser(session: AuthSession) {
     user_id: session.userId,
     email: session.email,
     role: session.role,
-    display_name: session.residentName ?? session.email,
+    display_name: session.displayName ?? session.residentName ?? session.email,
     department_address: session.departmentAddress ?? null,
   };
 }

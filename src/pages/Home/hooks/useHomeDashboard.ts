@@ -111,6 +111,7 @@ export function useHomeDashboard() {
         item.user_phone_number,
         item.business_name,
         item.concierge_name,
+        item.claimed_by_name,
         item.pending_date,
         item.claimed_date,
         item.parcel_status,

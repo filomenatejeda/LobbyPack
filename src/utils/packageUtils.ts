@@ -75,7 +75,6 @@ export function buildParcelPayload(values: AddPackageFormValues) {
     resident_name: normalizedValues.resident_name,
     user_phone_number: normalizedValues.user_phone_number,
     business_name: normalizedValues.business_name,
-    concierge_name: normalizedValues.concierge_name,
     parcel_description: normalizedValues.parcel_description,
     is_urgent: normalizedValues.is_urgent,
   };

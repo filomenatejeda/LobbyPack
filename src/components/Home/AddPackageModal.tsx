@@ -6,6 +6,7 @@ import { validateParcelForm } from "../../utils/parcelValidation";
 import "./AddPackageModal.css";
 
 type AddPackageModalProps = {
+  conciergeName?: string;
   communityStructure?: CommunityStructureTower[];
   initialValues?: AddPackageFormValues;
   title?: string;
@@ -13,24 +14,29 @@ type AddPackageModalProps = {
   onSubmit: (values: AddPackageFormValues) => void | Promise<void>;
 };
 
-const baseValues: AddPackageFormValues = {
+const defaultValues: AddPackageFormValues = {
   department_address: "",
   resident_name: "",
   user_phone_number: "",
   business_name: "",
-  concierge_name: "Marcos Silva",
+  concierge_name: "",
   parcel_description: "",
   is_urgent: false,
 };
 
 export default function AddPackageModal({
+  conciergeName = "",
   communityStructure = [],
   initialValues,
   title = "Completa los datos del paquete",
   onClose,
   onSubmit,
 }: AddPackageModalProps) {
-  const [values, setValues] = useState<AddPackageFormValues>(() => initialValues ?? baseValues);
+  const emptyValues: AddPackageFormValues = {
+    ...defaultValues,
+    concierge_name: conciergeName,
+  };
+  const [values, setValues] = useState<AddPackageFormValues>(() => initialValues ?? emptyValues);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (field: keyof AddPackageFormValues, value: string | boolean) => {
@@ -48,7 +54,7 @@ export default function AddPackageModal({
     }
 
     await onSubmit(validation.values);
-    setValues(baseValues);
+    setValues(emptyValues);
   };
 
   return (

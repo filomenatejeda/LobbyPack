@@ -73,10 +73,8 @@ export default function AddPackageFormSection({
           <input
             type="text"
             value={values.concierge_name}
-            onChange={(event) => onChange("concierge_name", event.target.value)}
-            placeholder="Nombre de quien recibe"
-            maxLength={30}
-            required
+            readOnly
+            disabled
           />
         </label>
 

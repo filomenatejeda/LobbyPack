@@ -11,7 +11,6 @@ type ParcelPayloadInput = {
   resident_name: string;
   user_phone_number: string;
   business_name: string;
-  concierge_name: string;
   parcel_description?: string;
   is_urgent?: boolean;
 };
@@ -31,7 +30,6 @@ export function validateParcelPayload(payload: ParcelPayloadInput) {
   const residentName = normalizeParcelInput(payload.resident_name);
   const userPhoneNumber = normalizeTextInput(payload.user_phone_number);
   const businessName = normalizeParcelInput(payload.business_name);
-  const conciergeName = normalizeParcelInput(payload.concierge_name);
   const parcelDescription = normalizeParcelInput(payload.parcel_description ?? "");
 
   assertRegex(
@@ -54,12 +52,6 @@ export function validateParcelPayload(payload: ParcelPayloadInput) {
     NAME_REGEX,
     "La compañía solo admite letras, números, tildes, ñ y espacios, con un máximo de 30 caracteres.",
   );
-  assertRegex(
-    conciergeName,
-    NAME_REGEX,
-    "El conserje solo admite letras, números, tildes, ñ y espacios, con un máximo de 30 caracteres.",
-  );
-
   if (parcelDescription && !DESCRIPTION_REGEX.test(parcelDescription)) {
     throw new AuthError(
       400,
@@ -72,7 +64,6 @@ export function validateParcelPayload(payload: ParcelPayloadInput) {
     resident_name: residentName,
     user_phone_number: userPhoneNumber,
     business_name: businessName,
-    concierge_name: conciergeName,
     parcel_description: parcelDescription,
     is_urgent: payload.is_urgent ?? false,
   };

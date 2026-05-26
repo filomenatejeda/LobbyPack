@@ -19,6 +19,7 @@ export type ParcelRow = RowDataPacket & {
   department_address: string;
   concierge_name: string;
   business_name: string;
+  claimed_by_name: string | null;
 };
 
 export type IssueRow = RowDataPacket & {

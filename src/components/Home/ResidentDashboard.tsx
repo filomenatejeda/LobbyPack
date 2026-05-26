@@ -35,6 +35,11 @@ function ParcelSummaryCard({ item }: { item: ParcelItem }) {
       <p>{item.business_name}</p>
       <p>{item.parcel_description || "Sin descripcion"}</p>
       <p>
+        {item.parcel_status === "pending"
+          ? `Recibido por ${item.concierge_name}`
+          : `Retirado por ${item.claimed_by_name || item.resident_name}`}
+      </p>
+      <p>
         {formatParcelDate(parcelDate)} a las {formatParcelTime(parcelDate)}
       </p>
     </article>

@@ -19,7 +19,6 @@ import {
   createParcelQrToken,
   createSequentialCode,
   createSequentialId,
-  getConciergeUserId,
   getOrCreateBusiness,
   getOrCreateResident,
   getParcelById,
@@ -56,10 +55,6 @@ export const parcelRoutes = new Elysia()
       try {
         await connection.beginTransaction();
 
-        const conciergeUserId = await getConciergeUserId(
-          connection,
-          validatedPayload.concierge_name,
-        );
         const residentUserId = await getOrCreateResident(
           connection,
           validatedPayload.resident_name,
@@ -99,7 +94,7 @@ export const parcelRoutes = new Elysia()
           `,
           [
             parcelId,
-            conciergeUserId,
+            session.userId,
             residentUserId,
             businessId,
             normalizedDepartmentAddress,
@@ -162,10 +157,6 @@ export const parcelRoutes = new Elysia()
           return { message: "Parcel not found" };
         }
 
-        const conciergeUserId = await getConciergeUserId(
-          connection,
-          validatedPayload.concierge_name,
-        );
         const residentUserId = await getOrCreateResident(
           connection,
           validatedPayload.resident_name,
@@ -180,7 +171,6 @@ export const parcelRoutes = new Elysia()
           `
             UPDATE Parcels
             SET
-              id_concierge = ?,
               id_resident = ?,
               id_business = ?,
               delivery_department_address = ?,
@@ -191,7 +181,6 @@ export const parcelRoutes = new Elysia()
             WHERE id = ?
           `,
           [
-            conciergeUserId,
             residentUserId,
             businessId,
             normalizedDepartmentAddress,
@@ -225,7 +214,7 @@ export const parcelRoutes = new Elysia()
 
       const [result] = await connection.query<RowDataPacket[]>(
         `
-          SELECT id, parcel_status
+          SELECT id, parcel_status, id_resident
           FROM Parcels
           WHERE id = ?
           LIMIT 1
@@ -262,7 +251,7 @@ export const parcelRoutes = new Elysia()
             claimed_by_user_id = ?
           WHERE id = ?
         `,
-        [withdrawalCode, session.userId, params.id],
+        [withdrawalCode, String(result[0].id_resident), params.id],
       );
 
       await connection.commit();

@@ -9,6 +9,7 @@ export type AuthSession = {
   email: string;
   role: AppRole;
   supabaseUserId: string;
+  displayName?: string;
   residentName?: string;
   departmentAddress?: string;
 };
@@ -22,6 +23,10 @@ type AppUserRow = RowDataPacket & {
 type ResidentProfileRow = RowDataPacket & {
   resident_name: string;
   department_address: string;
+};
+
+type UserDisplayNameRow = RowDataPacket & {
+  display_name: string | null;
 };
 
 type CommunityRegistrationRoleRow = RowDataPacket & {
@@ -202,6 +207,23 @@ async function createAdminFromCommunityRegistration(email: string) {
   }
 }
 
+async function getUserDisplayName(userId: string) {
+  const [rows] = await pool.query<UserDisplayNameRow[]>(
+    `
+      SELECT COALESCE(c.concierge_name, a.admin_name, r.resident_name, u.email) AS display_name
+      FROM Users u
+      LEFT JOIN Concierges c ON c.user_id = u.id
+      LEFT JOIN Admins a ON a.user_id = u.id
+      LEFT JOIN Residents r ON r.user_id = u.id
+      WHERE u.id = ?
+      LIMIT 1
+    `,
+    [userId],
+  );
+
+  return rows[0]?.display_name?.trim() || null;
+}
+
 export async function requireAppRole(
   authorization: string | undefined,
   allowedRoles: readonly AppRole[],
@@ -235,6 +257,7 @@ export async function requireAppRole(
       email: user.email,
       role: user.role,
       supabaseUserId,
+      displayName: (await getUserDisplayName(user.id)) ?? user.email,
     } satisfies AuthSession;
   }
 
@@ -259,6 +282,7 @@ export async function requireAppRole(
     email: user.email,
     role: user.role,
     supabaseUserId,
+    displayName: profile.resident_name,
     residentName: profile.resident_name,
     departmentAddress: profile.department_address,
   } satisfies AuthSession;
