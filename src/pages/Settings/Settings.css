@@ -40,50 +40,12 @@
   margin-top: 32px;
 }
 
-.residentSettingsPage {
-  max-width: 1040px;
-}
-
-.residentSettingsHero {
-  max-width: 680px;
-}
-
-.residentSettingsHero h1 {
-  font-size: clamp(2.2rem, 5vw, 4rem);
-  letter-spacing: 0;
-}
-
-.residentSettingsGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
-  gap: 18px;
-  margin-top: 30px;
-}
-
 .settingsCard {
   padding: 22px;
   border: 1px solid var(--line);
   border-radius: 24px;
   background: var(--surface-strong);
   box-shadow: var(--shadow);
-}
-
-.residentSettingsGrid .settingsCard {
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 10px 28px rgba(17, 37, 48, 0.06);
-}
-
-.residentProfileCard {
-  border-left: 4px solid #5d6b3b;
-}
-
-.residentAccessCard {
-  border-left: 4px solid #143241;
-}
-
-.residentPackageStatusCard {
-  border-left: 4px solid #b28b2d;
 }
 
 .settingsCardWide {
@@ -100,13 +62,6 @@
 .settingsCardHeader h2 {
   font-size: clamp(1.5rem, 2.5vw, 2rem);
   letter-spacing: -0.04em;
-}
-
-.residentSettingsGrid .settingsCardHeader h2 {
-  margin: 0;
-  font-size: 1.35rem;
-  letter-spacing: 0;
-  color: #182832;
 }
 
 .settingsLabel {
@@ -199,42 +154,6 @@
   color: var(--text);
   font-weight: 700;
   line-height: 1.45;
-}
-
-.residentSettingsDetails {
-  grid-template-columns: 1fr;
-}
-
-.residentSettingsList {
-  display: grid;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.residentSettingsList div {
-  padding: 14px 16px;
-  border: 1px solid rgba(29, 55, 69, 0.12);
-  border-radius: 8px;
-  background: #fbfcfc;
-}
-
-.residentSettingsList strong,
-.residentSettingsList span {
-  display: block;
-}
-
-.residentSettingsList strong {
-  color: #182832;
-}
-
-.residentSettingsList span {
-  margin-top: 6px;
-  color: #526573;
-  line-height: 1.45;
-}
-
-.residentSettingsStats {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .settingsActions {
@@ -806,7 +725,6 @@
 
 @media (max-width: 900px) {
   .settingsGrid,
-  .residentSettingsGrid,
   .settingsForm,
   .settingsStats,
   .towerSummaryGrid,

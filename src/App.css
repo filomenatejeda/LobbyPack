@@ -5,6 +5,14 @@
   min-height: 100svh;
 }
 
+.app > main {
+  flex: 1;
+}
+
+.pageTransitionBlank {
+  width: 100%;
+}
+
 .authLoadingState {
   min-height: 100svh;
   display: grid;
