@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <main>
       <section className="hero" id="inicio">
-        <div className="main">
+        <div className={dashboard.isResident ? "main residentMain" : "main"}>
           <p className="eyebrow">
             {dashboard.isResident ? "Retiro de paquetes" : "Gestion de paquetes"}
           </p>

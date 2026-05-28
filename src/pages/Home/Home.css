@@ -9,6 +9,12 @@
   text-align: center;
 }
 
+.residentMain {
+  max-width: 1180px;
+  padding-top: clamp(32px, 4vw, 56px);
+  text-align: left;
+}
+
 .eyebrow {
   margin-bottom: 12px;
   font-size: 0.9rem;
@@ -27,6 +33,13 @@
   text-wrap: balance;
 }
 
+.residentMain h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
 .titlePrimary {
   color: #603e21;
 }
@@ -35,11 +48,31 @@
   color: #7c8033;
 }
 
+.residentMain .titlePrimary,
+.residentMain .titleAccent {
+  color: #182832;
+}
+
 .lead {
   max-width: none;
   margin: 20px auto 0;
   font-size: clamp(1.05rem, 2.2vw, 1.25rem);
   color: var(--text-soft);
+}
+
+.residentMain .eyebrow {
+  margin-bottom: 10px;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  color: #425363;
+}
+
+.residentMain .lead {
+  max-width: 760px;
+  margin: 14px 0 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #425363;
 }
 
 .serviceToggle {
@@ -112,6 +145,14 @@
 
   .lead {
     margin-top: 16px;
+  }
+
+  .residentMain {
+    padding: 24px 12px 16px;
+  }
+
+  .residentMain .lead {
+    margin-top: 12px;
   }
 
   .floatingAddButton {
