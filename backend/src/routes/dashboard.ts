@@ -19,7 +19,7 @@ export const dashboardRoutes = new Elysia().get("/dashboard", async ({ headers }
       current_user: buildDashboardCurrentUser(session),
       pending_parcels: await listParcels("pending", { departmentAddress }),
       claimed_parcels: await listParcels("claimed", { departmentAddress }),
-      issues: [],
+      issues: await listIssues({ departmentAddress }),
       community_structure: [],
     };
   }

@@ -3,6 +3,7 @@ import type { AddPackageFormValues } from "../../../components/Home/packageFormT
 import {
   claimParcel,
   confirmResidentParcelClaim,
+  createResidentIssue,
   createParcel,
   deleteParcel,
   fetchDashboard,
@@ -50,6 +51,9 @@ export function useHomeDashboard() {
   const [residentFeedbackTone, setResidentFeedbackTone] =
     useState<FeedbackTone>("neutral");
   const [isResidentProcessing, setIsResidentProcessing] = useState(false);
+  const [isCreatingResidentIssue, setIsCreatingResidentIssue] = useState(false);
+  const [residentIssueMessage, setResidentIssueMessage] = useState("");
+  const [residentIssueTone, setResidentIssueTone] = useState<FeedbackTone>("neutral");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -356,6 +360,39 @@ export function useHomeDashboard() {
     }
   };
 
+  const handleResidentCreateIssue = async (
+    parcelId: string,
+    issueDescription: string,
+  ) => {
+    const normalizedDescription = issueDescription.trim().replace(/\s+/g, " ");
+
+    if (!parcelId || !normalizedDescription) {
+      setResidentIssueTone("error");
+      setResidentIssueMessage("Selecciona un paquete y describe el problema.");
+      return false;
+    }
+
+    setIsCreatingResidentIssue(true);
+    setResidentIssueTone("neutral");
+    setResidentIssueMessage("Enviando reclamo...");
+
+    try {
+      const createdIssue = await createResidentIssue(parcelId, normalizedDescription);
+      setIssues((current) => [createdIssue, ...current]);
+      setResidentIssueTone("success");
+      setResidentIssueMessage("Reclamo enviado. El equipo de administracion lo revisara.");
+      return true;
+    } catch (error) {
+      setResidentIssueTone("error");
+      setResidentIssueMessage(
+        error instanceof Error ? error.message : "No se pudo crear el reclamo.",
+      );
+      return false;
+    } finally {
+      setIsCreatingResidentIssue(false);
+    }
+  };
+
   const handleAddPackage = async (values: AddPackageFormValues) => {
     try {
       const createdParcel = await createParcel(values);
@@ -447,6 +484,7 @@ export function useHomeDashboard() {
     filteredComplaints,
     filteredPackages,
     isAddPackageOpen,
+    isCreatingResidentIssue,
     isLoading,
     isResident,
     isResidentProcessing,
@@ -459,6 +497,8 @@ export function useHomeDashboard() {
     qrScanMessage,
     residentFeedbackMessage,
     residentFeedbackTone,
+    residentIssueMessage,
+    residentIssueTone,
     residentScannedParcel,
     safePage,
     searchTerm,
@@ -478,6 +518,7 @@ export function useHomeDashboard() {
     handlePackageSelection,
     handleQrScan,
     handleResidentConfirmClaim,
+    handleResidentCreateIssue,
     handleResidentScan,
     handleSelectAllVisible,
     handleUpdatePackage,

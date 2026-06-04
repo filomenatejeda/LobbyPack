@@ -37,6 +37,7 @@ export default function Home() {
               currentUser={dashboard.currentUser}
               pendingParcels={dashboard.pendingParcels}
               claimedParcels={dashboard.claimedParcels}
+              issues={dashboard.issues}
               scannedParcel={dashboard.residentScannedParcel}
               feedbackMessage={dashboard.residentFeedbackMessage}
               feedbackTone={dashboard.residentFeedbackTone}
@@ -44,6 +45,10 @@ export default function Home() {
               onScan={dashboard.handleResidentScan}
               onConfirmClaim={dashboard.handleResidentConfirmClaim}
               onResetScan={dashboard.resetResidentClaimFlow}
+              onCreateIssue={dashboard.handleResidentCreateIssue}
+              issueMessage={dashboard.residentIssueMessage}
+              issueTone={dashboard.residentIssueTone}
+              isCreatingIssue={dashboard.isCreatingResidentIssue}
             />
           ) : null}
 

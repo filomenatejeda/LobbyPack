@@ -54,6 +54,13 @@ export function confirmResidentParcelClaim(id: string, qr_value: string) {
   );
 }
 
+export function createResidentIssue(id_parcel: string, issue_description: string) {
+  return apiRequest<IssueItem>("/api/resident/issues", {
+    method: "POST",
+    body: JSON.stringify({ id_parcel, issue_description }),
+  });
+}
+
 export type { CommunityStructureTower };
 
 export function deleteParcel(id: string) {

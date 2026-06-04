@@ -74,6 +74,11 @@ export const issueStatusSchema = t.Object({
   ]),
 });
 
+export const residentIssueSchema = t.Object({
+  id_parcel: t.String({ minLength: 1 }),
+  issue_description: t.String({ minLength: 1, maxLength: 300 }),
+});
+
 export const towersSchema = t.Array(
   t.Object({
     id: t.Number(),

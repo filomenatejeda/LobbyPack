@@ -39,6 +39,7 @@
 
 .residentDepartmentCard,
 .residentScannerPanel,
+.residentIssuePanel,
 .residentConfirmationCard,
 .residentParcelCard,
 .residentParcelSection {
@@ -69,13 +70,65 @@
   color: #102532;
 }
 
+.residentViewMenu {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.residentViewButton {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  border: 1px solid rgba(29, 55, 69, 0.14);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 0.75rem 0.9rem;
+  color: #263f4d;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(17, 37, 48, 0.05);
+}
+
+.residentViewButton span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.residentViewButton strong {
+  min-width: 1.8rem;
+  border-radius: 6px;
+  background: #eef2f4;
+  padding: 0.25rem 0.45rem;
+  color: #183442;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.residentViewButton.active {
+  border-color: #143241;
+  background: #143241;
+  color: #ffffff;
+}
+
+.residentViewButton.active strong {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
 .residentScannerPanel,
+.residentIssuePanel,
 .residentParcelSection,
 .residentConfirmationCard {
   padding: 1.35rem;
 }
 
 .residentScannerHeader,
+.residentIssueHeader,
 .residentSectionHeader,
 .residentConfirmationActions {
   display: flex;
@@ -85,11 +138,18 @@
 }
 
 .residentScannerHeader h3,
+.residentIssueHeader h3,
 .residentSectionHeader h3,
 .residentConfirmationCard h3 {
   margin: 0;
   font-size: 1rem;
   color: #182832;
+}
+
+.residentIssueHeader p {
+  margin: 0.35rem 0 0;
+  color: #506672;
+  line-height: 1.5;
 }
 
 .residentScannerButton {
@@ -160,6 +220,106 @@
   font: inherit;
   color: #182832;
   background: #ffffff;
+}
+
+.residentManualField select,
+.residentManualField textarea {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(39, 65, 79, 0.16);
+  padding: 0.9rem 1rem;
+  font: inherit;
+  color: #182832;
+  background: #ffffff;
+}
+
+.residentManualField textarea {
+  resize: vertical;
+  min-height: 112px;
+  line-height: 1.5;
+}
+
+.residentManualField select:disabled,
+.residentManualField textarea:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.residentIssueForm {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.residentIssueActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.residentIssueActions span {
+  color: #61707b;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.residentIssueList {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.residentIssueCard {
+  display: grid;
+  gap: 0.7rem;
+  border: 1px solid rgba(29, 55, 69, 0.14);
+  border-radius: 8px;
+  background: #fcfcfa;
+  padding: 1rem;
+}
+
+.residentIssueMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.residentIssueMeta strong {
+  color: #182832;
+}
+
+.residentIssueMeta span {
+  color: #506672;
+  font-size: 0.84rem;
+}
+
+.residentIssueBadge {
+  border-radius: 6px;
+  padding: 0.25rem 0.6rem;
+  font-weight: 800;
+}
+
+.residentIssueBadgeIngresado {
+  background: #efe7de;
+  color: #816b56;
+}
+
+.residentIssueBadgeEnrevision {
+  background: #f6e9b8;
+  color: #8a6b1f;
+}
+
+.residentIssueBadgeResuelto {
+  background: #dcefd2;
+  color: #4f6840;
+}
+
+.residentIssueCard p {
+  margin: 0;
+  color: #263f4d;
+  line-height: 1.5;
 }
 
 .residentFeedback {
@@ -240,10 +400,22 @@
     grid-template-columns: 1fr;
   }
 
+  .residentViewMenu {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .residentScannerHeader,
+  .residentIssueHeader,
   .residentSectionHeader,
-  .residentConfirmationActions {
+  .residentConfirmationActions,
+  .residentIssueActions {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+@media (max-width: 560px) {
+  .residentViewMenu {
+    grid-template-columns: 1fr;
   }
 }

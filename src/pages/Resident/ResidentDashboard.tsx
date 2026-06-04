@@ -1,9 +1,12 @@
 import jsQR from "jsqr";
-import { useEffect, useRef, useState } from "react";
-import type { DashboardCurrentUser, ParcelItem } from "../../types/home";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { DashboardCurrentUser, IssueItem, ParcelItem } from "../../types/home";
 import {
+  formatIssueStatus,
   formatParcelDate,
+  formatParcelStatus,
   formatParcelTime,
+  getIssueStatusClassName,
   getParcelDate,
 } from "../../utils/packageUtils";
 import "./ResidentDashboard.css";
@@ -12,6 +15,7 @@ type ResidentDashboardProps = {
   currentUser: DashboardCurrentUser;
   pendingParcels: ParcelItem[];
   claimedParcels: ParcelItem[];
+  issues: IssueItem[];
   scannedParcel: ParcelItem | null;
   feedbackMessage: string;
   feedbackTone: "neutral" | "success" | "error";
@@ -19,7 +23,13 @@ type ResidentDashboardProps = {
   onScan: (qrValue: string) => Promise<void>;
   onConfirmClaim: () => Promise<void>;
   onResetScan: () => void;
+  onCreateIssue: (parcelId: string, issueDescription: string) => Promise<boolean>;
+  issueMessage: string;
+  issueTone: "neutral" | "success" | "error";
+  isCreatingIssue: boolean;
 };
+
+type ResidentView = "scanner" | "pending" | "claimed" | "issues";
 
 function ParcelSummaryCard({ item }: { item: ParcelItem }) {
   const parcelDate = getParcelDate(item);
@@ -46,10 +56,38 @@ function ParcelSummaryCard({ item }: { item: ParcelItem }) {
   );
 }
 
+function ResidentIssueCard({ item }: { item: IssueItem }) {
+  return (
+    <article className="residentIssueCard">
+      <div className="residentIssueMeta">
+        <strong>{item.id_parcel}</strong>
+        <span>{item.business_name}</span>
+        <span>{formatParcelStatus(item.parcel_status)}</span>
+        <span>
+          {new Date(item.created_at).toLocaleDateString("es-CL", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })}
+        </span>
+        <span
+          className={`residentIssueBadge residentIssueBadge${getIssueStatusClassName(
+            item.issue_status,
+          )}`}
+        >
+          {formatIssueStatus(item.issue_status)}
+        </span>
+      </div>
+      <p>{item.issue_description}</p>
+    </article>
+  );
+}
+
 export default function ResidentDashboard({
   currentUser,
   pendingParcels,
   claimedParcels,
+  issues,
   scannedParcel,
   feedbackMessage,
   feedbackTone,
@@ -57,6 +95,10 @@ export default function ResidentDashboard({
   onScan,
   onConfirmClaim,
   onResetScan,
+  onCreateIssue,
+  issueMessage,
+  issueTone,
+  isCreatingIssue,
 }: ResidentDashboardProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -66,6 +108,24 @@ export default function ResidentDashboard({
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [cameraMessage, setCameraMessage] = useState("");
   const [manualQrValue, setManualQrValue] = useState("");
+  const [issueParcelId, setIssueParcelId] = useState("");
+  const [issueDescription, setIssueDescription] = useState("");
+  const [isIssueFormOpen, setIsIssueFormOpen] = useState(false);
+  const [activeResidentView, setActiveResidentView] = useState<ResidentView>("scanner");
+  const issueParcelOptions = useMemo(
+    () => [...pendingParcels, ...claimedParcels],
+    [pendingParcels, claimedParcels],
+  );
+  const residentMenuItems: Array<{
+    value: ResidentView;
+    label: string;
+    count?: number;
+  }> = [
+    { value: "scanner", label: "Retirar paquete" },
+    { value: "pending", label: "Paquetes pendientes", count: pendingParcels.length },
+    { value: "claimed", label: "Paquetes entregados", count: claimedParcels.length },
+    { value: "issues", label: "Reclamos", count: issues.length },
+  ];
 
   useEffect(() => {
     if (!isCameraOpen) {
@@ -206,6 +266,17 @@ export default function ResidentDashboard({
     };
   }, [isCameraOpen, onScan]);
 
+  useEffect(() => {
+    if (issueParcelOptions.length === 0) {
+      setIssueParcelId("");
+      return;
+    }
+
+    if (!issueParcelOptions.some((item) => item.id === issueParcelId)) {
+      setIssueParcelId(issueParcelOptions[0].id);
+    }
+  }, [issueParcelId, issueParcelOptions]);
+
   return (
     <section className="residentDashboard" aria-live="polite">
       <div className="residentHero">
@@ -223,7 +294,26 @@ export default function ResidentDashboard({
         </div>
       </div>
 
-      <div className="residentScannerPanel">
+      <nav className="residentViewMenu" aria-label="Menu de residente">
+        {residentMenuItems.map((item) => (
+          <button
+            key={item.value}
+            type="button"
+            className={
+              activeResidentView === item.value
+                ? "residentViewButton active"
+                : "residentViewButton"
+            }
+            onClick={() => setActiveResidentView(item.value)}
+          >
+            <span>{item.label}</span>
+            {typeof item.count === "number" ? <strong>{item.count}</strong> : null}
+          </button>
+        ))}
+      </nav>
+
+      {activeResidentView === "scanner" ? (
+        <div className="residentScannerPanel">
         <div className="residentScannerHeader">
           <h3>Escanear QR</h3>
           <button
@@ -307,8 +397,111 @@ export default function ResidentDashboard({
           </div>
         ) : null}
       </div>
+      ) : null}
 
-      <div className="residentParcelSections">
+      {activeResidentView === "issues" ? (
+        <div className="residentIssuePanel">
+        <div className="residentIssueHeader">
+          <div>
+            <h3>Reclamos</h3>
+            <p>Revisa el estado de tus reclamos o reporta un problema asociado a un paquete.</p>
+          </div>
+          <button
+            type="button"
+            className="residentScannerButton"
+            onClick={() => setIsIssueFormOpen((current) => !current)}
+          >
+            {isIssueFormOpen ? "Cerrar formulario" : "Crear reclamo"}
+          </button>
+        </div>
+
+        {isIssueFormOpen ? (
+        <form
+          className="residentIssueForm"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            const wasCreated = await onCreateIssue(issueParcelId, issueDescription);
+
+            if (wasCreated) {
+              setIssueDescription("");
+              setIsIssueFormOpen(false);
+            }
+          }}
+        >
+          <label className="residentManualField">
+            <span>Paquete</span>
+            <select
+              value={issueParcelId}
+              onChange={(event) => setIssueParcelId(event.target.value)}
+              disabled={issueParcelOptions.length === 0 || isCreatingIssue}
+            >
+              {issueParcelOptions.length > 0 ? (
+                issueParcelOptions.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.id} - {item.business_name}
+                  </option>
+                ))
+              ) : (
+                <option value="">Sin paquetes disponibles</option>
+              )}
+            </select>
+          </label>
+
+          <label className="residentManualField">
+            <span>Descripcion del problema</span>
+            <textarea
+              value={issueDescription}
+              onChange={(event) => setIssueDescription(event.target.value)}
+              maxLength={300}
+              rows={4}
+              placeholder="Ej: el paquete figura como entregado, pero no lo recibi."
+              disabled={isCreatingIssue}
+            />
+          </label>
+
+          <div className="residentIssueActions">
+            <span>{issueDescription.trim().length}/300</span>
+            <button
+              type="submit"
+              className="residentScannerButton"
+              disabled={
+                isCreatingIssue ||
+                issueParcelOptions.length === 0 ||
+                !issueDescription.trim()
+              }
+            >
+              {isCreatingIssue ? "Enviando..." : "Enviar reclamo"}
+            </button>
+          </div>
+        </form>
+        ) : null}
+
+        {issueMessage ? (
+          <p
+            className={
+              issueTone === "error"
+                ? "residentFeedback residentFeedbackError"
+                : issueTone === "success"
+                  ? "residentFeedback residentFeedbackSuccess"
+                  : "residentFeedback"
+            }
+          >
+            {issueMessage}
+          </p>
+        ) : null}
+
+        <div className="residentIssueList">
+          {issues.length > 0 ? (
+            issues.map((item) => <ResidentIssueCard key={item.id} item={item} />)
+          ) : (
+            <p className="residentEmptyState">Todavia no tienes reclamos registrados.</p>
+          )}
+        </div>
+      </div>
+      ) : null}
+
+      {activeResidentView === "pending" ? (
+        <div className="residentParcelSections">
         <div className="residentParcelSection">
           <div className="residentSectionHeader">
             <h3>Paquetes pendientes</h3>
@@ -322,7 +515,11 @@ export default function ResidentDashboard({
             )}
           </div>
         </div>
+      </div>
+      ) : null}
 
+      {activeResidentView === "claimed" ? (
+        <div className="residentParcelSections">
         <div className="residentParcelSection">
           <div className="residentSectionHeader">
             <h3>Paquetes entregados</h3>
@@ -337,6 +534,7 @@ export default function ResidentDashboard({
           </div>
         </div>
       </div>
+      ) : null}
     </section>
   );
 }
