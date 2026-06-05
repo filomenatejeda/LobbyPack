@@ -12,6 +12,7 @@ export type AuthSession = {
   displayName?: string;
   residentName?: string;
   departmentAddress?: string;
+  buildingId?: string;
 };
 
 type AppUserRow = RowDataPacket & {
@@ -23,6 +24,7 @@ type AppUserRow = RowDataPacket & {
 type ResidentProfileRow = RowDataPacket & {
   resident_name: string;
   department_address: string;
+  building_id: string | null;
 };
 
 type UserDisplayNameRow = RowDataPacket & {
@@ -263,7 +265,7 @@ export async function requireAppRole(
 
   const [profiles] = await pool.query<ResidentProfileRow[]>(
     `
-      SELECT resident_name, department_address
+      SELECT resident_name, department_address, building_id
       FROM Residents
       WHERE user_id = ?
       LIMIT 1
@@ -285,5 +287,6 @@ export async function requireAppRole(
     displayName: profile.resident_name,
     residentName: profile.resident_name,
     departmentAddress: profile.department_address,
+    buildingId: profile.building_id ?? undefined,
   } satisfies AuthSession;
 }

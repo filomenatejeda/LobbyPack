@@ -60,6 +60,7 @@ export async function getOrCreateResident(
   residentName: string,
   departmentAddress: string,
   userPhoneNumber: string,
+  buildingId: string,
 ) {
   const normalizedResidentName = normalizeTextInput(residentName);
   const normalizedDepartmentAddress = normalizeDepartmentAddress(departmentAddress);
@@ -71,9 +72,10 @@ export async function getOrCreateResident(
       FROM Residents
       WHERE LOWER(resident_name) = LOWER(?)
         AND LOWER(department_address) = LOWER(?)
+        AND (building_id = ? OR building_id IS NULL)
       LIMIT 1
     `,
-    [normalizedResidentName, normalizedDepartmentAddress],
+    [normalizedResidentName, normalizedDepartmentAddress, buildingId],
   );
 
   if (existingResidents.length > 0) {
@@ -82,13 +84,14 @@ export async function getOrCreateResident(
     await connection.query(
       `
         UPDATE Residents
-        SET resident_name = ?, department_address = ?, user_phone_number = ?
+        SET resident_name = ?, department_address = ?, user_phone_number = ?, building_id = ?
         WHERE user_id = ?
       `,
       [
         normalizedResidentName,
         normalizedDepartmentAddress,
         normalizedPhoneNumber || null,
+        buildingId,
         residentId,
       ],
     );
@@ -118,9 +121,10 @@ export async function getOrCreateResident(
         resident_name,
         resident_password_hash,
         user_phone_number,
-        department_address
+        department_address,
+        building_id
       )
-      VALUES (?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?)
     `,
     [
       residentId,
@@ -128,6 +132,7 @@ export async function getOrCreateResident(
       "demo-resident-password",
       normalizedPhoneNumber || null,
       normalizedDepartmentAddress,
+      buildingId,
     ],
   );
 
@@ -160,7 +165,7 @@ function mapParcelRow(row: ParcelRow) {
 
 export async function listParcels(
   parcelStatus: "pending" | "claimed",
-  options?: { departmentAddress?: string },
+  options?: { departmentAddress?: string; buildingId?: string },
 ) {
   const [rows] = await pool.query<ParcelRow[]>(
     `
@@ -194,6 +199,7 @@ export async function listParcels(
       LEFT JOIN Concierges cc ON cc.user_id = claimed_user.id
       LEFT JOIN Admins ca ON ca.user_id = claimed_user.id
       WHERE p.parcel_status = ?
+        AND (? IS NULL OR r.building_id = ?)
       ORDER BY
         CASE
           WHEN p.parcel_status = 'claimed' THEN p.claimed_date
@@ -201,7 +207,7 @@ export async function listParcels(
         END DESC,
         p.pending_date DESC
     `,
-    [parcelStatus],
+    [parcelStatus, options?.buildingId ?? null, options?.buildingId ?? null],
   );
 
   const mappedRows = rows.map(mapParcelRow);
@@ -287,15 +293,17 @@ export async function assertResidentParcelAccess(session: AuthSession, qrValue: 
   const [rows] = await pool.query<ParcelClaimRow[]>(
     `
       SELECT
-        id,
-        qr_token,
-        parcel_status,
-        delivery_department_address
-      FROM Parcels
-      WHERE id = ?
+        p.id,
+        p.qr_token,
+        p.parcel_status,
+        p.delivery_department_address
+      FROM Parcels p
+      INNER JOIN Residents r ON r.user_id = p.id_resident
+      WHERE p.id = ?
+        AND (? IS NULL OR r.building_id = ?)
       LIMIT 1
     `,
-    [parsed.parcelId],
+    [parsed.parcelId, session.buildingId ?? null, session.buildingId ?? null],
   );
 
   const parcel = rows[0];

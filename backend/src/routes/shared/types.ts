@@ -47,6 +47,7 @@ export type ResidentRow = RowDataPacket & {
   resident_name: string;
   user_phone_number: string | null;
   department_address: string;
+  building_id: string | null;
   email_verified: number | null;
   totp_verified: number | null;
 };

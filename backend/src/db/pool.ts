@@ -308,6 +308,16 @@ export async function ensureBuildingCommunityColumns() {
   }
 }
 
+export async function ensureResidentCommunityColumns() {
+  if (!(await columnExists("Residents", "building_id"))) {
+    await pool.query(`
+      ALTER TABLE Residents
+      ADD COLUMN building_id VARCHAR(64) NULL
+        AFTER department_address
+    `);
+  }
+}
+
 export async function ensureParcelQrSecurityColumns() {
   if (!(await columnExists("Parcels", "delivery_department_address"))) {
     await pool.query(`

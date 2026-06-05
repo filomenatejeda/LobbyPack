@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   addResidentToDepartment,
+  deleteResidentFromDepartment,
   fetchResidentsByDepartment,
   verifyResidentEmail,
   verifyResidentMfa,
@@ -116,10 +117,33 @@ export function useApartmentResidents({
     }
   };
 
+  const handleDeleteResident = async (residentId: string) => {
+    if (!selectedApartment) {
+      throw new Error("Selecciona un departamento.");
+    }
+
+    setIsSavingResident(true);
+    onStatusMessage("");
+
+    try {
+      await deleteResidentFromDepartment(residentId);
+      setApartmentResidents(await fetchResidentsByDepartment(selectedApartment));
+      onStatusMessage("Residente eliminado correctamente.");
+    } catch (error) {
+      onStatusMessage(
+        error instanceof Error ? error.message : "No se pudo eliminar el residente.",
+      );
+      throw error;
+    } finally {
+      setIsSavingResident(false);
+    }
+  };
+
   return {
     apartmentResidents,
     closeApartmentResidents,
     handleAddResident,
+    handleDeleteResident,
     handleVerifyResidentEmail,
     handleVerifyResidentMfa,
     isLoadingResidents,

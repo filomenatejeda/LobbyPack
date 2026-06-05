@@ -1,5 +1,5 @@
 import { useMemo, useState, type ComponentType, type FormEvent } from "react";
-import { X } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 import QRCodeImport from "react-qr-code";
 import { createIsolatedSupabaseClient, supabaseConfigError } from "../../lib/client";
 import type {
@@ -40,6 +40,7 @@ type ApartmentResidentsModalProps = {
     resident_password: string;
     user_phone_number: string;
   }) => Promise<ResidentAccountCreationResponse>;
+  onDeleteResident: (residentId: string) => Promise<void>;
   onVerifyEmail: (residentId: string, verificationCode: string) => Promise<void>;
   onVerifyMfa: (residentId: string, mfaCode: string) => Promise<void>;
 };
@@ -52,6 +53,7 @@ export default function ApartmentResidentsModal({
   isSaving,
   onClose,
   onAddResident,
+  onDeleteResident,
   onVerifyEmail,
   onVerifyMfa,
 }: ApartmentResidentsModalProps) {
@@ -68,6 +70,7 @@ export default function ApartmentResidentsModal({
   const [verificationCode, setVerificationCode] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [formError, setFormError] = useState("");
+  const [residentToDelete, setResidentToDelete] = useState<ResidentItem | null>(null);
   const residentSupabase = useMemo(
     () => (supabaseConfigError ? null : createIsolatedSupabaseClient()),
     [],
@@ -209,6 +212,21 @@ export default function ApartmentResidentsModal({
     void residentSupabase?.auth.signOut();
   };
 
+  const handleDeleteResident = async () => {
+    if (!residentToDelete) {
+      return;
+    }
+
+    setFormError("");
+
+    try {
+      await onDeleteResident(residentToDelete.user_id);
+      setResidentToDelete(null);
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "No se pudo eliminar el residente.");
+    }
+  };
+
   return (
     <div className="residentModalOverlay" onClick={onClose}>
       <section className="residentModal" onClick={(event) => event.stopPropagation()}>
@@ -233,7 +251,7 @@ export default function ApartmentResidentsModal({
         <div className="residentModalBody">
           {isLoading ? <p className="residentEmptyText">Cargando personas...</p> : null}
 
-          {!isLoading && residents.length > 0 ? (
+          {!isLoading && !isAdding && residents.length > 0 ? (
             <div className="residentList">
               {residents.map((resident) => (
                 <article key={resident.user_id} className="residentItem">
@@ -247,6 +265,16 @@ export default function ApartmentResidentsModal({
                         : "Verificacion pendiente"}
                     </span>
                   </div>
+                  <button
+                    type="button"
+                    className="residentDeleteButton"
+                    onClick={() => setResidentToDelete(resident)}
+                    disabled={isSaving}
+                    aria-label={`Eliminar residente ${resident.resident_name}`}
+                    title="Eliminar residente"
+                  >
+                    <Trash2 size={18} aria-hidden="true" />
+                  </button>
                 </article>
               ))}
             </div>
@@ -279,7 +307,7 @@ export default function ApartmentResidentsModal({
                 />
               </label>
               <label className="settingsField">
-                <span>Contraseña inicial</span>
+                <span>Contraseña</span>
                 <input
                   type="password"
                   value={residentPassword}
@@ -406,6 +434,41 @@ export default function ApartmentResidentsModal({
           ) : null}
         </div>
       </section>
+
+      {residentToDelete ? (
+        <div className="residentConfirmOverlay" onClick={() => setResidentToDelete(null)}>
+          <section
+            className="residentConfirmDialog"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="residentDeleteTitle"
+          >
+            <p className="settingsLabel">Confirmar eliminacion</p>
+            <h4 id="residentDeleteTitle">
+              Estas seguro de querer eliminar al residente {residentToDelete.resident_name}
+            </h4>
+            <div className="residentActions">
+              <button
+                type="button"
+                className="secondaryButton"
+                onClick={() => setResidentToDelete(null)}
+                disabled={isSaving}
+              >
+                No
+              </button>
+              <button
+                type="button"
+                className="residentDangerButton"
+                onClick={() => void handleDeleteResident()}
+                disabled={isSaving}
+              >
+                {isSaving ? "Eliminando..." : "Si"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 }

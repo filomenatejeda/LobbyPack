@@ -90,7 +90,21 @@ export const authRoutes = new Elysia()
         [normalizedAdminEmail],
       );
 
-      return { exists: existingRegistrations.length > 0 };
+      if (existingRegistrations.length > 0) {
+        return { exists: true };
+      }
+
+      const [existingUsers] = await pool.query<RowDataPacket[]>(
+        `
+          SELECT id
+          FROM Users
+          WHERE LOWER(email) = LOWER(?)
+          LIMIT 1
+        `,
+        [normalizedAdminEmail],
+      );
+
+      return { exists: existingUsers.length > 0 };
     },
     {
       body: adminEmailSchema,

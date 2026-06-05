@@ -2,6 +2,7 @@ import { cors } from "@elysiajs/cors";
 import { Elysia } from "elysia";
 import {
   ensureBuildingCommunityColumns,
+  ensureResidentCommunityColumns,
   ensureUtf8mb4,
   ensureParcelQrSecurityColumns,
   pool,
@@ -16,6 +17,7 @@ const port = Number(process.env.PORT ?? 3000);
 await pool.query("SELECT 1");
 await ensureUtf8mb4();
 await ensureBuildingCommunityColumns();
+await ensureResidentCommunityColumns();
 await ensureParcelQrSecurityColumns();
 await repairIssueEncoding();
 await repairParcelEncoding();

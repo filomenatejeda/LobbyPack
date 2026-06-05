@@ -201,6 +201,21 @@ export async function resolveBuildingIdForUserEmail(email?: string) {
     return settingsContext.buildingId;
   }
 
+  const [residents] = await pool.query<Array<RowDataPacket & { building_id: string | null }>>(
+    `
+      SELECT building_id
+      FROM Residents r
+      INNER JOIN Users u ON u.id = r.user_id
+      WHERE LOWER(u.email) = LOWER(?)
+      LIMIT 1
+    `,
+    [normalizedEmail],
+  );
+
+  if (residents[0]?.building_id) {
+    return residents[0].building_id;
+  }
+
   const [buildings] = await pool.query<Array<RowDataPacket & { id: string }>>(
     `
       SELECT id

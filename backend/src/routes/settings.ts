@@ -4,9 +4,11 @@ import { pool } from "../db/pool";
 import { normalizeTextInput } from "../utils/textEncoding";
 import { generalSettingsSchema, preferenceSettingsSchema, residentEmailVerificationSchema, residentMfaVerificationSchema, residentSettingsSchema, towersSchema } from "./shared/schemas";
 import type { BuildingRow, PreferenceRow, TeamRow, TowerRow } from "./shared/types";
-import { getSettingsContext } from "./shared/community";
+import { getSettingsContext, resolveBuildingIdForUserEmail } from "./shared/community";
 import {
   createResidentAccount,
+  deleteResidentAccount,
+  deleteSupabaseResidentUser,
   getResidentById,
   getResidentEmail,
   getResidentSecurity,
@@ -150,13 +152,15 @@ export const settingsRoutes = new Elysia()
     return getSettingsPayload(query.admin_email);
   })
   .get("/settings/residents", async ({ headers, query }) => {
-    await requireAppRole(headers.authorization, ["admin"]);
-    return listResidentsByDepartment(String(query.department_address ?? ""));
+    const session = await requireAppRole(headers.authorization, ["admin"]);
+    const buildingId = await resolveBuildingIdForUserEmail(session.email);
+    return listResidentsByDepartment(String(query.department_address ?? ""), buildingId);
   })
   .post(
     "/settings/residents",
     async ({ headers, body, set }) => {
-      await requireAppRole(headers.authorization, ["admin"]);
+      const session = await requireAppRole(headers.authorization, ["admin"]);
+      const buildingId = await resolveBuildingIdForUserEmail(session.email);
 
       const connection = await pool.getConnection();
 
@@ -170,6 +174,7 @@ export const settingsRoutes = new Elysia()
           body.resident_password,
           body.department_address,
           body.user_phone_number,
+          buildingId,
         );
 
         await connection.commit();
@@ -204,6 +209,33 @@ export const settingsRoutes = new Elysia()
       body: residentSettingsSchema,
     },
   )
+  .delete("/settings/residents/:id", async ({ headers, params, set }) => {
+    await requireAppRole(headers.authorization, ["admin"]);
+
+    const resident = await getResidentById(params.id);
+
+    if (!resident) {
+      set.status = 404;
+      return { message: "Residente no encontrado." };
+    }
+
+    await deleteSupabaseResidentUser(resident.email);
+
+    const connection = await pool.getConnection();
+
+    try {
+      await connection.beginTransaction();
+      await deleteResidentAccount(connection, params.id);
+      await connection.commit();
+      set.status = 204;
+      return null;
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  })
   .post(
     "/settings/residents/:id/verify-email",
     async ({ headers, params, set }) => {

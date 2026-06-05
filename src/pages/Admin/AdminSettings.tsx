@@ -369,6 +369,7 @@ export default function AdminSettings() {
           isSaving={apartmentResidents.isSavingResident}
           onClose={apartmentResidents.closeApartmentResidents}
           onAddResident={apartmentResidents.handleAddResident}
+          onDeleteResident={apartmentResidents.handleDeleteResident}
           onVerifyEmail={apartmentResidents.handleVerifyResidentEmail}
           onVerifyMfa={apartmentResidents.handleVerifyResidentMfa}
         />

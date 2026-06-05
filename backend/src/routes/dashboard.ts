@@ -17,9 +17,15 @@ export const dashboardRoutes = new Elysia().get("/dashboard", async ({ headers }
 
     return {
       current_user: buildDashboardCurrentUser(session),
-      pending_parcels: await listParcels("pending", { departmentAddress }),
-      claimed_parcels: await listParcels("claimed", { departmentAddress }),
-      issues: await listIssues({ departmentAddress }),
+      pending_parcels: await listParcels("pending", {
+        departmentAddress,
+        buildingId: session.buildingId,
+      }),
+      claimed_parcels: await listParcels("claimed", {
+        departmentAddress,
+        buildingId: session.buildingId,
+      }),
+      issues: await listIssues({ departmentAddress, buildingId: session.buildingId }),
       community_structure: [],
     };
   }
@@ -28,9 +34,9 @@ export const dashboardRoutes = new Elysia().get("/dashboard", async ({ headers }
 
   return {
     current_user: buildDashboardCurrentUser(session),
-    pending_parcels: await listParcels("pending"),
-    claimed_parcels: await listParcels("claimed"),
-    issues: await listIssues(),
+    pending_parcels: await listParcels("pending", { buildingId }),
+    claimed_parcels: await listParcels("claimed", { buildingId }),
+    issues: await listIssues({ buildingId }),
     community_structure: await listCommunityStructure(buildingId),
   };
 });

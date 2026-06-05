@@ -27,10 +27,11 @@ import {
 
 export const parcelRoutes = new Elysia()
   .get("/parcels", async ({ headers, query }) => {
-    await requireAppRole(headers.authorization, ["admin", "concierge"]);
+    const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
+    const buildingId = await resolveBuildingIdForUserEmail(session.email);
 
     const parcelStatus = query.parcel_status === "claimed" ? "claimed" : "pending";
-    return listParcels(parcelStatus);
+    return listParcels(parcelStatus, { buildingId });
   })
   .post(
     "/parcels",
@@ -60,6 +61,7 @@ export const parcelRoutes = new Elysia()
           validatedPayload.resident_name,
           validatedPayload.department_address,
           validatedPayload.user_phone_number,
+          buildingId,
         );
         const businessId = await getOrCreateBusiness(connection, validatedPayload.business_name);
         const parcelId = await createSequentialId(connection, {
@@ -144,12 +146,14 @@ export const parcelRoutes = new Elysia()
 
         const [parcels] = await connection.query<RowDataPacket[]>(
           `
-            SELECT id, parcel_status
-            FROM Parcels
-            WHERE id = ?
+            SELECT p.id, p.parcel_status
+            FROM Parcels p
+            INNER JOIN Residents r ON r.user_id = p.id_resident
+            WHERE p.id = ?
+              AND r.building_id = ?
             LIMIT 1
           `,
-          [params.id],
+          [params.id, buildingId],
         );
 
         if (parcels.length === 0) {
@@ -162,6 +166,7 @@ export const parcelRoutes = new Elysia()
           validatedPayload.resident_name,
           validatedPayload.department_address,
           validatedPayload.user_phone_number,
+          buildingId,
         );
         const businessId = await getOrCreateBusiness(connection, validatedPayload.business_name);
         const qrToken =
@@ -207,6 +212,7 @@ export const parcelRoutes = new Elysia()
   )
   .post("/parcels/:id/claim", async ({ headers, params, set }) => {
     const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
+    const buildingId = await resolveBuildingIdForUserEmail(session.email);
     const connection = await pool.getConnection();
 
     try {
@@ -214,12 +220,14 @@ export const parcelRoutes = new Elysia()
 
       const [result] = await connection.query<RowDataPacket[]>(
         `
-          SELECT id, parcel_status, id_resident
-          FROM Parcels
-          WHERE id = ?
+          SELECT p.id, p.parcel_status, p.id_resident
+          FROM Parcels p
+          INNER JOIN Residents r ON r.user_id = p.id_resident
+          WHERE p.id = ?
+            AND r.building_id = ?
           LIMIT 1
         `,
-        [params.id],
+        [params.id, buildingId],
       );
 
       if (result.length === 0) {
@@ -298,16 +306,18 @@ export const parcelRoutes = new Elysia()
         const [rows] = await connection.query<ParcelClaimRow[]>(
           `
             SELECT
-              id,
-              qr_token,
-              parcel_status,
-              delivery_department_address
-            FROM Parcels
-            WHERE id = ?
+              p.id,
+              p.qr_token,
+              p.parcel_status,
+              p.delivery_department_address
+            FROM Parcels p
+            INNER JOIN Residents r ON r.user_id = p.id_resident
+            WHERE p.id = ?
+              AND (? IS NULL OR r.building_id = ?)
             LIMIT 1
             FOR UPDATE
           `,
-          [params.id],
+          [params.id, session.buildingId ?? null, session.buildingId ?? null],
         );
 
         const parcel = rows[0];
@@ -374,14 +384,18 @@ export const parcelRoutes = new Elysia()
     },
   )
   .delete("/parcels/:id", async ({ headers, params, set }) => {
-    await requireAppRole(headers.authorization, ["admin", "concierge"]);
+    const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
+    const buildingId = await resolveBuildingIdForUserEmail(session.email);
 
     await pool.query(
       `
-        DELETE FROM Parcels
-        WHERE id = ?
+        DELETE p
+        FROM Parcels p
+        INNER JOIN Residents r ON r.user_id = p.id_resident
+        WHERE p.id = ?
+          AND r.building_id = ?
       `,
-      [params.id],
+      [params.id, buildingId],
     );
 
     set.status = 204;

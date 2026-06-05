@@ -5,10 +5,11 @@ import { pool } from "../db/pool";
 import { departmentAddressesMatch } from "../utils/departments";
 import { createSequentialId } from "../utils/ids";
 import { repairPotentialMojibake } from "../utils/textEncoding";
+import { resolveBuildingIdForUserEmail } from "./shared/community";
 import { issueStatusSchema, residentIssueSchema } from "./shared/schemas";
 import type { IssueRow } from "./shared/types";
 
-export async function listIssues(options?: { departmentAddress?: string }) {
+export async function listIssues(options?: { departmentAddress?: string; buildingId?: string }) {
   const [rows] = await pool.query<IssueRow[]>(
     `
       SELECT
@@ -25,8 +26,10 @@ export async function listIssues(options?: { departmentAddress?: string }) {
       INNER JOIN Parcels p ON p.id = i.id_parcel
       INNER JOIN Residents r ON r.user_id = p.id_resident
       INNER JOIN Businesses b ON b.id = p.id_business
+      WHERE (? IS NULL OR r.building_id = ?)
       ORDER BY i.created_at DESC
     `,
+    [options?.buildingId ?? null, options?.buildingId ?? null],
   );
 
   const mappedRows = rows.map((row) => ({
@@ -48,8 +51,9 @@ export async function listIssues(options?: { departmentAddress?: string }) {
 
 export const issuesRoutes = new Elysia()
   .get("/issues", async ({ headers }) => {
-    await requireAppRole(headers.authorization, ["admin", "concierge"]);
-    return listIssues();
+    const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
+    const buildingId = await resolveBuildingIdForUserEmail(session.email);
+    return listIssues({ buildingId });
   })
   .post(
     "/resident/issues",
@@ -76,9 +80,10 @@ export const issuesRoutes = new Elysia()
           FROM Parcels p
           INNER JOIN Residents r ON r.user_id = p.id_resident
           WHERE p.id = ?
+            AND (? IS NULL OR r.building_id = ?)
           LIMIT 1
         `,
-        [body.id_parcel],
+        [body.id_parcel, session.buildingId ?? null, session.buildingId ?? null],
       );
 
       const parcel = parcels[0];
@@ -128,7 +133,7 @@ export const issuesRoutes = new Elysia()
         await connection.commit();
         set.status = 201;
 
-        const issues = await listIssues();
+        const issues = await listIssues({ buildingId: session.buildingId });
         return issues.find((issue) => issue.id === issueId);
       } catch (error) {
         await connection.rollback();
@@ -144,16 +149,20 @@ export const issuesRoutes = new Elysia()
   .patch(
     "/issues/:id",
     async ({ headers, params, body, set }) => {
-      await requireAppRole(headers.authorization, ["admin", "concierge"]);
+      const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
+      const buildingId = await resolveBuildingIdForUserEmail(session.email);
 
       const [issues] = await pool.query<RowDataPacket[]>(
         `
-          SELECT id
-          FROM Issues
-          WHERE id = ?
+          SELECT i.id
+          FROM Issues i
+          INNER JOIN Parcels p ON p.id = i.id_parcel
+          INNER JOIN Residents r ON r.user_id = p.id_resident
+          WHERE i.id = ?
+            AND (? IS NULL OR r.building_id = ?)
           LIMIT 1
         `,
-        [params.id],
+        [params.id, buildingId, buildingId],
       );
 
       if (issues.length === 0) {
@@ -170,7 +179,7 @@ export const issuesRoutes = new Elysia()
         [body.issue_status, params.id],
       );
 
-      const updatedIssues = await listIssues();
+      const updatedIssues = await listIssues({ buildingId });
       return updatedIssues.find((issue) => issue.id === params.id);
     },
     {

@@ -69,6 +69,12 @@ export function addResidentToDepartment(values: {
   });
 }
 
+export function deleteResidentFromDepartment(userId: string) {
+  return apiRequest<null>(`/api/settings/residents/${userId}`, {
+    method: "DELETE",
+  });
+}
+
 export function verifyResidentEmail(userId: string, verificationCode: string) {
   return apiRequest<{ ok: boolean }>(`/api/settings/residents/${userId}/verify-email`, {
     method: "POST",

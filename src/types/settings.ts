@@ -17,6 +17,7 @@ export type ResidentItem = {
   resident_name: string;
   user_phone_number: string;
   department_address: string;
+  building_id?: string | null;
   email_verified: boolean;
   mfa_enabled: boolean;
 };

@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
+import { createClient } from "@supabase/supabase-js";
 import { pool } from "../../db/pool";
 import {
   departmentAddressesMatch,
@@ -19,6 +20,77 @@ function createVerificationCode() {
 
 function hashVerificationCode(code: string) {
   return createHash("sha256").update(code).digest("hex");
+}
+
+function getSupabaseAdminClient() {
+  const supabaseUrl = (
+    process.env.SUPABASE_URL ??
+    process.env.VITE_SUPABASE_URL ??
+    ""
+  ).replace(/\/+$/, "");
+  const serviceRoleKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_KEY ?? "";
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "Falta SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY para eliminar usuarios en Supabase.",
+    );
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
+async function findSupabaseUserIdByEmail(email: string) {
+  const supabaseAdmin = getSupabaseAdminClient();
+  const normalizedEmail = email.trim().toLowerCase();
+  let page = 1;
+
+  while (page <= 20) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+      page,
+      perPage: 100,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const user = data.users.find(
+      (item) => item.email?.trim().toLowerCase() === normalizedEmail,
+    );
+
+    if (user) {
+      return user.id;
+    }
+
+    if (data.users.length < 100) {
+      return null;
+    }
+
+    page += 1;
+  }
+
+  throw new Error("No se pudo confirmar el usuario de Supabase para eliminarlo.");
+}
+
+export async function deleteSupabaseResidentUser(email: string) {
+  const supabaseAdmin = getSupabaseAdminClient();
+  const supabaseUserId = await findSupabaseUserIdByEmail(email);
+
+  if (!supabaseUserId) {
+    return;
+  }
+
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(supabaseUserId);
+
+  if (error) {
+    throw error;
+  }
 }
 
 export async function ensureResidentAccountSecurityTable() {
@@ -44,6 +116,7 @@ export async function createResidentAccount(
   residentPassword: string,
   departmentAddress: string,
   userPhoneNumber: string,
+  buildingId: string,
 ) {
   await ensureResidentAccountSecurityTable();
 
@@ -89,9 +162,10 @@ export async function createResidentAccount(
         resident_name,
         resident_password_hash,
         user_phone_number,
-        department_address
+        department_address,
+        building_id
       )
-      VALUES (?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?)
     `,
     [
       residentId,
@@ -99,6 +173,7 @@ export async function createResidentAccount(
       hashPassword(residentPassword),
       normalizedPhoneNumber || null,
       normalizedDepartmentAddress,
+      buildingId,
     ],
   );
 
@@ -126,6 +201,7 @@ function mapResidentRow(resident: ResidentRow) {
     resident_name: repairPotentialMojibake(resident.resident_name),
     user_phone_number: repairPotentialMojibake(resident.user_phone_number ?? ""),
     department_address: repairPotentialMojibake(resident.department_address),
+    building_id: resident.building_id,
     email_verified: Boolean(resident.email_verified),
     mfa_enabled: Boolean(resident.totp_verified),
   };
@@ -140,6 +216,7 @@ async function fetchResidentRows(whereClause = "", params: unknown[] = []) {
         r.resident_name,
         r.user_phone_number,
         r.department_address,
+        r.building_id,
         s.email_verified,
         s.totp_verified
       FROM Residents r
@@ -153,7 +230,7 @@ async function fetchResidentRows(whereClause = "", params: unknown[] = []) {
   return residents;
 }
 
-export async function listResidentsByDepartment(departmentAddress: string) {
+export async function listResidentsByDepartment(departmentAddress: string, buildingId?: string) {
   await ensureResidentAccountSecurityTable();
 
   const normalizedDepartmentAddress = normalizeDepartmentAddress(departmentAddress);
@@ -161,7 +238,12 @@ export async function listResidentsByDepartment(departmentAddress: string) {
     return [];
   }
 
-  const residents = await fetchResidentRows("ORDER BY r.resident_name");
+  const residents = await fetchResidentRows(
+    buildingId
+      ? "WHERE r.building_id = ? OR r.building_id IS NULL ORDER BY r.resident_name"
+      : "ORDER BY r.resident_name",
+    buildingId ? [buildingId] : [],
+  );
 
   return residents
     .filter((resident) =>
@@ -174,6 +256,60 @@ export async function getResidentById(residentId: string) {
   const residents = await fetchResidentRows("WHERE r.user_id = ? LIMIT 1", [residentId]);
   const resident = residents[0];
   return resident ? mapResidentRow(resident) : null;
+}
+
+export async function deleteResidentAccount(connection: PoolConnection, residentId: string) {
+  await connection.query(
+    `
+      DELETE i
+      FROM Issues i
+      INNER JOIN Parcels p ON p.id = i.id_parcel
+      WHERE p.id_resident = ?
+    `,
+    [residentId],
+  );
+
+  await connection.query(
+    `
+      DELETE FROM Parcels
+      WHERE id_resident = ?
+    `,
+    [residentId],
+  );
+
+  await connection.query(
+    `
+      UPDATE Parcels
+      SET claimed_by_user_id = NULL
+      WHERE claimed_by_user_id = ?
+    `,
+    [residentId],
+  );
+
+  await connection.query(
+    `
+      DELETE FROM ResidentAccountSecurity
+      WHERE user_id = ?
+    `,
+    [residentId],
+  );
+
+  await connection.query(
+    `
+      DELETE FROM Residents
+      WHERE user_id = ?
+    `,
+    [residentId],
+  );
+
+  await connection.query(
+    `
+      DELETE FROM Users
+      WHERE id = ?
+        AND role = 'resident'
+    `,
+    [residentId],
+  );
 }
 
 export async function getResidentSecurity(residentId: string) {
