@@ -19,8 +19,8 @@ import {
   createParcelQrToken,
   createSequentialCode,
   createSequentialId,
+  findResidentForDepartment,
   getOrCreateBusiness,
-  getOrCreateResident,
   getParcelById,
   listParcels,
 } from "./service";
@@ -56,11 +56,9 @@ export const parcelRoutes = new Elysia()
       try {
         await connection.beginTransaction();
 
-        const residentUserId = await getOrCreateResident(
+        const residentUserId = await findResidentForDepartment(
           connection,
-          validatedPayload.resident_name,
           validatedPayload.department_address,
-          validatedPayload.user_phone_number,
           buildingId,
         );
         const businessId = await getOrCreateBusiness(connection, validatedPayload.business_name);
@@ -84,7 +82,10 @@ export const parcelRoutes = new Elysia()
               id_concierge,
               id_resident,
               id_business,
+              building_id,
               delivery_department_address,
+              parcel_recipient_name,
+              parcel_recipient_phone,
               withdrawal_code,
               qr_code_url,
               qr_token,
@@ -92,14 +93,17 @@ export const parcelRoutes = new Elysia()
               parcel_description,
               is_urgent
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
           `,
           [
             parcelId,
             session.userId,
             residentUserId,
             businessId,
+            buildingId,
             normalizedDepartmentAddress,
+            validatedPayload.resident_name,
+            validatedPayload.user_phone_number,
             withdrawalCode,
             buildParcelQrValue(parcelId, qrToken),
             qrToken,
@@ -148,9 +152,8 @@ export const parcelRoutes = new Elysia()
           `
             SELECT p.id, p.parcel_status
             FROM Parcels p
-            INNER JOIN Residents r ON r.user_id = p.id_resident
             WHERE p.id = ?
-              AND r.building_id = ?
+              AND p.building_id = ?
             LIMIT 1
           `,
           [params.id, buildingId],
@@ -161,11 +164,9 @@ export const parcelRoutes = new Elysia()
           return { message: "Parcel not found" };
         }
 
-        const residentUserId = await getOrCreateResident(
+        const residentUserId = await findResidentForDepartment(
           connection,
-          validatedPayload.resident_name,
           validatedPayload.department_address,
-          validatedPayload.user_phone_number,
           buildingId,
         );
         const businessId = await getOrCreateBusiness(connection, validatedPayload.business_name);
@@ -178,7 +179,10 @@ export const parcelRoutes = new Elysia()
             SET
               id_resident = ?,
               id_business = ?,
+              building_id = ?,
               delivery_department_address = ?,
+              parcel_recipient_name = ?,
+              parcel_recipient_phone = ?,
               qr_code_url = COALESCE(?, qr_code_url),
               qr_token = COALESCE(?, qr_token),
               parcel_description = ?,
@@ -188,7 +192,10 @@ export const parcelRoutes = new Elysia()
           [
             residentUserId,
             businessId,
+            buildingId,
             normalizedDepartmentAddress,
+            validatedPayload.resident_name,
+            validatedPayload.user_phone_number,
             qrToken ? buildParcelQrValue(params.id, qrToken) : null,
             qrToken,
             normalizedDescription,
@@ -220,11 +227,10 @@ export const parcelRoutes = new Elysia()
 
       const [result] = await connection.query<RowDataPacket[]>(
         `
-          SELECT p.id, p.parcel_status, p.id_resident
+          SELECT p.id, p.parcel_status
           FROM Parcels p
-          INNER JOIN Residents r ON r.user_id = p.id_resident
           WHERE p.id = ?
-            AND r.building_id = ?
+            AND p.building_id = ?
           LIMIT 1
         `,
         [params.id, buildingId],
@@ -259,7 +265,7 @@ export const parcelRoutes = new Elysia()
             claimed_by_user_id = ?
           WHERE id = ?
         `,
-        [withdrawalCode, String(result[0].id_resident), params.id],
+        [withdrawalCode, session.userId, params.id],
       );
 
       await connection.commit();
@@ -311,9 +317,9 @@ export const parcelRoutes = new Elysia()
               p.parcel_status,
               p.delivery_department_address
             FROM Parcels p
-            INNER JOIN Residents r ON r.user_id = p.id_resident
+            LEFT JOIN Residents r ON r.user_id = p.id_resident
             WHERE p.id = ?
-              AND (? IS NULL OR r.building_id = ?)
+              AND (? IS NULL OR p.building_id = ?)
             LIMIT 1
             FOR UPDATE
           `,
@@ -391,9 +397,8 @@ export const parcelRoutes = new Elysia()
       `
         DELETE p
         FROM Parcels p
-        INNER JOIN Residents r ON r.user_id = p.id_resident
         WHERE p.id = ?
-          AND r.building_id = ?
+          AND p.building_id = ?
       `,
       [params.id, buildingId],
     );

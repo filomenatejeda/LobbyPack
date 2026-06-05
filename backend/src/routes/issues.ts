@@ -18,15 +18,15 @@ export async function listIssues(options?: { departmentAddress?: string; buildin
         i.issue_status,
         i.issue_description,
         i.created_at,
-        r.resident_name,
+        COALESCE(p.parcel_recipient_name, r.resident_name, '') AS resident_name,
         p.parcel_status,
-        r.department_address,
+        COALESCE(p.delivery_department_address, r.department_address) AS department_address,
         b.business_name
       FROM Issues i
       INNER JOIN Parcels p ON p.id = i.id_parcel
-      INNER JOIN Residents r ON r.user_id = p.id_resident
+      LEFT JOIN Residents r ON r.user_id = p.id_resident
       INNER JOIN Businesses b ON b.id = p.id_business
-      WHERE (? IS NULL OR r.building_id = ?)
+      WHERE (? IS NULL OR p.building_id = ?)
       ORDER BY i.created_at DESC
     `,
     [options?.buildingId ?? null, options?.buildingId ?? null],
@@ -78,9 +78,9 @@ export const issuesRoutes = new Elysia()
             p.id,
             COALESCE(p.delivery_department_address, r.department_address) AS department_address
           FROM Parcels p
-          INNER JOIN Residents r ON r.user_id = p.id_resident
+          LEFT JOIN Residents r ON r.user_id = p.id_resident
           WHERE p.id = ?
-            AND (? IS NULL OR r.building_id = ?)
+            AND (? IS NULL OR p.building_id = ?)
           LIMIT 1
         `,
         [body.id_parcel, session.buildingId ?? null, session.buildingId ?? null],
@@ -157,9 +157,9 @@ export const issuesRoutes = new Elysia()
           SELECT i.id
           FROM Issues i
           INNER JOIN Parcels p ON p.id = i.id_parcel
-          INNER JOIN Residents r ON r.user_id = p.id_resident
+          LEFT JOIN Residents r ON r.user_id = p.id_resident
           WHERE i.id = ?
-            AND (? IS NULL OR r.building_id = ?)
+            AND (? IS NULL OR p.building_id = ?)
           LIMIT 1
         `,
         [params.id, buildingId, buildingId],

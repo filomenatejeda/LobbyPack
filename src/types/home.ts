@@ -28,7 +28,7 @@ export type ParcelItem = {
   pending_date: string;
   claimed_date: string | null;
   id_concierge: string;
-  id_resident: string;
+  id_resident: string | null;
   id_business: string;
   resident_name: string;
   user_phone_number: string;

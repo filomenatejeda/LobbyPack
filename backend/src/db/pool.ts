@@ -298,6 +298,28 @@ async function columnExists(tableName: string, columnName: string) {
   return Number(rows[0]?.count ?? 0) > 0;
 }
 
+async function columnIsNullable(tableName: string, columnName: string) {
+  const databaseName = mysqlConfig.database;
+
+  if (!databaseName) {
+    throw new Error("Missing required environment variable: MYSQL_DB");
+  }
+
+  const [rows] = await pool.query<Array<RowDataPacket & { IS_NULLABLE: string }>>(
+    `
+      SELECT IS_NULLABLE
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ?
+        AND TABLE_NAME = ?
+        AND COLUMN_NAME = ?
+      LIMIT 1
+    `,
+    [databaseName, tableName, columnName],
+  );
+
+  return rows[0]?.IS_NULLABLE === "YES";
+}
+
 export async function ensureBuildingCommunityColumns() {
   if (!(await columnExists("Buildings", "community_type"))) {
     await pool.query(`
@@ -319,11 +341,35 @@ export async function ensureResidentCommunityColumns() {
 }
 
 export async function ensureParcelQrSecurityColumns() {
+  if (!(await columnExists("Parcels", "building_id"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN building_id VARCHAR(64) NULL
+        AFTER id_business
+    `);
+  }
+
   if (!(await columnExists("Parcels", "delivery_department_address"))) {
     await pool.query(`
       ALTER TABLE Parcels
       ADD COLUMN delivery_department_address VARCHAR(100) NULL
-        AFTER id_business
+        AFTER building_id
+    `);
+  }
+
+  if (!(await columnExists("Parcels", "parcel_recipient_name"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN parcel_recipient_name VARCHAR(100) NULL
+        AFTER delivery_department_address
+    `);
+  }
+
+  if (!(await columnExists("Parcels", "parcel_recipient_phone"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN parcel_recipient_phone VARCHAR(12) NULL
+        AFTER parcel_recipient_name
     `);
   }
 
@@ -343,6 +389,32 @@ export async function ensureParcelQrSecurityColumns() {
     `);
   }
 
+  if (!(await columnIsNullable("Parcels", "id_resident"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      MODIFY id_resident VARCHAR(64) NULL
+    `);
+  }
+
+  await pool.query(
+    `
+      UPDATE Parcels p
+      INNER JOIN Residents r ON r.user_id = p.id_resident
+      SET p.building_id = r.building_id
+      WHERE (p.building_id IS NULL OR p.building_id = '')
+        AND r.building_id IS NOT NULL
+    `,
+  );
+
+  await pool.query(
+    `
+      UPDATE Parcels
+      SET building_id = 'building-main'
+      WHERE building_id IS NULL
+         OR building_id = ''
+    `,
+  );
+
   await pool.query(
     `
       UPDATE Parcels p
@@ -350,6 +422,26 @@ export async function ensureParcelQrSecurityColumns() {
       SET p.delivery_department_address = r.department_address
       WHERE p.delivery_department_address IS NULL
          OR p.delivery_department_address = ''
+    `,
+  );
+
+  await pool.query(
+    `
+      UPDATE Parcels p
+      INNER JOIN Residents r ON r.user_id = p.id_resident
+      SET p.parcel_recipient_name = r.resident_name
+      WHERE p.parcel_recipient_name IS NULL
+         OR p.parcel_recipient_name = ''
+    `,
+  );
+
+  await pool.query(
+    `
+      UPDATE Parcels p
+      INNER JOIN Residents r ON r.user_id = p.id_resident
+      SET p.parcel_recipient_phone = r.user_phone_number
+      WHERE p.parcel_recipient_phone IS NULL
+         OR p.parcel_recipient_phone = ''
     `,
   );
 

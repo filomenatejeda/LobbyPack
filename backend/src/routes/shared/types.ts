@@ -12,8 +12,9 @@ export type ParcelRow = RowDataPacket & {
   claimed_date: string | null;
   claimed_by_user_id?: string | null;
   id_concierge: string;
-  id_resident: string;
+  id_resident: string | null;
   id_business: string;
+  building_id: string;
   resident_name: string;
   user_phone_number: string | null;
   department_address: string;

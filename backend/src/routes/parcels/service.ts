@@ -6,7 +6,6 @@ import {
   normalizeDepartmentAddress,
 } from "../../utils/departments";
 import {
-  createResidentEmail,
   createSequentialCode,
   createSequentialId,
 } from "../../utils/ids";
@@ -55,88 +54,25 @@ export async function getOrCreateBusiness(connection: PoolConnection, businessNa
   return businessId;
 }
 
-export async function getOrCreateResident(
+export async function findResidentForDepartment(
   connection: PoolConnection,
-  residentName: string,
   departmentAddress: string,
-  userPhoneNumber: string,
   buildingId: string,
 ) {
-  const normalizedResidentName = normalizeTextInput(residentName);
   const normalizedDepartmentAddress = normalizeDepartmentAddress(departmentAddress);
-  const normalizedPhoneNumber = normalizeTextInput(userPhoneNumber);
-
-  const [existingResidents] = await connection.query<RowDataPacket[]>(
+  const [residents] = await connection.query<RowDataPacket[]>(
     `
       SELECT user_id
       FROM Residents
-      WHERE LOWER(resident_name) = LOWER(?)
-        AND LOWER(department_address) = LOWER(?)
-        AND (building_id = ? OR building_id IS NULL)
+      WHERE LOWER(department_address) = LOWER(?)
+        AND building_id = ?
+      ORDER BY resident_name
       LIMIT 1
     `,
-    [normalizedResidentName, normalizedDepartmentAddress, buildingId],
+    [normalizedDepartmentAddress, buildingId],
   );
 
-  if (existingResidents.length > 0) {
-    const residentId = String(existingResidents[0].user_id);
-
-    await connection.query(
-      `
-        UPDATE Residents
-        SET resident_name = ?, department_address = ?, user_phone_number = ?, building_id = ?
-        WHERE user_id = ?
-      `,
-      [
-        normalizedResidentName,
-        normalizedDepartmentAddress,
-        normalizedPhoneNumber || null,
-        buildingId,
-        residentId,
-      ],
-    );
-
-    return residentId;
-  }
-
-  const residentId = await createSequentialId(connection, {
-    tableName: "Users",
-    columnName: "id",
-    prefix: "resident",
-    padLength: 3,
-  });
-
-  await connection.query(
-    `
-      INSERT INTO Users (id, email, role)
-      VALUES (?, ?, 'resident')
-    `,
-    [residentId, createResidentEmail(normalizedResidentName)],
-  );
-
-  await connection.query(
-    `
-      INSERT INTO Residents (
-        user_id,
-        resident_name,
-        resident_password_hash,
-        user_phone_number,
-        department_address,
-        building_id
-      )
-      VALUES (?, ?, ?, ?, ?, ?)
-    `,
-    [
-      residentId,
-      normalizedResidentName,
-      "demo-resident-password",
-      normalizedPhoneNumber || null,
-      normalizedDepartmentAddress,
-      buildingId,
-    ],
-  );
-
-  return residentId;
+  return residents[0]?.user_id ? String(residents[0].user_id) : null;
 }
 
 function mapParcelRow(row: ParcelRow) {
@@ -182,14 +118,15 @@ export async function listParcels(
         p.id_concierge,
         p.id_resident,
         p.id_business,
-        r.resident_name,
-        r.user_phone_number,
+        p.building_id,
+        COALESCE(p.parcel_recipient_name, r.resident_name, '') AS resident_name,
+        COALESCE(p.parcel_recipient_phone, r.user_phone_number, '') AS user_phone_number,
         COALESCE(p.delivery_department_address, r.department_address) AS department_address,
         COALESCE(c.concierge_name, a.admin_name, concierge_user.email) AS concierge_name,
         b.business_name,
         COALESCE(cr.resident_name, cc.concierge_name, ca.admin_name, claimed_user.email) AS claimed_by_name
       FROM Parcels p
-      INNER JOIN Residents r ON r.user_id = p.id_resident
+      LEFT JOIN Residents r ON r.user_id = p.id_resident
       INNER JOIN Users concierge_user ON concierge_user.id = p.id_concierge
       LEFT JOIN Concierges c ON c.user_id = p.id_concierge
       LEFT JOIN Admins a ON a.user_id = p.id_concierge
@@ -199,7 +136,7 @@ export async function listParcels(
       LEFT JOIN Concierges cc ON cc.user_id = claimed_user.id
       LEFT JOIN Admins ca ON ca.user_id = claimed_user.id
       WHERE p.parcel_status = ?
-        AND (? IS NULL OR r.building_id = ?)
+        AND (? IS NULL OR p.building_id = ?)
       ORDER BY
         CASE
           WHEN p.parcel_status = 'claimed' THEN p.claimed_date
@@ -238,14 +175,15 @@ export async function getParcelById(parcelId: string) {
         p.id_concierge,
         p.id_resident,
         p.id_business,
-        r.resident_name,
-        r.user_phone_number,
+        p.building_id,
+        COALESCE(p.parcel_recipient_name, r.resident_name, '') AS resident_name,
+        COALESCE(p.parcel_recipient_phone, r.user_phone_number, '') AS user_phone_number,
         COALESCE(p.delivery_department_address, r.department_address) AS department_address,
         COALESCE(c.concierge_name, a.admin_name, concierge_user.email) AS concierge_name,
         b.business_name,
         COALESCE(cr.resident_name, cc.concierge_name, ca.admin_name, claimed_user.email) AS claimed_by_name
       FROM Parcels p
-      INNER JOIN Residents r ON r.user_id = p.id_resident
+      LEFT JOIN Residents r ON r.user_id = p.id_resident
       INNER JOIN Users concierge_user ON concierge_user.id = p.id_concierge
       LEFT JOIN Concierges c ON c.user_id = p.id_concierge
       LEFT JOIN Admins a ON a.user_id = p.id_concierge
@@ -298,9 +236,9 @@ export async function assertResidentParcelAccess(session: AuthSession, qrValue: 
         p.parcel_status,
         p.delivery_department_address
       FROM Parcels p
-      INNER JOIN Residents r ON r.user_id = p.id_resident
+      LEFT JOIN Residents r ON r.user_id = p.id_resident
       WHERE p.id = ?
-        AND (? IS NULL OR r.building_id = ?)
+        AND (? IS NULL OR p.building_id = ?)
       LIMIT 1
     `,
     [parsed.parcelId, session.buildingId ?? null, session.buildingId ?? null],
