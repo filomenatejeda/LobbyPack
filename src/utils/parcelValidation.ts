@@ -1,7 +1,6 @@
 import type { AddPackageFormValues } from "../components/Home/packageFormTypes";
 import type { CommunityStructureTower } from "../types/home";
 
-export const DEPARTMENT_ADDRESS_REGEX = /^Torre [A-Z] \d{3}$/;
 export const PHONE_REGEX = /^\+569\d{8}$/;
 export const PARCEL_NAME_REGEX = /^[\p{L}\p{N} ]{1,30}$/u;
 export const PARCEL_DESCRIPTION_REGEX = /^[\p{L}\p{N} .,:;¡¿?!@#$%^&*()"\-_=+]{1,150}$/u;
@@ -36,14 +35,22 @@ export function validateParcelField(
     field === "user_phone_number" ? value.trim() : normalizeParcelText(value);
 
   if (field === "department_address") {
-    if (!DEPARTMENT_ADDRESS_REGEX.test(normalizedValue)) {
-      return "El departamento debe seguir el formato Torre A 302.";
+    if (!normalizedValue) {
+      return "Selecciona un departamento o unidad.";
+    }
+
+    if (normalizedValue.length > 100) {
+      return "El departamento o unidad debe tener un maximo de 100 caracteres.";
     }
 
     return null;
   }
 
   if (field === "user_phone_number") {
+    if (!normalizedValue) {
+      return null;
+    }
+
     if (!PHONE_REGEX.test(normalizedValue)) {
       return "El teléfono debe seguir el formato +56912345678.";
     }
@@ -63,6 +70,10 @@ export function validateParcelField(
     return null;
   }
 
+  if (field === "business_name" && !normalizedValue) {
+    return null;
+  }
+
   if (!PARCEL_NAME_REGEX.test(normalizedValue)) {
     return "Este campo solo admite letras, números, tildes, ñ y espacios, con un máximo de 30 caracteres.";
   }
@@ -70,24 +81,14 @@ export function validateParcelField(
   return null;
 }
 
-function parseDepartmentAddress(value: string) {
-  const match = normalizeParcelText(value).match(DEPARTMENT_ADDRESS_REGEX);
+function normalizeDepartmentLookup(value: string) {
+  return normalizeParcelText(value).toLowerCase();
+}
 
-  if (!match) {
-    return null;
-  }
-
-  const [, towerLetter, apartmentNumber] =
-    match[0].match(/^Torre ([A-Z]) (\d{3})$/) ?? [];
-
-  if (!towerLetter || !apartmentNumber) {
-    return null;
-  }
-
-  return {
-    tower_name: `Torre ${towerLetter}`,
-    apartment_name: apartmentNumber,
-  };
+function getCommunityDepartmentOptions(communityStructure: CommunityStructureTower[]) {
+  return communityStructure.flatMap((tower) =>
+    tower.apartments.map((apartment) => `${tower.tower_name} ${apartment}`),
+  );
 }
 
 export function validateDepartmentAgainstStructure(
@@ -98,22 +99,15 @@ export function validateDepartmentAgainstStructure(
     return null;
   }
 
-  const parsedDepartment = parseDepartmentAddress(departmentAddress);
+  const normalizedDepartment = normalizeDepartmentLookup(departmentAddress);
+  const departmentOptions = getCommunityDepartmentOptions(communityStructure);
 
-  if (!parsedDepartment) {
-    return null;
-  }
-
-  const tower = communityStructure.find(
-    (item) => item.tower_name === parsedDepartment.tower_name,
-  );
-
-  if (!tower) {
-    return "La Torre ingresada no existe.";
-  }
-
-  if (!tower.apartments.includes(parsedDepartment.apartment_name)) {
-    return "El número de departamento ingresado no existe en esta Torre.";
+  if (
+    !departmentOptions.some(
+      (departmentOption) => normalizeDepartmentLookup(departmentOption) === normalizedDepartment,
+    )
+  ) {
+    return "Selecciona un departamento o unidad registrada.";
   }
 
   return null;

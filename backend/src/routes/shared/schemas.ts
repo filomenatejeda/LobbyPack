@@ -1,10 +1,10 @@
 import { t } from "elysia";
 
 export const parcelPayloadSchema = t.Object({
-  department_address: t.String({ minLength: 1, maxLength: 11 }),
+  department_address: t.String({ minLength: 1, maxLength: 100 }),
   resident_name: t.String({ minLength: 1, maxLength: 30 }),
-  user_phone_number: t.String({ minLength: 12, maxLength: 12 }),
-  business_name: t.String({ minLength: 1, maxLength: 30 }),
+  user_phone_number: t.Optional(t.String({ maxLength: 12 })),
+  business_name: t.Optional(t.String({ maxLength: 30 })),
   parcel_description: t.Optional(t.String({ maxLength: 150 })),
   is_urgent: t.Optional(t.Boolean()),
 });

@@ -422,18 +422,24 @@ export function useHomeDashboard() {
     }
   };
 
-  const handleAddPackage = async (values: AddPackageFormValues) => {
+  const handleAddPackage = async (
+    values: AddPackageFormValues,
+    options: { closeModal?: boolean } = {},
+  ) => {
     try {
       const createdParcel = await createParcel(values);
       setPendingParcels((current) => [createdParcel, ...current]);
       activateView("received");
       setSearchTerm("");
-      setIsAddPackageOpen(false);
+      if (options.closeModal !== false) {
+        setIsAddPackageOpen(false);
+      }
       setErrorMessage("");
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "No se pudo registrar el paquete.",
       );
+      throw error;
     }
   };
 

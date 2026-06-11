@@ -13,20 +13,14 @@ export type CommunityStructureTower = {
   apartments: string[];
 };
 
-const DEPARTMENT_PARTS_REGEX = /^(Torre [A-Z]) (\d{3})$/;
+function normalizeDepartmentLookup(value: string) {
+  return normalizeDepartmentAddress(value).toLowerCase();
+}
 
-function parseDepartmentAddress(value: string) {
-  const normalizedValue = normalizeDepartmentAddress(value);
-  const match = normalizedValue.match(DEPARTMENT_PARTS_REGEX);
-
-  if (!match) {
-    return null;
-  }
-
-  return {
-    tower_name: match[1],
-    apartment_name: match[2],
-  };
+function getCommunityDepartmentOptions(structure: CommunityStructureTower[]) {
+  return structure.flatMap((tower) =>
+    tower.apartments.map((apartment) => `${tower.tower_name} ${apartment}`),
+  );
 }
 
 export async function listCommunityStructure(buildingId: string) {
@@ -66,20 +60,24 @@ export async function assertDepartmentExistsInStructure(
   buildingId: string,
   departmentAddress: string,
 ) {
-  const parsedDepartment = parseDepartmentAddress(departmentAddress);
+  const normalizedDepartment = normalizeDepartmentLookup(departmentAddress);
 
-  if (!parsedDepartment) {
-    throw new AuthError(400, "El departamento debe seguir el formato Torre A 302.");
+  if (!normalizedDepartment) {
+    throw new AuthError(400, "Selecciona un departamento o unidad.");
   }
 
   const structure = await listCommunityStructure(buildingId);
-  const tower = structure.find((item) => item.tower_name === parsedDepartment.tower_name);
+  const departmentOptions = getCommunityDepartmentOptions(structure);
 
-  if (!tower) {
-    throw new AuthError(400, "La Torre ingresada no existe.");
+  if (structure.length === 0) {
+    return;
   }
 
-  if (!tower.apartments.includes(parsedDepartment.apartment_name)) {
-    throw new AuthError(400, "El número de departamento ingresado no existe en esta Torre.");
+  if (
+    !departmentOptions.some(
+      (departmentOption) => normalizeDepartmentLookup(departmentOption) === normalizedDepartment,
+    )
+  ) {
+    throw new AuthError(400, "Selecciona un departamento o unidad registrada.");
   }
 }

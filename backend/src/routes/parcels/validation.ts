@@ -1,16 +1,16 @@
 import { AuthError } from "../../auth/session";
 import { normalizeTextInput } from "../../utils/textEncoding";
 
-const DEPARTMENT_ADDRESS_REGEX = /^Torre [A-Z] \d{3}$/;
 const PHONE_REGEX = /^\+569\d{8}$/;
 const NAME_REGEX = /^[\p{L}\p{N} ]{1,30}$/u;
+const DEFAULT_BUSINESS_NAME = "Sin compania";
 const DESCRIPTION_REGEX = /^[\p{L}\p{N} .,:;¡¿?!@#$%^&*()"\-_=+]{1,150}$/u;
 
 type ParcelPayloadInput = {
   department_address: string;
   resident_name: string;
-  user_phone_number: string;
-  business_name: string;
+  user_phone_number?: string;
+  business_name?: string;
   parcel_description?: string;
   is_urgent?: boolean;
 };
@@ -28,20 +28,25 @@ function assertRegex(value: string, regex: RegExp, message: string) {
 export function validateParcelPayload(payload: ParcelPayloadInput) {
   const departmentAddress = normalizeParcelInput(payload.department_address);
   const residentName = normalizeParcelInput(payload.resident_name);
-  const userPhoneNumber = normalizeTextInput(payload.user_phone_number);
-  const businessName = normalizeParcelInput(payload.business_name);
+  const userPhoneNumber = normalizeTextInput(payload.user_phone_number ?? "");
+  const businessName = normalizeParcelInput(payload.business_name ?? "") || DEFAULT_BUSINESS_NAME;
   const parcelDescription = normalizeParcelInput(payload.parcel_description ?? "");
 
-  assertRegex(
-    departmentAddress,
-    DEPARTMENT_ADDRESS_REGEX,
-    "El departamento debe seguir el formato Torre A 302.",
-  );
-  assertRegex(
-    userPhoneNumber,
-    PHONE_REGEX,
-    "El teléfono debe seguir el formato +56912345678.",
-  );
+  if (!departmentAddress) {
+    throw new AuthError(400, "Selecciona un departamento o unidad.");
+  }
+
+  if (departmentAddress.length > 100) {
+    throw new AuthError(400, "El departamento o unidad debe tener un maximo de 100 caracteres.");
+  }
+  if (userPhoneNumber) {
+    assertRegex(
+      userPhoneNumber,
+      PHONE_REGEX,
+      "El teléfono debe seguir el formato +56912345678.",
+    );
+  }
+
   assertRegex(
     residentName,
     NAME_REGEX,
