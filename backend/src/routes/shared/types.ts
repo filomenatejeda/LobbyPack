@@ -9,6 +9,8 @@ export type ParcelRow = RowDataPacket & {
   parcel_description: string | null;
   is_urgent: number;
   pending_date: string;
+  resident_claim_confirmed_at: string | null;
+  resident_claimed_by_user_id?: string | null;
   claimed_date: string | null;
   claimed_by_user_id?: string | null;
   id_concierge: string;
@@ -20,6 +22,7 @@ export type ParcelRow = RowDataPacket & {
   department_address: string;
   concierge_name: string;
   business_name: string;
+  resident_claimed_by_name: string | null;
   claimed_by_name: string | null;
 };
 
@@ -53,7 +56,16 @@ export type ResidentRow = RowDataPacket & {
   totp_verified: number | null;
 };
 
-export type ResidentSecurityRow = RowDataPacket & {
+export type ConciergeRow = RowDataPacket & {
+  user_id: string;
+  email: string;
+  concierge_name: string;
+  building_id: string | null;
+  email_verified: number | null;
+  totp_verified: number | null;
+};
+
+export type AccountSecurityRow = RowDataPacket & {
   user_id: string;
   email_verification_code_hash: string | null;
   totp_secret: string | null;
@@ -104,5 +116,6 @@ export type ParcelClaimRow = RowDataPacket & {
   id: string;
   qr_token: string | null;
   parcel_status: "pending" | "claimed";
+  resident_claim_confirmed_at: string | null;
   delivery_department_address: string | null;
 };

@@ -149,7 +149,7 @@ export const issuesRoutes = new Elysia()
   .patch(
     "/issues/:id",
     async ({ headers, params, body, set }) => {
-      const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
+      const session = await requireAppRole(headers.authorization, ["admin"]);
       const buildingId = await resolveBuildingIdForUserEmail(session.email);
 
       const [issues] = await pool.query<RowDataPacket[]>(

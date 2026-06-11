@@ -3,6 +3,7 @@ import type { GeneralSettings } from "../../../types/settings";
 type SettingsGeneralCardProps = {
   communityTypeOptions: string[];
   generalSettings: GeneralSettings;
+  canEdit: boolean;
   isEditing: boolean;
   isSaving: boolean;
   onCancel: () => void;
@@ -14,6 +15,7 @@ type SettingsGeneralCardProps = {
 export default function SettingsGeneralCard({
   communityTypeOptions,
   generalSettings,
+  canEdit,
   isEditing,
   isSaving,
   onCancel,
@@ -33,7 +35,7 @@ export default function SettingsGeneralCard({
         </span>
       </div>
 
-      {isEditing ? (
+      {isEditing && canEdit ? (
         <>
           <div className="settingsForm">
             <label className="settingsField">
@@ -115,11 +117,13 @@ export default function SettingsGeneralCard({
             </div>
           </dl>
 
-          <div className="settingsActions">
-            <button type="button" className="primaryButton" onClick={onEdit}>
-              Editar informacion
-            </button>
-          </div>
+          {canEdit ? (
+            <div className="settingsActions">
+              <button type="button" className="primaryButton" onClick={onEdit}>
+                Editar informacion
+              </button>
+            </div>
+          ) : null}
         </>
       )}
     </article>

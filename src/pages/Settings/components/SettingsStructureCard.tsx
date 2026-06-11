@@ -3,6 +3,7 @@ import type { TowerConfig } from "../../../types/settings";
 import type { StructureLabels } from "../settingsConfig";
 
 type SettingsStructureCardProps = {
+  canEdit: boolean;
   isLoading: boolean;
   isSaving: boolean;
   labels: StructureLabels;
@@ -29,6 +30,7 @@ type SettingsStructureCardProps = {
 };
 
 export default function SettingsStructureCard({
+  canEdit,
   isLoading,
   isSaving,
   labels,
@@ -55,9 +57,11 @@ export default function SettingsStructureCard({
           <p className="settingsLabel">Estructura</p>
           <h2>{labels.title}</h2>
         </div>
-        <button type="button" className="secondaryButton" onClick={onAddTower}>
-          {labels.addGroup}
-        </button>
+        {canEdit ? (
+          <button type="button" className="secondaryButton" onClick={onAddTower}>
+            {labels.addGroup}
+          </button>
+        ) : null}
       </div>
 
       <p className="settingsSectionLead">{labels.sectionLead}</p>
@@ -100,6 +104,7 @@ export default function SettingsStructureCard({
               labels={labels}
               totalTowerUnits={totalTowerUnits}
               canRemove={towers.length > 1}
+              canEdit={canEdit}
               onToggleEditing={onToggleEditing}
               onRemove={onRemoveTower}
               onUpdateName={onUpdateTowerName}
@@ -114,19 +119,21 @@ export default function SettingsStructureCard({
         })}
       </div>
 
-      <div className="settingsActions">
-        <button
-          type="button"
-          className="secondaryButton"
-          onClick={onCancel}
-          disabled={isSaving || isLoading}
-        >
-          Cancelar
-        </button>
-        <button type="button" className="primaryButton" onClick={onSave} disabled={isSaving}>
-          {isSaving ? "Guardando..." : "Guardar estructura"}
-        </button>
-      </div>
+      {canEdit ? (
+        <div className="settingsActions">
+          <button
+            type="button"
+            className="secondaryButton"
+            onClick={onCancel}
+            disabled={isSaving || isLoading}
+          >
+            Cancelar
+          </button>
+          <button type="button" className="primaryButton" onClick={onSave} disabled={isSaving}>
+            {isSaving ? "Guardando..." : "Guardar estructura"}
+          </button>
+        </div>
+      ) : null}
     </article>
   );
 }

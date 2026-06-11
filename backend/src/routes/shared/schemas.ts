@@ -48,6 +48,12 @@ export const residentSettingsSchema = t.Object({
   department_address: t.String({ minLength: 1 }),
 });
 
+export const conciergeSettingsSchema = t.Object({
+  concierge_email: t.String({ minLength: 1 }),
+  concierge_name: t.String({ minLength: 1 }),
+  concierge_password: t.String({ minLength: 8 }),
+});
+
 export const residentEmailVerificationSchema = t.Object({
   verification_code: t.String({ minLength: 6 }),
 });

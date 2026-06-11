@@ -31,6 +31,10 @@ type UserDisplayNameRow = RowDataPacket & {
   display_name: string | null;
 };
 
+type UserBuildingRow = RowDataPacket & {
+  building_id: string | null;
+};
+
 type CommunityRegistrationRoleRow = RowDataPacket & {
   admin_email: string;
   admin_first_name: string;
@@ -226,6 +230,22 @@ async function getUserDisplayName(userId: string) {
   return rows[0]?.display_name?.trim() || null;
 }
 
+async function getUserBuildingId(userId: string) {
+  const [rows] = await pool.query<UserBuildingRow[]>(
+    `
+      SELECT COALESCE(c.building_id, r.building_id) AS building_id
+      FROM Users u
+      LEFT JOIN Concierges c ON c.user_id = u.id
+      LEFT JOIN Residents r ON r.user_id = u.id
+      WHERE u.id = ?
+      LIMIT 1
+    `,
+    [userId],
+  );
+
+  return rows[0]?.building_id ?? undefined;
+}
+
 export async function requireAppRole(
   authorization: string | undefined,
   allowedRoles: readonly AppRole[],
@@ -260,6 +280,7 @@ export async function requireAppRole(
       role: user.role,
       supabaseUserId,
       displayName: (await getUserDisplayName(user.id)) ?? user.email,
+      buildingId: await getUserBuildingId(user.id),
     } satisfies AuthSession;
   }
 

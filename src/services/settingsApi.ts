@@ -1,5 +1,6 @@
 import { apiRequest } from "../lib/api";
 import type {
+  ConciergeAccountCreationResponse,
   GeneralSettings,
   PreferenceSettings,
   ResidentAccountCreationResponse,
@@ -69,6 +70,17 @@ export function addResidentToDepartment(values: {
   });
 }
 
+export function inviteConcierge(values: {
+  concierge_email: string;
+  concierge_name: string;
+  concierge_password: string;
+}) {
+  return apiRequest<ConciergeAccountCreationResponse>("/api/settings/concierges", {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
+}
+
 export function deleteResidentFromDepartment(userId: string) {
   return apiRequest<null>(`/api/settings/residents/${userId}`, {
     method: "DELETE",
@@ -79,6 +91,20 @@ export function verifyResidentEmail(userId: string, verificationCode: string) {
   return apiRequest<{ ok: boolean }>(`/api/settings/residents/${userId}/verify-email`, {
     method: "POST",
     body: JSON.stringify({ verification_code: verificationCode }),
+  });
+}
+
+export function verifyConciergeEmail(userId: string, verificationCode: string) {
+  return apiRequest<{ ok: boolean }>(`/api/settings/concierges/${userId}/verify-email`, {
+    method: "POST",
+    body: JSON.stringify({ verification_code: verificationCode }),
+  });
+}
+
+export function verifyConciergeMfa(userId: string, mfaCode: string) {
+  return apiRequest<{ ok: boolean }>(`/api/settings/concierges/${userId}/verify-mfa`, {
+    method: "POST",
+    body: JSON.stringify({ mfa_code: mfaCode }),
   });
 }
 

@@ -8,7 +8,7 @@ import {
 } from "../../utils/departments";
 import { createSequentialId } from "../../utils/ids";
 import { normalizeTextInput, repairPotentialMojibake } from "../../utils/textEncoding";
-import type { ResidentRow, ResidentSecurityRow } from "./types";
+import type { AccountSecurityRow, ResidentRow } from "./types";
 
 function hashPassword(password: string) {
   return createHash("sha256").update(password).digest("hex");
@@ -315,7 +315,7 @@ export async function deleteResidentAccount(connection: PoolConnection, resident
 export async function getResidentSecurity(residentId: string) {
   await ensureResidentAccountSecurityTable();
 
-  const [securityRows] = await pool.query<ResidentSecurityRow[]>(
+  const [securityRows] = await pool.query<AccountSecurityRow[]>(
     `
       SELECT user_id, email_verification_code_hash, totp_secret
       FROM ResidentAccountSecurity
@@ -331,7 +331,7 @@ export async function getResidentSecurity(residentId: string) {
 export async function getResidentSecurityForMfa(residentId: string) {
   await ensureResidentAccountSecurityTable();
 
-  const [securityRows] = await pool.query<ResidentSecurityRow[]>(
+  const [securityRows] = await pool.query<AccountSecurityRow[]>(
     `
       SELECT user_id, email_verification_code_hash, totp_secret
       FROM ResidentAccountSecurity

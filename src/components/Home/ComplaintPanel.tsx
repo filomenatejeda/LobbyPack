@@ -19,6 +19,7 @@ type ComplaintPanelProps = {
   totalPages: number;
   paginatedComplaints: IssueItem[];
   updatingIssueId: string | null;
+  canManageStatus: boolean;
   onSearchChange: (value: string) => void;
   onPageSizeChange: (value: number) => void;
   onPrevPage: () => void;
@@ -39,6 +40,7 @@ export default function ComplaintPanel({
   totalPages,
   paginatedComplaints,
   updatingIssueId,
+  canManageStatus,
   onSearchChange,
   onPageSizeChange,
   onPrevPage,
@@ -119,36 +121,40 @@ export default function ComplaintPanel({
 
               <p className="complaintText">{item.issue_description}</p>
 
-              <div className="complaintActions">
-                <label className="complaintStatusField">
-                  <span>Estado</span>
-                  <select
-                    className="complaintStatusSelect"
-                    value={item.issue_status}
-                    onChange={(event) =>
-                      onIssueStatusChange(item.id, event.target.value as IssueStatus)
+              {canManageStatus ? (
+                <div className="complaintActions">
+                  <label className="complaintStatusField">
+                    <span>Estado</span>
+                    <select
+                      className="complaintStatusSelect"
+                      value={item.issue_status}
+                      onChange={(event) =>
+                        onIssueStatusChange(item.id, event.target.value as IssueStatus)
+                      }
+                      disabled={isUpdating}
+                    >
+                      {issueStatusOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <button
+                    type="button"
+                    className={`complaintQuickAction complaintQuickAction${getIssueStatusClassName(
+                      getQuickIssueStatus(item.issue_status),
+                    )}`}
+                    onClick={() =>
+                      onIssueStatusChange(item.id, getQuickIssueStatus(item.issue_status))
                     }
                     disabled={isUpdating}
                   >
-                    {issueStatusOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <button
-                  type="button"
-                  className={`complaintQuickAction complaintQuickAction${getIssueStatusClassName(
-                    getQuickIssueStatus(item.issue_status),
-                  )}`}
-                  onClick={() => onIssueStatusChange(item.id, getQuickIssueStatus(item.issue_status))}
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? "Guardando..." : getQuickIssueStatusLabel(item.issue_status)}
-                </button>
-              </div>
+                    {isUpdating ? "Guardando..." : getQuickIssueStatusLabel(item.issue_status)}
+                  </button>
+                </div>
+              ) : null}
             </li>
           );
         })}

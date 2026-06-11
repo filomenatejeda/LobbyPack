@@ -185,6 +185,14 @@ export const parcelRoutes = new Elysia()
               parcel_recipient_phone = ?,
               qr_code_url = COALESCE(?, qr_code_url),
               qr_token = COALESCE(?, qr_token),
+              resident_claim_confirmed_at = CASE
+                WHEN ? IS NULL THEN resident_claim_confirmed_at
+                ELSE NULL
+              END,
+              resident_claimed_by_user_id = CASE
+                WHEN ? IS NULL THEN resident_claimed_by_user_id
+                ELSE NULL
+              END,
               parcel_description = ?,
               is_urgent = ?
             WHERE id = ?
@@ -197,6 +205,8 @@ export const parcelRoutes = new Elysia()
             validatedPayload.resident_name,
             validatedPayload.user_phone_number,
             qrToken ? buildParcelQrValue(params.id, qrToken) : null,
+            qrToken,
+            qrToken,
             qrToken,
             normalizedDescription,
             validatedPayload.is_urgent,
@@ -227,7 +237,7 @@ export const parcelRoutes = new Elysia()
 
       const [result] = await connection.query<RowDataPacket[]>(
         `
-          SELECT p.id, p.parcel_status
+          SELECT p.id, p.parcel_status, p.resident_claim_confirmed_at
           FROM Parcels p
           WHERE p.id = ?
             AND p.building_id = ?
@@ -248,6 +258,12 @@ export const parcelRoutes = new Elysia()
         return { message: "El paquete ya fue retirado." };
       }
 
+      if (!result[0].resident_claim_confirmed_at) {
+        await connection.rollback();
+        set.status = 409;
+        return { message: "El residente debe confirmar el retiro antes de entregar el paquete." };
+      }
+
       const withdrawalCode = await createSequentialCode(connection, {
         tableName: "Parcels",
         columnName: "withdrawal_code",
@@ -262,10 +278,10 @@ export const parcelRoutes = new Elysia()
             withdrawal_code = ?,
             parcel_status = 'claimed',
             claimed_date = CURRENT_TIMESTAMP,
-            claimed_by_user_id = ?
+            claimed_by_user_id = resident_claimed_by_user_id
           WHERE id = ?
         `,
-        [withdrawalCode, session.userId, params.id],
+        [withdrawalCode, params.id],
       );
 
       await connection.commit();
@@ -315,6 +331,7 @@ export const parcelRoutes = new Elysia()
               p.id,
               p.qr_token,
               p.parcel_status,
+              p.resident_claim_confirmed_at,
               p.delivery_department_address
             FROM Parcels p
             LEFT JOIN Residents r ON r.user_id = p.id_resident
@@ -351,24 +368,15 @@ export const parcelRoutes = new Elysia()
           return { message: "Ese QR no corresponde al departamento de tu cuenta." };
         }
 
-        const withdrawalCode = await createSequentialCode(connection, {
-          tableName: "Parcels",
-          columnName: "withdrawal_code",
-          prefix: "RET",
-          padLength: 4,
-        });
-
         await connection.query(
           `
             UPDATE Parcels
             SET
-              withdrawal_code = ?,
-              parcel_status = 'claimed',
-              claimed_date = CURRENT_TIMESTAMP,
-              claimed_by_user_id = ?
+              resident_claim_confirmed_at = COALESCE(resident_claim_confirmed_at, CURRENT_TIMESTAMP),
+              resident_claimed_by_user_id = COALESCE(resident_claimed_by_user_id, ?)
             WHERE id = ?
           `,
-          [withdrawalCode, session.userId, params.id],
+          [session.userId, params.id],
         );
 
         await connection.commit();

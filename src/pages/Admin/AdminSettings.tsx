@@ -1,12 +1,23 @@
 import { useEffect, useState } from "react";
+import ConciergeInviteModal from "../../components/Settings/ConciergeInviteModal";
 import ApartmentResidentsModal from "../../components/Settings/ApartmentResidentsModal";
 import {
   fetchSettings,
+  inviteConcierge,
   saveGeneralSettings,
   saveTowers,
+  verifyConciergeEmail,
+  verifyConciergeMfa,
 } from "../../services/settingsApi";
 import { supabase } from "../../lib/client";
-import type { GeneralSettings, PreferenceSettings, TeamItem, TowerConfig } from "../../types/settings";
+import type {
+  ConciergeAccountCreationResponse,
+  GeneralSettings,
+  PreferenceSettings,
+  TeamItem,
+  TowerConfig,
+} from "../../types/settings";
+import type { DashboardCurrentUser } from "../../types/home";
 import {
   buildApartmentName,
   clampCount,
@@ -26,7 +37,11 @@ import {
 } from "../Settings/settingsConfig";
 import "../Settings/Settings.css";
 
-export default function AdminSettings() {
+type AdminSettingsProps = {
+  currentUser?: DashboardCurrentUser | null;
+};
+
+export default function AdminSettings({ currentUser }: AdminSettingsProps) {
   const [generalSettings, setGeneralSettings] =
     useState<GeneralSettings>(emptyGeneralSettings);
   const [preferenceSettings, setPreferenceSettings] =
@@ -36,11 +51,14 @@ export default function AdminSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditingGeneralSettings, setIsEditingGeneralSettings] = useState(false);
+  const [isInvitingConcierge, setIsInvitingConcierge] = useState(false);
+  const [isSavingConcierge, setIsSavingConcierge] = useState(false);
   const [adminEmail, setAdminEmail] = useState<string | undefined>(undefined);
   const [statusMessage, setStatusMessage] = useState("");
   const apartmentResidents = useApartmentResidents({
     onStatusMessage: setStatusMessage,
   });
+  const canManageSettings = currentUser?.role !== "concierge";
 
   const loadSettings = async () => {
     setIsLoading(true);
@@ -303,6 +321,64 @@ export default function AdminSettings() {
     await loadSettings();
   };
 
+  const handleInviteConcierge = async (values: {
+    concierge_email: string;
+    concierge_name: string;
+    concierge_password: string;
+  }): Promise<ConciergeAccountCreationResponse> => {
+    setIsSavingConcierge(true);
+    setStatusMessage("");
+
+    try {
+      const createdConcierge = await inviteConcierge(values);
+      setStatusMessage("Cuenta conserje creada. Verifica el codigo para activar MFA.");
+      await loadSettings();
+      return createdConcierge;
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error ? error.message : "No se pudo invitar al conserje.",
+      );
+      throw error;
+    } finally {
+      setIsSavingConcierge(false);
+    }
+  };
+
+  const handleVerifyConciergeEmail = async (conciergeId: string, verificationCode: string) => {
+    setIsSavingConcierge(true);
+    setStatusMessage("");
+
+    try {
+      await verifyConciergeEmail(conciergeId, verificationCode);
+      await loadSettings();
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error ? error.message : "No se pudo verificar el codigo.",
+      );
+      throw error;
+    } finally {
+      setIsSavingConcierge(false);
+    }
+  };
+
+  const handleVerifyConciergeMfa = async (conciergeId: string, mfaCode: string) => {
+    setIsSavingConcierge(true);
+    setStatusMessage("");
+
+    try {
+      await verifyConciergeMfa(conciergeId, mfaCode);
+      setStatusMessage("Cuenta conserje verificada correctamente.");
+      await loadSettings();
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error ? error.message : "No se pudo verificar el autenticador.",
+      );
+      throw error;
+    } finally {
+      setIsSavingConcierge(false);
+    }
+  };
+
   return (
     <main className="settingsPage">
       <section className="settingsHero">
@@ -325,12 +401,18 @@ export default function AdminSettings() {
           isSaving={isSaving}
           onCancel={() => void cancelGeneralSettingsEdit()}
           onChange={updateGeneralSettings}
-          onEdit={() => setIsEditingGeneralSettings(true)}
+          canEdit={canManageSettings}
+          onEdit={() => {
+            if (canManageSettings) {
+              setIsEditingGeneralSettings(true);
+            }
+          }}
           onSave={() => void handleSaveGeneralSettings()}
         />
 
         <SettingsPreferencesCard
           preferenceSettings={preferenceSettings}
+          canEdit={canManageSettings}
           onToggle={updatePreferenceSettings}
         />
 
@@ -341,6 +423,7 @@ export default function AdminSettings() {
           totalUnits={totalUnits}
           isSaving={isSaving}
           isLoading={isLoading}
+          canEdit={canManageSettings}
           onAddApartment={addApartment}
           onAddTower={addTower}
           onApartmentClick={(apartmentName) =>
@@ -357,14 +440,30 @@ export default function AdminSettings() {
           onUpdateTowerName={updateTowerName}
         />
 
-        <SettingsTeamCard team={team} />
+        <SettingsTeamCard
+          team={team}
+          canInvite={canManageSettings}
+          onInvite={() => setIsInvitingConcierge(true)}
+        />
       </section>
+
+      {isInvitingConcierge && canManageSettings ? (
+        <ConciergeInviteModal
+          isSaving={isSavingConcierge}
+          onClose={() => setIsInvitingConcierge(false)}
+          onInviteConcierge={handleInviteConcierge}
+          onVerifyEmail={handleVerifyConciergeEmail}
+          onVerifyMfa={handleVerifyConciergeMfa}
+          onDone={loadSettings}
+        />
+      ) : null}
 
       {apartmentResidents.selectedApartment ? (
         <ApartmentResidentsModal
           apartmentName={apartmentResidents.selectedApartment}
           unitSingular={structureLabels.unitSingular}
           residents={apartmentResidents.apartmentResidents}
+          canManageResidents={canManageSettings}
           isLoading={apartmentResidents.isLoadingResidents}
           isSaving={apartmentResidents.isSavingResident}
           onClose={apartmentResidents.closeApartmentResidents}

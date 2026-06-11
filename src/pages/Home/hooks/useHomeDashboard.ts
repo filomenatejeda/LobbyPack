@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { AddPackageFormValues } from "../../../components/Home/packageFormTypes";
 import {
   claimParcel,
@@ -57,31 +57,60 @@ export function useHomeDashboard() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const loadDashboard = async () => {
+  const loadDashboard = useCallback(async (showLoading = false) => {
+    if (showLoading) {
       setIsLoading(true);
-      setErrorMessage("");
+    }
+    setErrorMessage("");
 
-      try {
-        const response = await fetchDashboard();
-        setCurrentUser(response.current_user);
-        setPendingParcels(response.pending_parcels);
-        setClaimedParcels(response.claimed_parcels);
-        setIssues(response.issues);
-        setCommunityStructure(response.community_structure);
-      } catch (error) {
-        setErrorMessage(
-          error instanceof Error ? error.message : "No se pudo cargar la informacion.",
+    try {
+      const response = await fetchDashboard();
+      setCurrentUser(response.current_user);
+      setPendingParcels(response.pending_parcels);
+      setClaimedParcels(response.claimed_parcels);
+      setIssues(response.issues);
+      setCommunityStructure(response.community_structure);
+      setQrPackage((current) => {
+        if (!current) {
+          return null;
+        }
+
+        return (
+          response.pending_parcels.find((item) => item.id === current.id) ??
+          response.claimed_parcels.find((item) => item.id === current.id) ??
+          null
         );
-      } finally {
+      });
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "No se pudo cargar la informacion.",
+      );
+    } finally {
+      if (showLoading) {
         setIsLoading(false);
       }
-    };
-
-    void loadDashboard();
+    }
   }, []);
 
-  const isResident = currentUser?.role === "resident";
+  useEffect(() => {
+    void loadDashboard(true);
+  }, [loadDashboard]);
+
+  const currentUserRole = currentUser?.role;
+
+  useEffect(() => {
+    if (!currentUserRole) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      void loadDashboard(false);
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [currentUserRole, loadDashboard]);
+
+  const isResident = currentUserRole === "resident";
   const currentPackageView =
     activeView === "complaints"
       ? null
@@ -115,6 +144,8 @@ export function useHomeDashboard() {
         item.user_phone_number,
         item.business_name,
         item.concierge_name,
+        item.resident_claimed_by_name,
+        item.resident_claim_confirmed_at,
         item.claimed_by_name,
         item.pending_date,
         item.claimed_date,
@@ -332,20 +363,18 @@ export function useHomeDashboard() {
         residentScannedParcel.id,
         residentScannedQrValue,
       );
-      const movedParcel = response.parcel;
+      const confirmedParcel = response.parcel;
 
-      if (!movedParcel) {
+      if (!confirmedParcel) {
         throw new Error("No se pudo confirmar el retiro del paquete.");
       }
 
-      setPendingParcels((current) => current.filter((item) => item.id !== movedParcel.id));
-      setClaimedParcels((current) => [
-        movedParcel,
-        ...current.filter((item) => item.id !== movedParcel.id),
-      ]);
+      setPendingParcels((current) =>
+        current.map((item) => (item.id === confirmedParcel.id ? confirmedParcel : item)),
+      );
       setResidentFeedbackTone("success");
       setResidentFeedbackMessage(
-        `Retiro confirmado. El paquete ${movedParcel.id} quedo entregado.`,
+        `Retiro confirmado por residente. Espera la confirmacion final de conserjeria para completar la entrega del paquete ${confirmedParcel.id}.`,
       );
       resetResidentClaimFlow();
     } catch (error) {
@@ -448,6 +477,10 @@ export function useHomeDashboard() {
     issueId: string,
     nextStatus: IssueItem["issue_status"],
   ) => {
+    if (currentUser?.role !== "admin") {
+      return;
+    }
+
     const currentIssue = issues.find((item) => item.id === issueId);
     if (!currentIssue || currentIssue.issue_status === nextStatus) {
       return;

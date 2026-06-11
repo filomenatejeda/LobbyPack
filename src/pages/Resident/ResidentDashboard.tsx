@@ -46,7 +46,9 @@ function ParcelSummaryCard({ item }: { item: ParcelItem }) {
       <p>{item.parcel_description || "Sin descripcion"}</p>
       <p>
         {item.parcel_status === "pending"
-          ? `Recibido por ${item.concierge_name}`
+          ? item.resident_claim_confirmed_at
+            ? "Confirmacion enviada. Pendiente de entrega por conserjeria"
+            : `Recibido por ${item.concierge_name}`
           : `Retirado por ${item.claimed_by_name || item.resident_name}`}
       </p>
       <p>

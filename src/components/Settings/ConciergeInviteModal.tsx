@@ -1,10 +1,9 @@
 import { useMemo, useState, type ComponentType, type FormEvent } from "react";
-import { Trash2, X } from "lucide-react";
+import { X } from "lucide-react";
 import QRCodeImport from "react-qr-code";
 import { createIsolatedSupabaseClient, supabaseConfigError } from "../../lib/client";
 import type {
-  ResidentAccountCreationResponse,
-  ResidentItem,
+  ConciergeAccountCreationResponse,
   ResidentTotpSetup,
 } from "../../types/settings";
 
@@ -20,60 +19,46 @@ const QRCodeComponent =
       ? (qrCodeImport as QRCodeModule).default ?? null
       : null;
 
-const ResidentAccountPhase = {
+const ConciergeAccountPhase = {
   Form: "form",
   Code: "code",
   Mfa: "mfa",
   Done: "done",
 } as const;
 
-type ApartmentResidentsModalProps = {
-  apartmentName: string;
-  unitSingular: string;
-  residents: ResidentItem[];
-  canManageResidents: boolean;
-  isLoading: boolean;
+type ConciergeInviteModalProps = {
   isSaving: boolean;
   onClose: () => void;
-  onAddResident: (values: {
-    resident_email: string;
-    resident_name: string;
-    resident_password: string;
-    user_phone_number: string;
-  }) => Promise<ResidentAccountCreationResponse>;
-  onDeleteResident: (residentId: string) => Promise<void>;
-  onVerifyEmail: (residentId: string, verificationCode: string) => Promise<void>;
-  onVerifyMfa: (residentId: string, mfaCode: string) => Promise<void>;
+  onInviteConcierge: (values: {
+    concierge_email: string;
+    concierge_name: string;
+    concierge_password: string;
+  }) => Promise<ConciergeAccountCreationResponse>;
+  onVerifyEmail: (conciergeId: string, verificationCode: string) => Promise<void>;
+  onVerifyMfa: (conciergeId: string, mfaCode: string) => Promise<void>;
+  onDone: () => Promise<void>;
 };
 
-export default function ApartmentResidentsModal({
-  apartmentName,
-  unitSingular,
-  residents,
-  canManageResidents,
-  isLoading,
+export default function ConciergeInviteModal({
   isSaving,
   onClose,
-  onAddResident,
-  onDeleteResident,
+  onInviteConcierge,
   onVerifyEmail,
   onVerifyMfa,
-}: ApartmentResidentsModalProps) {
-  const [isAdding, setIsAdding] = useState(false);
-  const [accountPhase, setAccountPhase] = useState<string>(ResidentAccountPhase.Form);
-  const [createdResident, setCreatedResident] =
-    useState<ResidentAccountCreationResponse | null>(null);
+  onDone,
+}: ConciergeInviteModalProps) {
+  const [accountPhase, setAccountPhase] = useState<string>(ConciergeAccountPhase.Form);
+  const [createdConcierge, setCreatedConcierge] =
+    useState<ConciergeAccountCreationResponse | null>(null);
   const [totpSetup, setTotpSetup] = useState<ResidentTotpSetup | null>(null);
   const [mfaFactorId, setMfaFactorId] = useState("");
-  const [residentEmail, setResidentEmail] = useState("");
-  const [residentName, setResidentName] = useState("");
-  const [residentPassword, setResidentPassword] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [conciergeEmail, setConciergeEmail] = useState("");
+  const [conciergeName, setConciergeName] = useState("");
+  const [conciergePassword, setConciergePassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [formError, setFormError] = useState("");
-  const [residentToDelete, setResidentToDelete] = useState<ResidentItem | null>(null);
-  const residentSupabase = useMemo(
+  const conciergeSupabase = useMemo(
     () => (supabaseConfigError ? null : createIsolatedSupabaseClient()),
     [],
   );
@@ -83,28 +68,27 @@ export default function ApartmentResidentsModal({
     setFormError("");
 
     try {
-      if (!residentSupabase) {
+      if (!conciergeSupabase) {
         throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
       }
 
-      const signedUp = await residentSupabase.auth.signUp({
-        email: residentEmail,
-        password: residentPassword,
+      const signedUp = await conciergeSupabase.auth.signUp({
+        email: conciergeEmail,
+        password: conciergePassword,
       });
 
       if (signedUp.error) {
         throw signedUp.error;
       }
 
-      const resident = await onAddResident({
-        resident_email: residentEmail,
-        resident_name: residentName,
-        resident_password: residentPassword,
-        user_phone_number: phoneNumber,
+      const concierge = await onInviteConcierge({
+        concierge_email: conciergeEmail,
+        concierge_name: conciergeName,
+        concierge_password: conciergePassword,
       });
-      setCreatedResident(resident);
+      setCreatedConcierge(concierge);
       setVerificationCode("");
-      setAccountPhase(ResidentAccountPhase.Code);
+      setAccountPhase(ConciergeAccountPhase.Code);
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "No se pudo crear la cuenta.");
     }
@@ -113,19 +97,19 @@ export default function ApartmentResidentsModal({
   const handleVerifyEmail = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!createdResident) {
+    if (!createdConcierge) {
       return;
     }
 
     setFormError("");
 
     try {
-      if (!residentSupabase) {
+      if (!conciergeSupabase) {
         throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
       }
 
-      const verifiedOtp = await residentSupabase.auth.verifyOtp({
-        email: createdResident.email,
+      const verifiedOtp = await conciergeSupabase.auth.verifyOtp({
+        email: createdConcierge.email,
         token: verificationCode,
         type: "signup",
       });
@@ -134,23 +118,23 @@ export default function ApartmentResidentsModal({
         throw verifiedOtp.error;
       }
 
-      const enrolledFactor = await residentSupabase.auth.mfa.enroll({
+      const enrolledFactor = await conciergeSupabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: `LobbyPack ${createdResident.email}`,
+        friendlyName: `LobbyPack ${createdConcierge.email}`,
       });
 
       if (enrolledFactor.error) {
         throw enrolledFactor.error;
       }
 
-      await onVerifyEmail(createdResident.user_id, verificationCode);
+      await onVerifyEmail(createdConcierge.user_id, verificationCode);
       setMfaFactorId(enrolledFactor.data.id);
       setTotpSetup({
         totp_secret: enrolledFactor.data.totp.secret,
         totp_uri: enrolledFactor.data.totp.uri,
       });
       setMfaCode("");
-      setAccountPhase(ResidentAccountPhase.Mfa);
+      setAccountPhase(ConciergeAccountPhase.Mfa);
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Codigo invalido.");
     }
@@ -159,14 +143,14 @@ export default function ApartmentResidentsModal({
   const handleVerifyMfa = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!createdResident) {
+    if (!createdConcierge) {
       return;
     }
 
     setFormError("");
 
     try {
-      if (!residentSupabase) {
+      if (!conciergeSupabase) {
         throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
       }
 
@@ -174,13 +158,13 @@ export default function ApartmentResidentsModal({
         throw new Error("No se encontro el autenticador pendiente de configuracion.");
       }
 
-      const challenge = await residentSupabase.auth.mfa.challenge({ factorId: mfaFactorId });
+      const challenge = await conciergeSupabase.auth.mfa.challenge({ factorId: mfaFactorId });
 
       if (challenge.error) {
         throw challenge.error;
       }
 
-      const verifiedMfa = await residentSupabase.auth.mfa.verify({
+      const verifiedMfa = await conciergeSupabase.auth.mfa.verify({
         factorId: mfaFactorId,
         challengeId: challenge.data.id,
         code: mfaCode,
@@ -190,43 +174,32 @@ export default function ApartmentResidentsModal({
         throw verifiedMfa.error;
       }
 
-      await onVerifyMfa(createdResident.user_id, mfaCode);
-      await residentSupabase.auth.signOut();
-      setAccountPhase(ResidentAccountPhase.Done);
+      await onVerifyMfa(createdConcierge.user_id, mfaCode);
+      await conciergeSupabase.auth.signOut();
+      setAccountPhase(ConciergeAccountPhase.Done);
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Codigo del autenticador invalido.");
     }
   };
 
   const resetCreateFlow = () => {
-    setResidentEmail("");
-    setResidentName("");
-    setResidentPassword("");
-    setPhoneNumber("");
+    setConciergeEmail("");
+    setConciergeName("");
+    setConciergePassword("");
     setVerificationCode("");
     setMfaCode("");
-    setCreatedResident(null);
+    setCreatedConcierge(null);
     setTotpSetup(null);
     setMfaFactorId("");
     setFormError("");
-    setAccountPhase(ResidentAccountPhase.Form);
-    setIsAdding(false);
-    void residentSupabase?.auth.signOut();
+    setAccountPhase(ConciergeAccountPhase.Form);
+    void conciergeSupabase?.auth.signOut();
   };
 
-  const handleDeleteResident = async () => {
-    if (!residentToDelete) {
-      return;
-    }
-
-    setFormError("");
-
-    try {
-      await onDeleteResident(residentToDelete.user_id);
-      setResidentToDelete(null);
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : "No se pudo eliminar el residente.");
-    }
+  const handleDone = async () => {
+    await onDone();
+    resetCreateFlow();
+    onClose();
   };
 
   return (
@@ -234,12 +207,10 @@ export default function ApartmentResidentsModal({
       <section className="residentModal" onClick={(event) => event.stopPropagation()}>
         <div className="residentModalHeader">
           <div>
-            <p className="settingsLabel">Cuenta residente</p>
-            <h3>{apartmentName}</h3>
+            <p className="settingsLabel">Cuenta conserje</p>
+            <h3>Invitar usuario</h3>
             <p className="residentModalLead">
-              {canManageResidents
-                ? `Crea accesos de residente asociados a este ${unitSingular}.`
-                : `Revisa las cuentas residentes asociadas a este ${unitSingular}.`}
+              Crea un acceso de conserje para operar la recepcion de paquetes.
             </p>
           </div>
           <button
@@ -253,53 +224,14 @@ export default function ApartmentResidentsModal({
         </div>
 
         <div className="residentModalBody">
-          {isLoading ? <p className="residentEmptyText">Cargando personas...</p> : null}
-
-          {!isLoading && !isAdding && residents.length > 0 ? (
-            <div className="residentList">
-              {residents.map((resident) => (
-                <article key={resident.user_id} className="residentItem">
-                  <div>
-                    <strong>{resident.resident_name}</strong>
-                    <span>{resident.email}</span>
-                    <span>{resident.user_phone_number || "Sin telefono registrado"}</span>
-                    <span>
-                      {resident.email_verified && resident.mfa_enabled
-                        ? "Verificado con autenticador"
-                        : "Verificacion pendiente"}
-                    </span>
-                  </div>
-                  {canManageResidents ? (
-                    <button
-                      type="button"
-                      className="residentDeleteButton"
-                      onClick={() => setResidentToDelete(resident)}
-                      disabled={isSaving}
-                      aria-label={`Eliminar residente ${resident.resident_name}`}
-                      title="Eliminar residente"
-                    >
-                      <Trash2 size={18} aria-hidden="true" />
-                    </button>
-                  ) : null}
-                </article>
-              ))}
-            </div>
-          ) : null}
-
-          {!isLoading && residents.length === 0 && !isAdding ? (
-            <p className="residentEmptyText">
-              No hay cuentas residentes registradas en este {unitSingular}.
-            </p>
-          ) : null}
-
-          {isAdding && accountPhase === ResidentAccountPhase.Form ? (
+          {accountPhase === ConciergeAccountPhase.Form ? (
             <form className="residentForm" onSubmit={handleSubmit}>
               <label className="settingsField">
                 <span>Correo de acceso</span>
                 <input
                   type="email"
-                  value={residentEmail}
-                  onChange={(event) => setResidentEmail(event.target.value)}
+                  value={conciergeEmail}
+                  onChange={(event) => setConciergeEmail(event.target.value)}
                   required
                 />
               </label>
@@ -307,35 +239,26 @@ export default function ApartmentResidentsModal({
                 <span>Nombre de la persona</span>
                 <input
                   type="text"
-                  value={residentName}
-                  onChange={(event) => setResidentName(event.target.value)}
+                  value={conciergeName}
+                  onChange={(event) => setConciergeName(event.target.value)}
                   required
                 />
               </label>
               <label className="settingsField">
-                <span>Contraseña</span>
+                <span>Contrasena</span>
                 <input
                   type="password"
-                  value={residentPassword}
-                  onChange={(event) => setResidentPassword(event.target.value)}
+                  value={conciergePassword}
+                  onChange={(event) => setConciergePassword(event.target.value)}
                   minLength={8}
                   required
-                />
-              </label>
-              <label className="settingsField">
-                <span>Telefono</span>
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(event) => setPhoneNumber(event.target.value)}
-                  placeholder="Opcional"
                 />
               </label>
               <div className="residentActions">
                 <button
                   type="button"
                   className="secondaryButton"
-                  onClick={resetCreateFlow}
+                  onClick={onClose}
                   disabled={isSaving}
                 >
                   Cancelar
@@ -348,13 +271,11 @@ export default function ApartmentResidentsModal({
             </form>
           ) : null}
 
-          {isAdding && accountPhase === ResidentAccountPhase.Code && createdResident ? (
+          {accountPhase === ConciergeAccountPhase.Code && createdConcierge ? (
             <form className="residentForm" onSubmit={handleVerifyEmail}>
               <div className="residentVerificationBox">
                 <strong>Codigo de verificacion</strong>
-                <p>
-                  Ingresa el codigo enviado al correo {createdResident.email}.
-                </p>
+                <p>Ingresa el codigo enviado al correo {createdConcierge.email}.</p>
               </div>
               <label className="settingsField">
                 <span>Codigo</span>
@@ -379,7 +300,7 @@ export default function ApartmentResidentsModal({
             </form>
           ) : null}
 
-          {isAdding && accountPhase === ResidentAccountPhase.Mfa && totpSetup ? (
+          {accountPhase === ConciergeAccountPhase.Mfa && totpSetup ? (
             <form className="residentForm" onSubmit={handleVerifyMfa}>
               <div className="residentMfaPanel">
                 <div className="residentQrBox">
@@ -419,62 +340,23 @@ export default function ApartmentResidentsModal({
             </form>
           ) : null}
 
-          {isAdding && accountPhase === ResidentAccountPhase.Done ? (
+          {accountPhase === ConciergeAccountPhase.Done ? (
             <div className="residentVerificationBox">
-              <strong>Cuenta residente lista</strong>
+              <strong>Cuenta conserje lista</strong>
               <p>El correo fue verificado y el autenticador quedo activado.</p>
               <div className="residentActions">
-                <button type="button" className="primaryButton" onClick={resetCreateFlow}>
+                <button
+                  type="button"
+                  className="primaryButton"
+                  onClick={() => void handleDone()}
+                >
                   Terminar
                 </button>
               </div>
             </div>
           ) : null}
-
-          {!isAdding && canManageResidents ? (
-            <div className="residentActions">
-              <button type="button" className="primaryButton" onClick={() => setIsAdding(true)}>
-                Agregar cuenta residente
-              </button>
-            </div>
-          ) : null}
         </div>
       </section>
-
-      {residentToDelete && canManageResidents ? (
-        <div className="residentConfirmOverlay" onClick={() => setResidentToDelete(null)}>
-          <section
-            className="residentConfirmDialog"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="residentDeleteTitle"
-          >
-            <p className="settingsLabel">Confirmar eliminacion</p>
-            <h4 id="residentDeleteTitle">
-              Estas seguro de querer eliminar al residente {residentToDelete.resident_name}
-            </h4>
-            <div className="residentActions">
-              <button
-                type="button"
-                className="secondaryButton"
-                onClick={() => setResidentToDelete(null)}
-                disabled={isSaving}
-              >
-                No
-              </button>
-              <button
-                type="button"
-                className="residentDangerButton"
-                onClick={() => void handleDeleteResident()}
-                disabled={isSaving}
-              >
-                {isSaving ? "Eliminando..." : "Si"}
-              </button>
-            </div>
-          </section>
-        </div>
-      ) : null}
     </div>
   );
 }

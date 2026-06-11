@@ -29,6 +29,7 @@ export default function QrModal({
   qrScanMessage,
 }: QrModalProps) {
   const qrValue = qrPackage.qr_code_url ?? `LobbyPack:claim:${qrPackage.id}:demo`;
+  const residentConfirmedClaim = Boolean(qrPackage.resident_claim_confirmed_at);
 
   return (
     <div className="qrModalOverlay" onClick={onClose}>
@@ -58,13 +59,19 @@ export default function QrModal({
           departamento.
         </p>
 
-        <button
-          type="button"
-          className="simulateScanButton"
-          onClick={() => onConfirm(qrValue)}
-        >
-          Marcar como retirado
-        </button>
+        {residentConfirmedClaim ? (
+          <button
+            type="button"
+            className="simulateScanButton"
+            onClick={() => onConfirm(qrValue)}
+          >
+            Marcar como retirado
+          </button>
+        ) : (
+          <p className="qrHint">
+            El boton de retiro aparecera cuando el residente confirme desde su cuenta.
+          </p>
+        )}
 
         {qrScanMessage ? <p className="qrSuccess">{qrScanMessage}</p> : null}
       </div>

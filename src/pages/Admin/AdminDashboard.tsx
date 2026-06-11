@@ -10,6 +10,8 @@ type AdminDashboardProps = {
 };
 
 export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
+  const canManageIssueStatus = dashboard.currentUser?.role === "admin";
+
   return (
     <>
       <div className="serviceToggle" aria-label="Selecciona recepcion o retiro">
@@ -47,6 +49,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           totalPages={dashboard.totalPages}
           paginatedComplaints={dashboard.paginatedComplaints}
           updatingIssueId={dashboard.updatingIssueId}
+          canManageStatus={canManageIssueStatus}
           onSearchChange={dashboard.updateSearch}
           onPageSizeChange={dashboard.updatePageSizeValue}
           onPrevPage={dashboard.goToPreviousPage}

@@ -2,9 +2,19 @@ import { Elysia } from "elysia";
 import { requireAppRole } from "../auth/session";
 import { pool } from "../db/pool";
 import { normalizeTextInput } from "../utils/textEncoding";
-import { generalSettingsSchema, preferenceSettingsSchema, residentEmailVerificationSchema, residentMfaVerificationSchema, residentSettingsSchema, towersSchema } from "./shared/schemas";
+import { conciergeSettingsSchema, generalSettingsSchema, preferenceSettingsSchema, residentEmailVerificationSchema, residentMfaVerificationSchema, residentSettingsSchema, towersSchema } from "./shared/schemas";
 import type { BuildingRow, PreferenceRow, TeamRow, TowerRow } from "./shared/types";
 import { getSettingsContext, resolveBuildingIdForUserEmail } from "./shared/community";
+import {
+  createConciergeAccount,
+  ensureConciergeBuilding,
+  getConciergeById,
+  getConciergeEmail,
+  getConciergeSecurity,
+  getConciergeSecurityForMfa,
+  markConciergeEmailVerified,
+  markConciergeMfaVerified,
+} from "./shared/concierges";
 import {
   createResidentAccount,
   deleteResidentAccount,
@@ -19,7 +29,8 @@ import {
 } from "./shared/residents";
 
 async function getSettingsPayload(adminEmail?: string) {
-  const { buildingId, communityRegistration } = await getSettingsContext(adminEmail);
+  const { communityRegistration } = await getSettingsContext(adminEmail);
+  const buildingId = await resolveBuildingIdForUserEmail(adminEmail);
   const [buildings] = await pool.query<BuildingRow[]>(
     `
       SELECT *
@@ -54,9 +65,24 @@ async function getSettingsPayload(adminEmail?: string) {
       LEFT JOIN Concierges c ON c.user_id = u.id
       LEFT JOIN Admins a ON a.user_id = u.id
       LEFT JOIN Residents r ON r.user_id = u.id
-      WHERE u.role IN ('admin', 'concierge')
+      WHERE (
+        u.role = 'admin'
+        AND (? IS NULL OR LOWER(u.email) = LOWER(?))
+      ) OR (
+        u.role = 'concierge'
+        AND (
+          c.building_id = ?
+          OR (? = 'building-main' AND c.building_id IS NULL)
+        )
+      )
       ORDER BY FIELD(u.role, 'admin', 'concierge'), team_name
     `,
+    [
+      communityRegistration?.admin_email ?? null,
+      communityRegistration?.admin_email ?? null,
+      buildingId,
+      buildingId,
+    ],
   );
 
   const [towerRows] = await pool.query<TowerRow[]>(
@@ -148,14 +174,114 @@ async function getSettingsPayload(adminEmail?: string) {
 
 export const settingsRoutes = new Elysia()
   .get("/settings", async ({ headers, query }) => {
-    await requireAppRole(headers.authorization, ["admin"]);
-    return getSettingsPayload(query.admin_email);
+    const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
+    return getSettingsPayload(session.role === "admin" ? query.admin_email : session.email);
   })
   .get("/settings/residents", async ({ headers, query }) => {
-    const session = await requireAppRole(headers.authorization, ["admin"]);
+    const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
     const buildingId = await resolveBuildingIdForUserEmail(session.email);
     return listResidentsByDepartment(String(query.department_address ?? ""), buildingId);
   })
+  .post(
+    "/settings/concierges",
+    async ({ headers, body, set }) => {
+      const session = await requireAppRole(headers.authorization, ["admin"]);
+      const buildingId = await resolveBuildingIdForUserEmail(session.email);
+      const connection = await pool.getConnection();
+
+      try {
+        await connection.beginTransaction();
+
+        const { conciergeId, verificationCode } = await createConciergeAccount(
+          connection,
+          body.concierge_email,
+          body.concierge_name,
+          body.concierge_password,
+          buildingId,
+        );
+
+        await connection.commit();
+        set.status = 201;
+
+        const concierge = await getConciergeById(conciergeId);
+        if (!concierge) {
+          throw new Error("No se pudo recuperar la cuenta conserje creada.");
+        }
+
+        return {
+          ...concierge,
+          verification_code: verificationCode,
+        };
+      } catch (error) {
+        await connection.rollback();
+
+        if (
+          error instanceof Error &&
+          error.message === "Este correo ya tiene una cuenta registrada."
+        ) {
+          set.status = 409;
+          return { message: error.message };
+        }
+
+        throw error;
+      } finally {
+        connection.release();
+      }
+    },
+    {
+      body: conciergeSettingsSchema,
+    },
+  )
+  .post(
+    "/settings/concierges/:id/verify-email",
+    async ({ headers, params, set }) => {
+      const session = await requireAppRole(headers.authorization, ["admin"]);
+      const buildingId = await resolveBuildingIdForUserEmail(session.email);
+
+      const security = await getConciergeSecurity(params.id);
+      const email = await getConciergeEmail(params.id);
+
+      if (!email) {
+        set.status = 404;
+        return { message: "Conserje no encontrado." };
+      }
+
+      if (!security) {
+        set.status = 404;
+        return { message: "Seguridad de conserje no encontrada." };
+      }
+
+      await ensureConciergeBuilding(params.id, buildingId);
+      await markConciergeEmailVerified(params.id);
+      return { ok: true };
+    },
+    {
+      body: residentEmailVerificationSchema,
+    },
+  )
+  .post(
+    "/settings/concierges/:id/verify-mfa",
+    async ({ headers, params, set }) => {
+      const session = await requireAppRole(headers.authorization, ["admin"]);
+      const buildingId = await resolveBuildingIdForUserEmail(session.email);
+
+      const security = await getConciergeSecurityForMfa(params.id);
+
+      if (!security) {
+        set.status = 400;
+        return {
+          message: "El correo del conserje debe estar verificado antes de activar MFA.",
+        };
+      }
+
+      await ensureConciergeBuilding(params.id, buildingId);
+      await markConciergeMfaVerified(params.id);
+      return { ok: true };
+    },
+    {
+      body: residentMfaVerificationSchema,
+    },
+  )
   .post(
     "/settings/residents",
     async ({ headers, body, set }) => {

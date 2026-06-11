@@ -51,6 +51,9 @@ export default function PackageRow({
             >
               {formatParcelStatus(item.parcel_status)}
             </p>
+            {item.parcel_status === "pending" && item.resident_claim_confirmed_at ? (
+              <p className="statusValue statusValueRetiro">Residente confirmo retiro</p>
+            ) : null}
           </div>
 
           <div className="packageActions inlineActions">
@@ -175,6 +178,12 @@ export default function PackageRow({
           <div>
             <dt>Retirado por</dt>
             <dd>{item.claimed_by_name || item.resident_name}</dd>
+          </div>
+        ) : null}
+        {item.parcel_status === "pending" && item.resident_claimed_by_name ? (
+          <div>
+            <dt>Confirmado por</dt>
+            <dd>{item.resident_claimed_by_name}</dd>
           </div>
         ) : null}
         <div>

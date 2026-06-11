@@ -64,5 +64,5 @@ export default function Settings() {
     );
   }
 
-  return <AdminSettings />;
+  return <AdminSettings currentUser={currentUser} />;
 }

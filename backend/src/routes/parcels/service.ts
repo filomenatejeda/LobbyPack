@@ -84,6 +84,10 @@ function mapParcelRow(row: ParcelRow) {
     parcel_description: repairPotentialMojibake(row.parcel_description ?? ""),
     is_urgent: Boolean(row.is_urgent),
     pending_date: row.pending_date,
+    resident_claim_confirmed_at: row.resident_claim_confirmed_at,
+    resident_claimed_by_name: row.resident_claimed_by_name
+      ? repairPotentialMojibake(row.resident_claimed_by_name)
+      : null,
     claimed_date: row.claimed_date,
     id_concierge: row.id_concierge,
     id_resident: row.id_resident,
@@ -113,6 +117,8 @@ export async function listParcels(
         p.parcel_description,
         p.is_urgent,
         p.pending_date,
+        p.resident_claim_confirmed_at,
+        p.resident_claimed_by_user_id,
         p.claimed_date,
         p.claimed_by_user_id,
         p.id_concierge,
@@ -124,6 +130,7 @@ export async function listParcels(
         COALESCE(p.delivery_department_address, r.department_address) AS department_address,
         COALESCE(c.concierge_name, a.admin_name, concierge_user.email) AS concierge_name,
         b.business_name,
+        COALESCE(rr.resident_name, rc.concierge_name, ra.admin_name, resident_claimed_user.email) AS resident_claimed_by_name,
         COALESCE(cr.resident_name, cc.concierge_name, ca.admin_name, claimed_user.email) AS claimed_by_name
       FROM Parcels p
       LEFT JOIN Residents r ON r.user_id = p.id_resident
@@ -131,6 +138,10 @@ export async function listParcels(
       LEFT JOIN Concierges c ON c.user_id = p.id_concierge
       LEFT JOIN Admins a ON a.user_id = p.id_concierge
       INNER JOIN Businesses b ON b.id = p.id_business
+      LEFT JOIN Users resident_claimed_user ON resident_claimed_user.id = p.resident_claimed_by_user_id
+      LEFT JOIN Residents rr ON rr.user_id = resident_claimed_user.id
+      LEFT JOIN Concierges rc ON rc.user_id = resident_claimed_user.id
+      LEFT JOIN Admins ra ON ra.user_id = resident_claimed_user.id
       LEFT JOIN Users claimed_user ON claimed_user.id = p.claimed_by_user_id
       LEFT JOIN Residents cr ON cr.user_id = claimed_user.id
       LEFT JOIN Concierges cc ON cc.user_id = claimed_user.id
@@ -170,6 +181,8 @@ export async function getParcelById(parcelId: string) {
         p.parcel_description,
         p.is_urgent,
         p.pending_date,
+        p.resident_claim_confirmed_at,
+        p.resident_claimed_by_user_id,
         p.claimed_date,
         p.claimed_by_user_id,
         p.id_concierge,
@@ -181,6 +194,7 @@ export async function getParcelById(parcelId: string) {
         COALESCE(p.delivery_department_address, r.department_address) AS department_address,
         COALESCE(c.concierge_name, a.admin_name, concierge_user.email) AS concierge_name,
         b.business_name,
+        COALESCE(rr.resident_name, rc.concierge_name, ra.admin_name, resident_claimed_user.email) AS resident_claimed_by_name,
         COALESCE(cr.resident_name, cc.concierge_name, ca.admin_name, claimed_user.email) AS claimed_by_name
       FROM Parcels p
       LEFT JOIN Residents r ON r.user_id = p.id_resident
@@ -188,6 +202,10 @@ export async function getParcelById(parcelId: string) {
       LEFT JOIN Concierges c ON c.user_id = p.id_concierge
       LEFT JOIN Admins a ON a.user_id = p.id_concierge
       INNER JOIN Businesses b ON b.id = p.id_business
+      LEFT JOIN Users resident_claimed_user ON resident_claimed_user.id = p.resident_claimed_by_user_id
+      LEFT JOIN Residents rr ON rr.user_id = resident_claimed_user.id
+      LEFT JOIN Concierges rc ON rc.user_id = resident_claimed_user.id
+      LEFT JOIN Admins ra ON ra.user_id = resident_claimed_user.id
       LEFT JOIN Users claimed_user ON claimed_user.id = p.claimed_by_user_id
       LEFT JOIN Residents cr ON cr.user_id = claimed_user.id
       LEFT JOIN Concierges cc ON cc.user_id = claimed_user.id
@@ -234,6 +252,7 @@ export async function assertResidentParcelAccess(session: AuthSession, qrValue: 
         p.id,
         p.qr_token,
         p.parcel_status,
+        p.resident_claim_confirmed_at,
         p.delivery_department_address
       FROM Parcels p
       LEFT JOIN Residents r ON r.user_id = p.id_resident

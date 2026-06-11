@@ -16,6 +16,7 @@ type TowerCardProps = {
     addUnit: string;
   };
   totalTowerUnits: number;
+  canEdit: boolean;
   canRemove: boolean;
   onToggleEditing: (towerId: number) => void;
   onRemove: (towerId: number) => void;
@@ -37,6 +38,7 @@ export default function TowerCard({
   tower,
   labels,
   totalTowerUnits,
+  canEdit,
   canRemove,
   onToggleEditing,
   onRemove,
@@ -61,6 +63,7 @@ export default function TowerCard({
           <h3>{tower.tower_name}</h3>
         </div>
 
+        {canEdit ? (
         <div className="towerHeaderActions">
           <button
             type="button"
@@ -78,6 +81,7 @@ export default function TowerCard({
             Eliminar
           </button>
         </div>
+        ) : null}
       </div>
 
       <div className="towerSummaryGrid">
@@ -95,7 +99,7 @@ export default function TowerCard({
         </div>
       </div>
 
-      {tower.is_editing ? (
+      {tower.is_editing && canEdit ? (
         <div className="towerEditor">
           <div className="settingsForm towerForm">
             <label className="settingsField">

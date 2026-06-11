@@ -26,6 +26,18 @@ export type ResidentAccountCreationResponse = ResidentItem & {
   verification_code?: string;
 };
 
+export type ConciergeItem = {
+  user_id: string;
+  email: string;
+  concierge_name: string;
+  email_verified: boolean;
+  mfa_enabled: boolean;
+};
+
+export type ConciergeAccountCreationResponse = ConciergeItem & {
+  verification_code?: string;
+};
+
 export type ResidentTotpSetup = {
   totp_secret: string;
   totp_uri: string;

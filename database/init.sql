@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS Concierges (
   user_id VARCHAR(64) PRIMARY KEY,
   concierge_name VARCHAR(100) NOT NULL,
   concierge_password_hash VARCHAR(255),
+  building_id VARCHAR(64),
   FOREIGN KEY (user_id) REFERENCES Users(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
@@ -118,10 +119,13 @@ CREATE TABLE IF NOT EXISTS Parcels (
   parcel_description TEXT,
   is_urgent BOOLEAN DEFAULT FALSE,
   pending_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  resident_claim_confirmed_at TIMESTAMP NULL,
+  resident_claimed_by_user_id VARCHAR(64) NULL,
   claimed_date TIMESTAMP NULL,
   claimed_by_user_id VARCHAR(64) NULL,
   FOREIGN KEY (id_concierge) REFERENCES Users(id),
   FOREIGN KEY (id_resident) REFERENCES Users(id),
+  FOREIGN KEY (resident_claimed_by_user_id) REFERENCES Users(id),
   FOREIGN KEY (id_business) REFERENCES Businesses(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 

@@ -340,6 +340,16 @@ export async function ensureResidentCommunityColumns() {
   }
 }
 
+export async function ensureConciergeCommunityColumns() {
+  if (!(await columnExists("Concierges", "building_id"))) {
+    await pool.query(`
+      ALTER TABLE Concierges
+      ADD COLUMN building_id VARCHAR(64) NULL
+        AFTER concierge_password_hash
+    `);
+  }
+}
+
 export async function ensureParcelQrSecurityColumns() {
   if (!(await columnExists("Parcels", "building_id"))) {
     await pool.query(`
@@ -386,6 +396,22 @@ export async function ensureParcelQrSecurityColumns() {
       ALTER TABLE Parcels
       ADD COLUMN claimed_by_user_id VARCHAR(64) NULL
         AFTER claimed_date
+    `);
+  }
+
+  if (!(await columnExists("Parcels", "resident_claim_confirmed_at"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN resident_claim_confirmed_at TIMESTAMP NULL
+        AFTER pending_date
+    `);
+  }
+
+  if (!(await columnExists("Parcels", "resident_claimed_by_user_id"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN resident_claimed_by_user_id VARCHAR(64) NULL
+        AFTER resident_claim_confirmed_at
     `);
   }
 

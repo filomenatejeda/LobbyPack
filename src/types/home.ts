@@ -26,6 +26,8 @@ export type ParcelItem = {
   parcel_description: string;
   is_urgent: boolean;
   pending_date: string;
+  resident_claim_confirmed_at: string | null;
+  resident_claimed_by_name: string | null;
   claimed_date: string | null;
   id_concierge: string;
   id_resident: string | null;

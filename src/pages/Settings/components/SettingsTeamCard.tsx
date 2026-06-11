@@ -2,9 +2,11 @@ import type { TeamItem } from "../../../types/settings";
 
 type SettingsTeamCardProps = {
   team: TeamItem[];
+  canInvite: boolean;
+  onInvite: () => void;
 };
 
-export default function SettingsTeamCard({ team }: SettingsTeamCardProps) {
+export default function SettingsTeamCard({ team, canInvite, onInvite }: SettingsTeamCardProps) {
   return (
     <article className="settingsCard settingsCardWide">
       <div className="settingsCardHeader">
@@ -12,9 +14,11 @@ export default function SettingsTeamCard({ team }: SettingsTeamCardProps) {
           <p className="settingsLabel">Equipo</p>
           <h2>Accesos y permisos</h2>
         </div>
-        <button type="button" className="secondaryButton">
-          Invitar usuario
-        </button>
+        {canInvite ? (
+          <button type="button" className="secondaryButton" onClick={onInvite}>
+            Invitar usuario
+          </button>
+        ) : null}
       </div>
 
       <div className="settingsTable">

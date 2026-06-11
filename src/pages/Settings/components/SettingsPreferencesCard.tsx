@@ -2,6 +2,7 @@ import { preferenceItems } from "../../../data/settingsData";
 import type { PreferenceSettings } from "../../../types/settings";
 
 type SettingsPreferencesCardProps = {
+  canEdit: boolean;
   onToggle: (
     key: keyof PreferenceSettings,
     value: PreferenceSettings[keyof PreferenceSettings],
@@ -10,6 +11,7 @@ type SettingsPreferencesCardProps = {
 };
 
 export default function SettingsPreferencesCard({
+  canEdit,
   onToggle,
   preferenceSettings,
 }: SettingsPreferencesCardProps) {
@@ -33,6 +35,7 @@ export default function SettingsPreferencesCard({
               type="checkbox"
               checked={preferenceSettings[item.preference_key]}
               onChange={(event) => onToggle(item.preference_key, event.target.checked)}
+              disabled={!canEdit}
             />
           </label>
         ))}
