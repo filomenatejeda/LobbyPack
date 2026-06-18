@@ -53,12 +53,14 @@ La aplicacion centraliza informacion importante como:
 
 ## Estructura general
 
-- `src/pages/Home`: pantalla principal de recepcion, retiro y reclamos.
-- `src/pages/Settings`: pantalla de configuracion general del sistema.
-- `src/components/Home`: componentes para listado, formulario, modal y QR de paquetes.
-- `src/components/Settings`: componentes para editar torres, pisos y departamentos.
-- `src/data`: datos mock utilizados para poblar la interfaz.
-- `src/utils`: funciones auxiliares para paquetes y configuracion de torres.
+- `frontend/src/pages/Home`: pantalla principal de recepcion, retiro y reclamos.
+- `frontend/src/pages/Settings`: pantalla de configuracion general del sistema.
+- `frontend/src/components/Home`: componentes para listado, formulario, modal y QR de paquetes.
+- `frontend/src/components/Settings`: componentes para editar torres, pisos y departamentos.
+- `frontend/src/data`: datos mock utilizados para poblar la interfaz.
+- `frontend/src/utils`: funciones auxiliares para paquetes y configuracion de torres.
+- `backend`: API y logica del servidor.
+- `database`: scripts de inicializacion de base de datos.
 
 ## Instalacion y ejecucion
 
@@ -72,6 +74,7 @@ La aplicacion centraliza informacion importante como:
 Con Bun:
 
 ```bash
+cd frontend
 bun install
 bun run dev
 ```
@@ -79,6 +82,7 @@ bun run dev
 Con npm:
 
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
@@ -86,12 +90,14 @@ npm run dev
 ### Generar build de produccion
 
 ```bash
+cd frontend
 bun run build
 ```
 
 ### Previsualizar build
 
 ```bash
+cd frontend
 bun run preview
 ```
 
