@@ -5,7 +5,11 @@ import ResidentSettings from "../Resident/ResidentSettings";
 import AdminSettings from "../Admin/AdminSettings";
 import "./Settings.css";
 
-export default function Settings() {
+type SettingsProps = {
+  adminSection?: "general" | "structure" | "team";
+};
+
+export default function Settings({ adminSection = "general" }: SettingsProps) {
   const [currentUser, setCurrentUser] = useState<DashboardCurrentUser | null>(null);
   const [packageCounts, setPackageCounts] = useState({
     pending: 0,
@@ -64,5 +68,5 @@ export default function Settings() {
     );
   }
 
-  return <AdminSettings currentUser={currentUser} />;
+  return <AdminSettings currentUser={currentUser} section={adminSection} />;
 }

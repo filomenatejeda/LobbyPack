@@ -4,6 +4,7 @@ import Header from "./components/Header/Header";
 import checkIfAuth from "./lib/checkAuth";
 import Home from "./pages/Home/Home";
 import Landing from "./pages/Landing/Landing";
+import ResidentHelp from "./pages/Resident/ResidentHelp";
 import Settings from "./pages/Settings/Settings";
 import ForgotPassword from "./pages/auth/Forgot-Password";
 import Login from "./pages/auth/Login";
@@ -45,7 +46,10 @@ export default function App() {
 
         <Route element={<ProtectedLayout />}>
           <Route path="/dashboard" element={<Home />} />
-          <Route path="/configuracion" element={<Settings />} />
+          <Route path="/configuracion" element={<Settings adminSection="general" />} />
+          <Route path="/comunidad" element={<Settings adminSection="structure" />} />
+          <Route path="/equipo" element={<Settings adminSection="team" />} />
+          <Route path="/ayuda" element={<ResidentHelp />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

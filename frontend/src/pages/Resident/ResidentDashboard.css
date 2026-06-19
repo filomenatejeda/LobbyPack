@@ -11,7 +11,7 @@
   gap: 1.25rem;
   align-items: stretch;
   padding: 1.25rem 0 0.25rem;
-  border-top: 1px solid rgba(29, 55, 69, 0.12);
+  border-top: 1px solid var(--line);
 }
 
 .residentEyebrow {
@@ -20,20 +20,20 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: #5d6b3b;
+  color: var(--accent-strong);
 }
 
 .residentHero h2 {
   margin: 0;
   font-size: clamp(1.45rem, 2vw, 2rem);
   line-height: 1.15;
-  color: #182832;
+  color: var(--brown-strong);
 }
 
 .residentLead {
   max-width: 760px;
   margin: 0.75rem 0 0;
-  color: #445863;
+  color: var(--text-soft);
   line-height: 1.6;
 }
 
@@ -44,9 +44,9 @@
 .residentParcelCard,
 .residentParcelSection {
   border-radius: 8px;
-  border: 1px solid rgba(29, 55, 69, 0.14);
-  background: #ffffff;
-  box-shadow: 0 10px 28px rgba(17, 37, 48, 0.06);
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
 }
 
 .residentDepartmentCard {
@@ -54,7 +54,7 @@
   gap: 0.3rem;
   padding: 1rem 1.15rem;
   align-content: center;
-  border-left: 4px solid #5d6b3b;
+  border-left: 4px solid var(--accent);
 }
 
 .residentDepartmentCard span {
@@ -62,12 +62,12 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #61707b;
+  color: var(--text-soft);
 }
 
 .residentDepartmentCard strong {
   font-size: 1.1rem;
-  color: #102532;
+  color: var(--text);
 }
 
 .residentViewMenu {
@@ -82,15 +82,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
-  border: 1px solid rgba(29, 55, 69, 0.14);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--surface-strong);
   padding: 0.75rem 0.9rem;
-  color: #263f4d;
+  color: var(--text);
   font: inherit;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 8px 22px rgba(17, 37, 48, 0.05);
+  box-shadow: 0 8px 22px rgba(60, 52, 45, 0.05);
 }
 
 .residentViewButton span {
@@ -102,16 +102,16 @@
 .residentViewButton strong {
   min-width: 1.8rem;
   border-radius: 6px;
-  background: #eef2f4;
+  background: var(--accent-soft);
   padding: 0.25rem 0.45rem;
-  color: #183442;
+  color: var(--accent-strong);
   font-size: 0.78rem;
   text-align: center;
 }
 
 .residentViewButton.active {
-  border-color: #143241;
-  background: #143241;
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
   color: #ffffff;
 }
 
@@ -143,19 +143,19 @@
 .residentConfirmationCard h3 {
   margin: 0;
   font-size: 1rem;
-  color: #182832;
+  color: var(--text);
 }
 
 .residentIssueHeader p {
   margin: 0.35rem 0 0;
-  color: #506672;
+  color: var(--text-soft);
   line-height: 1.5;
 }
 
 .residentScannerButton {
-  border: 1px solid #143241;
+  border: 1px solid var(--accent-strong);
   border-radius: 8px;
-  background: #143241;
+  background: var(--accent-strong);
   color: #fff;
   padding: 0.72rem 1rem;
   font-weight: 700;
@@ -163,9 +163,9 @@
 }
 
 .residentScannerButton.secondary {
-  border-color: #d3dde3;
-  background: #f4f7f9;
-  color: #263f4d;
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--text);
 }
 
 .residentScannerButton:disabled {
@@ -177,7 +177,7 @@
   margin-top: 1rem;
   border-radius: 8px;
   overflow: hidden;
-  background: #0f1f28;
+  background: var(--brown-strong);
   min-height: 260px;
 }
 
@@ -192,7 +192,7 @@
 .residentFeedback,
 .residentEmptyState,
 .residentParcelCard p {
-  color: #506672;
+  color: var(--text-soft);
 }
 
 .residentManualForm {
@@ -209,28 +209,28 @@
 .residentManualField span {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #334a57;
+  color: var(--text);
 }
 
 .residentManualField input {
   width: 100%;
   border-radius: 8px;
-  border: 1px solid rgba(39, 65, 79, 0.16);
+  border: 1px solid var(--line);
   padding: 0.9rem 1rem;
   font: inherit;
-  color: #182832;
-  background: #ffffff;
+  color: var(--text);
+  background: var(--surface-strong);
 }
 
 .residentManualField select,
 .residentManualField textarea {
   width: 100%;
   border-radius: 8px;
-  border: 1px solid rgba(39, 65, 79, 0.16);
+  border: 1px solid var(--line);
   padding: 0.9rem 1rem;
   font: inherit;
-  color: #182832;
-  background: #ffffff;
+  color: var(--text);
+  background: var(--surface-strong);
 }
 
 .residentManualField textarea {
@@ -259,7 +259,7 @@
 }
 
 .residentIssueActions span {
-  color: #61707b;
+  color: var(--text-soft);
   font-size: 0.82rem;
   font-weight: 700;
 }
@@ -273,9 +273,9 @@
 .residentIssueCard {
   display: grid;
   gap: 0.7rem;
-  border: 1px solid rgba(29, 55, 69, 0.14);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fcfcfa;
+  background: var(--surface-strong);
   padding: 1rem;
 }
 
@@ -287,11 +287,11 @@
 }
 
 .residentIssueMeta strong {
-  color: #182832;
+  color: var(--text);
 }
 
 .residentIssueMeta span {
-  color: #506672;
+  color: var(--text-soft);
   font-size: 0.84rem;
 }
 
@@ -302,23 +302,23 @@
 }
 
 .residentIssueBadgeIngresado {
-  background: #efe7de;
-  color: #816b56;
+  background: var(--brown-soft);
+  color: var(--brown-strong);
 }
 
 .residentIssueBadgeEnrevision {
-  background: #f6e9b8;
-  color: #8a6b1f;
+  background: #f2e4bc;
+  color: #7a5b19;
 }
 
 .residentIssueBadgeResuelto {
-  background: #dcefd2;
-  color: #4f6840;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 
 .residentIssueCard p {
   margin: 0;
-  color: #263f4d;
+  color: var(--text);
   line-height: 1.5;
 }
 
@@ -338,7 +338,7 @@
   display: grid;
   gap: 0.9rem;
   margin-top: 1rem;
-  border-left: 4px solid #b28b2d;
+  border-left: 4px solid var(--brown-soft);
 }
 
 .residentParcelSections {
@@ -351,8 +351,8 @@
   padding: 0.3rem 0.7rem;
   border-radius: 6px;
   text-align: center;
-  background: #eef2f4;
-  color: #183442;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
   font-weight: 700;
 }
 
@@ -386,13 +386,13 @@
 }
 
 .residentPending {
-  background: #fff1cf;
-  color: #94660c;
+  background: #f2e4bc;
+  color: #7a5b19;
 }
 
 .residentClaimed {
-  background: #dff5e8;
-  color: #1b7d4b;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 
 @media (max-width: 900px) {
@@ -415,7 +415,76 @@
 }
 
 @media (max-width: 560px) {
+  .residentDashboard {
+    gap: 0.85rem;
+    margin-top: 1.25rem;
+  }
+
+  .residentHero {
+    gap: 0.85rem;
+    padding-top: 1rem;
+  }
+
+  .residentHero h2 {
+    font-size: 1.45rem;
+  }
+
+  .residentLead {
+    margin-top: 0.55rem;
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  .residentDepartmentCard {
+    min-height: 78px;
+    padding: 0.9rem 1rem;
+  }
+
   .residentViewMenu {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .residentViewButton {
+    min-height: 54px;
+    padding: 0.78rem 0.85rem;
+  }
+
+  .residentViewButton:first-child,
+  .residentViewButton:nth-child(4) {
+    grid-column: 1 / -1;
+  }
+
+  .residentViewButton span {
+    white-space: normal;
+    line-height: 1.2;
+  }
+
+  .residentScannerPanel,
+  .residentIssuePanel,
+  .residentParcelSection,
+  .residentConfirmationCard {
+    padding: 1.05rem;
+  }
+
+  .residentScannerButton {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.68rem 0.9rem;
+  }
+
+  .residentManualForm {
+    gap: 0.7rem;
+  }
+
+  .residentManualField input,
+  .residentManualField select,
+  .residentManualField textarea {
+    padding: 0.82rem 0.9rem;
+  }
+
+  .residentVideoWrap,
+  .residentVideo {
+    min-height: 220px;
   }
 }

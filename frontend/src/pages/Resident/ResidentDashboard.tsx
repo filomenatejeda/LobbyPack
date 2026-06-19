@@ -291,7 +291,7 @@ export default function ResidentDashboard({
           </p>
         </div>
         <div className="residentDepartmentCard">
-          <span>Departamento habilitado</span>
+          <span>Tu hogar</span>
           <strong>{currentUser.department_address ?? "Sin departamento asignado"}</strong>
         </div>
       </div>

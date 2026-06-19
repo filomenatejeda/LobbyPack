@@ -20,7 +20,7 @@ export default function ResidentSettings({
     <main className="settingsPage residentSettingsPage">
       <section className="settingsHero residentSettingsHero">
         <p className="settingsEyebrow">Cuenta personal</p>
-        <h1>Mi configuracion</h1>
+        <h1>Mi informacion</h1>
         <p className="settingsLead">
           Revisa los datos asociados a tu acceso de residente y el estado de tus retiros.
         </p>

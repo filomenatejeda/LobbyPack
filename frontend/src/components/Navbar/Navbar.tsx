@@ -1,18 +1,37 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
+import LanguageToggleButton from "./LanguageToggleButton";
 import logo from "../../assets/Logo.png";
 import { supabase } from "../../lib/client";
+import { fetchDashboard } from "../../services/homeApi";
+import type { AppRole } from "../../types/home";
 
 const navItems = [
   { label: "Cuenta", to: "/dashboard", exact: true },
   { label: "Configuracion", to: "/configuracion", exact: false },
 ] as const;
 
+const adminNavItems = [
+  { label: "Cuenta", to: "/dashboard", exact: true },
+  { label: "Informacion", to: "/configuracion", exact: false },
+  { label: "Comunidad", to: "/comunidad", exact: false },
+  { label: "Equipo", to: "/equipo", exact: false },
+] as const;
+
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentRole, setCurrentRole] = useState<AppRole | null>(null);
   const navigate = useNavigate();
+  const settingsLabel = currentRole === "resident" ? "Informacion" : "Configuracion";
+  const isResident = currentRole === "resident";
+  const visibleNavItems =
+    currentRole === "admin" || currentRole === "concierge"
+      ? adminNavItems
+      : navItems.map((item) =>
+          item.to === "/configuracion" ? { ...item, label: settingsLabel } : item,
+        );
 
   useEffect(() => {
     let isActive = true;
@@ -25,6 +44,22 @@ export default function Navbar() {
       }
 
       setIsAuthenticated(Boolean(data.user) && !error);
+
+      if (data.user && !error) {
+        try {
+          const dashboard = await fetchDashboard();
+
+          if (isActive) {
+            setCurrentRole(dashboard.current_user.role);
+          }
+        } catch {
+          if (isActive) {
+            setCurrentRole(null);
+          }
+        }
+      } else {
+        setCurrentRole(null);
+      }
     };
 
     void syncAuthState();
@@ -33,6 +68,7 @@ export default function Navbar() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(Boolean(session?.user));
+      setCurrentRole(null);
     });
 
     return () => {
@@ -77,7 +113,7 @@ export default function Navbar() {
               <img src={logo} alt="LobbyPack" className="navLogo" />
             </Link>
           </li>
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <li key={item.label}>
               <NavLink
                 to={item.to}
@@ -89,10 +125,25 @@ export default function Navbar() {
               </NavLink>
             </li>
           ))}
+          {currentRole === "admin" || currentRole === "concierge" ? null : (
+            <li>
+              {isResident ? (
+                <NavLink
+                  to="/ayuda"
+                  className={({ isActive }) => (isActive ? "link linkActive" : "link")}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Ayuda
+                </NavLink>
+              ) : (
+                <Link to="/dashboard#inicio" className="link" onClick={() => setIsMenuOpen(false)}>
+                  Contacto
+                </Link>
+              )}
+            </li>
+          )}
           <li>
-            <Link to="/dashboard#inicio" className="link" onClick={() => setIsMenuOpen(false)}>
-              Contacto
-            </Link>
+            <LanguageToggleButton />
           </li>
           <li>
             <button type="button" className="authButton" onClick={() => void handleAuthAction()}>
@@ -127,7 +178,7 @@ export default function Navbar() {
           </div>
 
           <ul className="mobileNavList">
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <li key={item.label}>
                 <NavLink
                   to={item.to}
@@ -141,10 +192,31 @@ export default function Navbar() {
                 </NavLink>
               </li>
             ))}
+            {currentRole === "admin" || currentRole === "concierge" ? null : (
+              <li>
+                {isResident ? (
+                  <NavLink
+                    to="/ayuda"
+                    className={({ isActive }) =>
+                      isActive ? "mobileLink mobileLinkActive" : "mobileLink"
+                    }
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Ayuda
+                  </NavLink>
+                ) : (
+                  <Link
+                    to="/dashboard#inicio"
+                    className="mobileLink"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Contacto
+                  </Link>
+                )}
+              </li>
+            )}
             <li>
-              <Link to="/dashboard#inicio" className="mobileLink" onClick={() => setIsMenuOpen(false)}>
-                Contacto
-              </Link>
+              <LanguageToggleButton className="mobileLanguageButton" />
             </li>
             <li>
               <button

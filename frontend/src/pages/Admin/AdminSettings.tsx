@@ -39,9 +39,28 @@ import "../Settings/Settings.css";
 
 type AdminSettingsProps = {
   currentUser?: DashboardCurrentUser | null;
+  section?: "general" | "structure" | "team";
 };
 
-export default function AdminSettings({ currentUser }: AdminSettingsProps) {
+const sectionContent = {
+  general: {
+    eyebrow: "Informacion",
+    title: "Informacion del lobby",
+    lead: "Edita los datos principales, el horario y las preferencias operativas de LobbyPack.",
+  },
+  structure: {
+    eyebrow: "Comunidad",
+    title: "Departamentos y residentes",
+    lead: "Organiza torres, pisos y departamentos. Entra a un departamento para gestionar sus residentes.",
+  },
+  team: {
+    eyebrow: "Equipo",
+    title: "Conserjes y permisos",
+    lead: "Revisa los accesos del equipo e invita nuevas cuentas de conserjeria.",
+  },
+} as const;
+
+export default function AdminSettings({ currentUser, section = "general" }: AdminSettingsProps) {
   const [generalSettings, setGeneralSettings] =
     useState<GeneralSettings>(emptyGeneralSettings);
   const [preferenceSettings, setPreferenceSettings] =
@@ -94,6 +113,7 @@ export default function AdminSettings({ currentUser }: AdminSettingsProps) {
     0,
   );
   const structureLabels = getStructureLabels(generalSettings.community_type);
+  const currentSectionContent = sectionContent[section];
 
   const updateGeneralSettings = <K extends keyof GeneralSettings>(
     field: K,
@@ -382,69 +402,74 @@ export default function AdminSettings({ currentUser }: AdminSettingsProps) {
   return (
     <main className="settingsPage">
       <section className="settingsHero">
-        <p className="settingsEyebrow">Configuracion general</p>
-        <h1>Configura LobbyPack a tu manera</h1>
-        <p className="settingsLead">
-          Ajusta notificaciones, recepcion de paquetes y permisos del equipo desde un solo
-          panel.
-        </p>
+        <p className="settingsEyebrow">{currentSectionContent.eyebrow}</p>
+        <h1>{currentSectionContent.title}</h1>
+        <p className="settingsLead">{currentSectionContent.lead}</p>
       </section>
 
       {statusMessage ? <p className="settingsLead">{statusMessage}</p> : null}
       {isLoading ? <p className="settingsLead">Cargando configuracion desde MySQL...</p> : null}
 
       <section className="settingsGrid">
-        <SettingsGeneralCard
-          communityTypeOptions={communityTypeOptions}
-          generalSettings={generalSettings}
-          isEditing={isEditingGeneralSettings}
-          isSaving={isSaving}
-          onCancel={() => void cancelGeneralSettingsEdit()}
-          onChange={updateGeneralSettings}
-          canEdit={canManageSettings}
-          onEdit={() => {
-            if (canManageSettings) {
-              setIsEditingGeneralSettings(true);
+        {section === "general" ? (
+          <>
+            <SettingsGeneralCard
+              communityTypeOptions={communityTypeOptions}
+              generalSettings={generalSettings}
+              isEditing={isEditingGeneralSettings}
+              isSaving={isSaving}
+              onCancel={() => void cancelGeneralSettingsEdit()}
+              onChange={updateGeneralSettings}
+              canEdit={canManageSettings}
+              onEdit={() => {
+                if (canManageSettings) {
+                  setIsEditingGeneralSettings(true);
+                }
+              }}
+              onSave={() => void handleSaveGeneralSettings()}
+            />
+
+            <SettingsPreferencesCard
+              preferenceSettings={preferenceSettings}
+              canEdit={canManageSettings}
+              onToggle={updatePreferenceSettings}
+            />
+          </>
+        ) : null}
+
+        {section === "structure" ? (
+          <SettingsStructureCard
+            towers={towers}
+            labels={structureLabels}
+            totalFloors={totalFloors}
+            totalUnits={totalUnits}
+            isSaving={isSaving}
+            isLoading={isLoading}
+            canEdit={canManageSettings}
+            onAddApartment={addApartment}
+            onAddTower={addTower}
+            onApartmentClick={(apartmentName) =>
+              void apartmentResidents.openApartmentResidents(apartmentName)
             }
-          }}
-          onSave={() => void handleSaveGeneralSettings()}
-        />
+            onCancel={() => void cancelStructureEdit()}
+            onRemoveApartment={removeApartment}
+            onRemoveTower={removeTower}
+            onSave={() => void handleSaveStructure()}
+            onSelectFloor={selectFloor}
+            onToggleEditing={toggleTowerEditing}
+            onUpdateApartmentName={updateApartmentName}
+            onUpdateFloorCount={updateTowerFloorCount}
+            onUpdateTowerName={updateTowerName}
+          />
+        ) : null}
 
-        <SettingsPreferencesCard
-          preferenceSettings={preferenceSettings}
-          canEdit={canManageSettings}
-          onToggle={updatePreferenceSettings}
-        />
-
-        <SettingsStructureCard
-          towers={towers}
-          labels={structureLabels}
-          totalFloors={totalFloors}
-          totalUnits={totalUnits}
-          isSaving={isSaving}
-          isLoading={isLoading}
-          canEdit={canManageSettings}
-          onAddApartment={addApartment}
-          onAddTower={addTower}
-          onApartmentClick={(apartmentName) =>
-            void apartmentResidents.openApartmentResidents(apartmentName)
-          }
-          onCancel={() => void cancelStructureEdit()}
-          onRemoveApartment={removeApartment}
-          onRemoveTower={removeTower}
-          onSave={() => void handleSaveStructure()}
-          onSelectFloor={selectFloor}
-          onToggleEditing={toggleTowerEditing}
-          onUpdateApartmentName={updateApartmentName}
-          onUpdateFloorCount={updateTowerFloorCount}
-          onUpdateTowerName={updateTowerName}
-        />
-
-        <SettingsTeamCard
-          team={team}
-          canInvite={canManageSettings}
-          onInvite={() => setIsInvitingConcierge(true)}
-        />
+        {section === "team" ? (
+          <SettingsTeamCard
+            team={team}
+            canInvite={canManageSettings}
+            onInvite={() => setIsInvitingConcierge(true)}
+          />
+        ) : null}
       </section>
 
       {isInvitingConcierge && canManageSettings ? (

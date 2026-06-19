@@ -4,6 +4,7 @@ import PackagePanel from "../../components/Home/PackagePanel";
 import QrModal from "../../components/Home/QrModal";
 import { pageSizeOptions } from "../../utils/packageUtils";
 import type { useHomeDashboard } from "../Home/hooks/useHomeDashboard";
+import "./AdminDashboard.css";
 
 type AdminDashboardProps = {
   dashboard: ReturnType<typeof useHomeDashboard>;
@@ -11,30 +12,100 @@ type AdminDashboardProps = {
 
 export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
   const canManageIssueStatus = dashboard.currentUser?.role === "admin";
+  const openIssues = dashboard.issues.filter((issue) => issue.issue_status === "open");
+  const underReviewIssues = dashboard.issues.filter(
+    (issue) => issue.issue_status === "under_review",
+  );
+  const pendingPickupCount = dashboard.pendingParcels.length;
+  const claimedCount = dashboard.claimedParcels.length;
+  const openIssueCount = openIssues.length;
 
   return (
     <>
+      <section className="adminOverview" aria-label="Resumen operativo">
+        <button
+          type="button"
+          className={
+            dashboard.activeView === "received"
+              ? "adminOverviewCard active"
+              : "adminOverviewCard"
+          }
+          onClick={() => dashboard.activateView("received")}
+        >
+          <span>En recepcion</span>
+          <strong>{pendingPickupCount}</strong>
+          <small>Paquetes esperando retiro</small>
+        </button>
+
+        <button
+          type="button"
+          className={
+            dashboard.activeView === "pickedUp"
+              ? "adminOverviewCard active"
+              : "adminOverviewCard"
+          }
+          onClick={() => dashboard.activateView("pickedUp")}
+        >
+          <span>Retirados</span>
+          <strong>{claimedCount}</strong>
+          <small>Entregas completadas</small>
+        </button>
+
+        <button
+          type="button"
+          className={
+            dashboard.activeView === "complaints"
+              ? "adminOverviewCard adminOverviewAlert active"
+              : "adminOverviewCard adminOverviewAlert"
+          }
+          onClick={() => dashboard.activateView("complaints")}
+        >
+          <span>Reclamos abiertos</span>
+          <strong>{openIssueCount}</strong>
+          <small>{underReviewIssues.length} en revision</small>
+        </button>
+      </section>
+
+      {openIssueCount > 0 ? (
+        <button
+          type="button"
+          className="adminIssueNotice"
+          onClick={() => dashboard.activateView("complaints")}
+        >
+          <strong>
+            {openIssueCount} reclamo{openIssueCount === 1 ? "" : "s"} abierto
+            {openIssueCount === 1 ? "" : "s"}
+          </strong>
+          <span>Revisa la bandeja de reclamos para responderlos.</span>
+        </button>
+      ) : null}
+
       <div className="serviceToggle" aria-label="Selecciona recepcion o retiro">
         <button
           type="button"
           className={dashboard.activeView === "received" ? "toggleButton active" : "toggleButton"}
           onClick={() => dashboard.activateView("received")}
         >
-          Recepcion
+          <span>Recepcion</span>
+          <strong className="toggleCount">{pendingPickupCount}</strong>
         </button>
         <button
           type="button"
           className={dashboard.activeView === "pickedUp" ? "toggleButton active" : "toggleButton"}
           onClick={() => dashboard.activateView("pickedUp")}
         >
-          Retiro
+          <span>Retiro</span>
+          <strong className="toggleCount">{claimedCount}</strong>
         </button>
         <button
           type="button"
           className={dashboard.activeView === "complaints" ? "toggleButton active" : "toggleButton"}
           onClick={() => dashboard.activateView("complaints")}
         >
-          Reclamos
+          <span>Reclamos</span>
+          <strong className={openIssueCount > 0 ? "toggleCount alert" : "toggleCount"}>
+            {openIssueCount}
+          </strong>
         </button>
       </div>
 

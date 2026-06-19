@@ -94,6 +94,22 @@
   transform: translateY(-1px);
 }
 
+.landingLanguageButton {
+  min-width: 42px;
+  min-height: 34px;
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 7px 10px;
+}
+
+.landingLanguageButton:hover,
+.landingLanguageButton:focus-visible {
+  border-color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
 .landingEyebrow {
   margin: 0 0 12px;
   font-size: 0.88rem;
@@ -511,6 +527,12 @@
     min-height: 32px;
     padding: 0 12px;
     font-size: 0.85rem;
+  }
+
+  .landingLanguageButton {
+    min-width: 42px;
+    min-height: 32px;
+    padding: 0 10px;
   }
 
   .landingShowcaseSection {

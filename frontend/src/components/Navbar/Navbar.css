@@ -105,7 +105,8 @@
 }
 
 .authButton,
-.mobileAuthButton {
+.mobileAuthButton,
+.languageButton {
   border: 1px solid var(--line);
   background: transparent;
   color: var(--text);
@@ -118,6 +119,23 @@
     background-color 0.2s ease;
 }
 
+.languageButton {
+  display: inline-flex;
+  min-width: 42px;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: var(--text-soft);
+}
+
+.languageButton span {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .authButton {
   padding: 10px 14px;
   border-radius: 999px;
@@ -126,7 +144,9 @@
 .authButton:hover,
 .authButton:focus-visible,
 .mobileAuthButton:hover,
-.mobileAuthButton:focus-visible {
+.mobileAuthButton:focus-visible,
+.languageButton:hover,
+.languageButton:focus-visible {
   border-color: var(--accent);
   color: var(--accent-strong);
   background: rgba(194, 148, 87, 0.08);
@@ -235,5 +255,13 @@
     padding: 12px 14px;
     border-radius: 14px;
     text-align: left;
+  }
+
+  .mobileLanguageButton {
+    width: 100%;
+    justify-content: flex-start;
+    min-height: 46px;
+    border-radius: 14px;
+    padding: 12px 14px;
   }
 }
