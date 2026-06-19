@@ -2,6 +2,8 @@ import "./PackagePanel.css";
 import PackageRow from "./PackageRow";
 import type { PackageServiceView, ParcelItem } from "../../types/home";
 
+const SEARCH_MAX_LENGTH = 50;
+
 type PackagePanelProps = {
   title: string;
   searchTerm: string;
@@ -86,7 +88,8 @@ export default function PackagePanel(props: PackagePanelProps) {
             <input
               type="search"
               value={searchTerm}
-              onChange={(event) => onSearchChange(event.target.value)}
+              maxLength={SEARCH_MAX_LENGTH}
+              onChange={(event) => onSearchChange(event.target.value.slice(0, SEARCH_MAX_LENGTH))}
               placeholder="Busca por código, nombre, depto. o compañía"
             />
           </div>

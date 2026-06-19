@@ -1,18 +1,26 @@
 services:
   mysql_lobbypack:
-    image: mysql:8
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    image: lobbypack-mysql
     container_name: db-lobbypack
     restart: always
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
+      - --pid-file=/var/lib/mysql-files/mysqld.pid
+      - --auto-generate-certs=OFF
+      - --ssl-cert=/var/lib/mysql/server-cert.pem
+      - --ssl-key=/var/lib/mysql/server-key.pem
+      - --mysqlx=0
     env_file:
       - .env
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
     ports:
-      - "${MYSQL_LOCAL_PORT}:${MYSQL_DOCKER_PORT}"
+      - "127.0.0.1:${MYSQL_LOCAL_PORT}:${MYSQL_DOCKER_PORT}"
     volumes:
       - lobbypack-mysql:/var/lib/mysql
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -41,7 +49,16 @@ services:
       MYSQL_DB: ${DB_NAME}
       CORS_ORIGIN: http://localhost:${VITE_LOCAL_PORT},http://frontend:${VITE_DOCKER_PORT}
     ports:
-      - "${BACKEND_LOCAL_PORT}:${BACKEND_DOCKER_PORT}"
+      - "127.0.0.1:${BACKEND_LOCAL_PORT}:${BACKEND_DOCKER_PORT}"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "bun -e \"const response = await fetch('http://localhost:${BACKEND_DOCKER_PORT}/health'); process.exit(response.ok ? 0 : 1)\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   frontend:
     build:
@@ -49,13 +66,23 @@ services:
       dockerfile: frontend/Dockerfile
     container_name: lobbypack-frontend
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     env_file:
       - .env
     environment:
       VITE_API_BASE_URL: http://localhost:${BACKEND_LOCAL_PORT}
     ports:
-      - "${VITE_LOCAL_PORT}:${VITE_DOCKER_PORT}"
+      - "127.0.0.1:${VITE_LOCAL_PORT}:${VITE_DOCKER_PORT}"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "bun -e \"const response = await fetch('http://localhost:${VITE_DOCKER_PORT}'); process.exit(response.ok ? 0 : 1)\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
 volumes:
   lobbypack-mysql:

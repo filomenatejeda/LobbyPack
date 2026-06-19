@@ -9,6 +9,8 @@ import {
   getQuickIssueStatusLabel,
 } from "../../utils/packageUtils";
 
+const SEARCH_MAX_LENGTH = 50;
+
 type ComplaintPanelProps = {
   title: string;
   searchTerm: string;
@@ -80,7 +82,8 @@ export default function ComplaintPanel({
             <input
               type="search"
               value={searchTerm}
-              onChange={(event) => onSearchChange(event.target.value)}
+              maxLength={SEARCH_MAX_LENGTH}
+              onChange={(event) => onSearchChange(event.target.value.slice(0, SEARCH_MAX_LENGTH))}
               placeholder="Busca por nombre, número de paquete o reclamo"
             />
           </div>
