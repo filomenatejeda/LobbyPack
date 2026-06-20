@@ -7,7 +7,10 @@ import {
   normalizeDepartmentAddress,
 } from "../../utils/departments";
 import { normalizeTextInput } from "../../utils/textEncoding";
-import { sendParcelWhatsappNotifications } from "../../utils/whatsapp";
+import {
+  sendParcelClaimedWhatsappNotifications,
+  sendParcelWhatsappNotifications,
+} from "../../utils/whatsapp";
 import { parcelPayloadSchema, residentParcelQrSchema } from "../shared/schemas";
 import type { ParcelClaimRow } from "../shared/types";
 import { resolveBuildingIdForUserEmail } from "../shared/community";
@@ -324,7 +327,41 @@ export const parcelRoutes = new Elysia()
       connection.release();
     }
 
-    return getParcelById(params.id);
+    const claimedParcel = await getParcelById(params.id);
+
+    if (claimedParcel) {
+      try {
+        const departmentResidents = await listResidentsByDepartment(
+          claimedParcel.department_address,
+          buildingId,
+        );
+
+        const notificationResults = await sendParcelClaimedWhatsappNotifications({
+          recipients: departmentResidents,
+          departmentAddress: claimedParcel.department_address,
+          parcelId: claimedParcel.id,
+          claimedByName: claimedParcel.claimed_by_name || "un residente",
+        });
+
+        const failedNotifications = notificationResults.filter(
+          (result) => result.status === "rejected",
+        );
+
+        if (failedNotifications.length > 0) {
+          console.warn(
+            `No se pudieron enviar ${failedNotifications.length} notificaciones de retiro por WhatsApp para ${claimedParcel.id}.`,
+            failedNotifications,
+          );
+        }
+      } catch (notificationError) {
+        console.warn(
+          `No se pudieron preparar las notificaciones de retiro por WhatsApp para ${claimedParcel.id}.`,
+          notificationError,
+        );
+      }
+    }
+
+    return claimedParcel;
   })
   .post(
     "/resident/parcels/scan",
