@@ -132,9 +132,11 @@ CREATE TABLE IF NOT EXISTS Parcels (
 CREATE TABLE IF NOT EXISTS Issues (
   id VARCHAR(64) PRIMARY KEY,
   id_parcel VARCHAR(64) NOT NULL,
+  created_by_user_id VARCHAR(64) NULL,
   issue_status ENUM('open', 'under_review', 'resolved') NOT NULL DEFAULT 'open',
   issue_description TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (id_parcel) REFERENCES Parcels(id) ON DELETE CASCADE
+  FOREIGN KEY (id_parcel) REFERENCES Parcels(id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by_user_id) REFERENCES Users(id) ON DELETE SET NULL
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 

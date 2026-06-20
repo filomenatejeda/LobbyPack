@@ -81,6 +81,12 @@ export function deleteParcel(id: string) {
   });
 }
 
+export function deleteIssue(id: string) {
+  return apiRequest<null>(`/api/issues/${id}`, {
+    method: "DELETE",
+  });
+}
+
 export function updateIssueStatus(id: string, issue_status: IssueStatus) {
   return apiRequest<IssueItem>(`/api/issues/${id}`, {
     method: "PATCH",

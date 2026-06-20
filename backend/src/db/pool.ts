@@ -497,3 +497,13 @@ export async function ensureParcelQrSecurityColumns() {
     );
   }
 }
+
+export async function ensureIssueCreatorColumn() {
+  if (!(await columnExists("Issues", "created_by_user_id"))) {
+    await pool.query(`
+      ALTER TABLE Issues
+      ADD COLUMN created_by_user_id VARCHAR(64) NULL
+        AFTER id_parcel
+    `);
+  }
+}

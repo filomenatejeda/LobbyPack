@@ -18,13 +18,20 @@ export async function listIssues(options?: { departmentAddress?: string; buildin
         i.issue_status,
         i.issue_description,
         i.created_at,
-        COALESCE(p.parcel_recipient_name, r.resident_name, '') AS resident_name,
+        COALESCE(ir.resident_name, ic.concierge_name, ia.admin_name, issue_user.email, p.parcel_recipient_name, r.resident_name, '') AS resident_name,
+        COALESCE(issue_user.email, parcel_user.email) AS resident_email,
+        COALESCE(ir.user_phone_number, p.parcel_recipient_phone, r.user_phone_number, '') AS user_phone_number,
         p.parcel_status,
         COALESCE(p.delivery_department_address, r.department_address) AS department_address,
         b.business_name
       FROM Issues i
       INNER JOIN Parcels p ON p.id = i.id_parcel
       LEFT JOIN Residents r ON r.user_id = p.id_resident
+      LEFT JOIN Users parcel_user ON parcel_user.id = p.id_resident
+      LEFT JOIN Users issue_user ON issue_user.id = i.created_by_user_id
+      LEFT JOIN Residents ir ON ir.user_id = i.created_by_user_id
+      LEFT JOIN Concierges ic ON ic.user_id = i.created_by_user_id
+      LEFT JOIN Admins ia ON ia.user_id = i.created_by_user_id
       INNER JOIN Businesses b ON b.id = p.id_business
       WHERE (? IS NULL OR p.building_id = ?)
       ORDER BY i.created_at DESC
@@ -36,6 +43,8 @@ export async function listIssues(options?: { departmentAddress?: string; buildin
     ...row,
     issue_description: repairPotentialMojibake(row.issue_description),
     resident_name: repairPotentialMojibake(row.resident_name),
+    resident_email: row.resident_email ? repairPotentialMojibake(row.resident_email) : "",
+    user_phone_number: repairPotentialMojibake(row.user_phone_number ?? ""),
     department_address: repairPotentialMojibake(row.department_address),
     business_name: repairPotentialMojibake(row.business_name),
   }));
@@ -122,12 +131,13 @@ export const issuesRoutes = new Elysia()
             INSERT INTO Issues (
               id,
               id_parcel,
+              created_by_user_id,
               issue_status,
               issue_description
             )
-            VALUES (?, ?, 'open', ?)
+            VALUES (?, ?, ?, 'open', ?)
           `,
-          [issueId, body.id_parcel, description],
+          [issueId, body.id_parcel, session.userId, description],
         );
 
         await connection.commit();
@@ -185,4 +195,36 @@ export const issuesRoutes = new Elysia()
     {
       body: issueStatusSchema,
     },
-  );
+  )
+  .delete("/issues/:id", async ({ headers, params, set }) => {
+    const session = await requireAppRole(headers.authorization, ["admin"]);
+    const buildingId = await resolveBuildingIdForUserEmail(session.email);
+
+    const [issues] = await pool.query<RowDataPacket[]>(
+      `
+        SELECT i.id
+        FROM Issues i
+        INNER JOIN Parcels p ON p.id = i.id_parcel
+        WHERE i.id = ?
+          AND (? IS NULL OR p.building_id = ?)
+        LIMIT 1
+      `,
+      [params.id, buildingId, buildingId],
+    );
+
+    if (issues.length === 0) {
+      set.status = 404;
+      return { message: "Issue not found" };
+    }
+
+    await pool.query(
+      `
+        DELETE FROM Issues
+        WHERE id = ?
+      `,
+      [params.id],
+    );
+
+    set.status = 204;
+    return null;
+  });

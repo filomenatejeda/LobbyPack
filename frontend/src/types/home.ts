@@ -62,6 +62,8 @@ export type IssueItem = {
   issue_description: string;
   created_at: string;
   resident_name: string;
+  resident_email: string;
+  user_phone_number: string;
   parcel_status: ParcelStatus;
   department_address: string;
   business_name: string;

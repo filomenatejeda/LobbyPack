@@ -6,6 +6,7 @@ import {
   ensureResidentCommunityColumns,
   ensureUtf8mb4,
   ensureParcelQrSecurityColumns,
+  ensureIssueCreatorColumn,
   pool,
   repairIssueEncoding,
   repairParcelEncoding,
@@ -21,6 +22,7 @@ await ensureBuildingCommunityColumns();
 await ensureResidentCommunityColumns();
 await ensureConciergeCommunityColumns();
 await ensureParcelQrSecurityColumns();
+await ensureIssueCreatorColumn();
 await repairIssueEncoding();
 await repairParcelEncoding();
 await repairParcelWithdrawalCodes();

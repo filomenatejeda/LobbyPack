@@ -1,26 +1,26 @@
 .complaintPanel {
   width: 100%;
   margin: 32px auto 0;
-  padding: 16px;
+  padding: 14px;
   border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--surface-strong);
+  border-radius: 8px;
+  background: #fff;
   box-shadow: var(--shadow);
   text-align: left;
 }
 
 .complaintHeader h2 {
   margin: 0;
-  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
   line-height: 1;
-  letter-spacing: -0.05em;
+  letter-spacing: 0;
 }
 
 .complaintTools {
   display: flex;
   align-items: end;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .complaintSearchField {
@@ -68,140 +68,183 @@
   padding-left: 34px;
 }
 
-.complaintPageSizeField {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
 .complaintResultsText {
   margin-top: 10px;
   font-size: 0.82rem;
   color: var(--text-soft);
 }
 
-.complaintList {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 16px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.complaintItem {
+.complaintTableWrap {
+  margin-top: 14px;
+  overflow-x: auto;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #fcfcfa;
-  padding: 14px;
+  border-radius: 8px;
 }
 
-.complaintMeta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
+.complaintTable {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  background: #fff;
 }
 
-.complaintMeta strong {
-  font-size: 0.95rem;
-  color: var(--text);
+.complaintTable th {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+  color: #111;
+  font-size: 0.78rem;
+  text-align: left;
 }
 
-.complaintMeta span {
-  font-size: 0.82rem;
+.complaintTable th:first-child,
+.complaintTable td:first-child {
+  width: 34px;
+  text-align: center;
+}
+
+.complaintTable td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #f0eee9;
+  vertical-align: top;
+  font-size: 0.86rem;
+}
+
+.complaintTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.complaintMessageCell {
+  max-width: 520px;
+}
+
+.complaintResidentLink {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #0b63ce;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.complaintMessageCell p {
+  margin: 8px 0 0;
+  color: #111;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.complaintMessageCell span {
+  display: block;
+  margin-top: 6px;
   color: var(--text-soft);
+  font-size: 0.78rem;
+}
+
+.complaintDateCell {
+  color: #111;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .complaintBadge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin: 0 4px 4px 0;
+  border: 1px solid rgba(17, 37, 48, 0.12);
   border-radius: 999px;
-  padding: 4px 10px;
-  font-weight: 700;
+  padding: 3px 8px;
+  background: #fff;
+  color: #111;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .complaintBadgeIngresado {
-  background: #efe7de;
-  color: #816b56;
+  background: #fff8ec;
+  color: #8a5a12;
 }
 
 .complaintBadgeEnrevision {
-  background: #f6e9b8;
-  color: #8a6b1f;
+  background: #eef5ff;
+  color: #315c8b;
 }
 
 .complaintBadgeResuelto {
-  background: #dcefd2;
+  background: #e8f3df;
   color: #4f6840;
 }
 
-.complaintText {
-  margin: 10px 0 0;
-  font-size: 0.92rem;
-  line-height: 1.5;
-  color: var(--text);
+.complaintActionCell {
+  position: relative;
+  width: 90px;
+  text-align: center;
 }
 
-.complaintActions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: 12px;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
+.complaintMenuButton {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #88b8f8;
+  border-radius: 999px;
+  background: #f4f9ff;
+  color: #0b63ce;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1;
 }
 
-.complaintStatusField {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.complaintStatusField span {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text-soft);
-}
-
-.complaintStatusSelect {
-  min-width: 180px;
+.complaintMenu {
+  position: absolute;
+  top: 44px;
+  right: 8px;
+  z-index: 10;
+  display: grid;
+  min-width: 220px;
+  padding: 8px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fbfbf9;
-  padding: 8px 10px;
-  font: inherit;
-  font-size: 0.9rem;
-  color: var(--text);
+  background: #fff;
+  box-shadow: 0 14px 36px rgba(17, 37, 48, 0.14);
+  text-align: left;
 }
 
-.complaintQuickAction {
-  border: 1px solid transparent;
-  border-radius: 999px;
-  padding: 9px 14px;
+.complaintMenu button,
+.complaintMenu a,
+.complaintMenu span {
+  border: none;
+  background: transparent;
+  padding: 8px 10px;
+  color: #111;
   font: inherit;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 700;
+  text-align: left;
+  text-decoration: none;
+}
+
+.complaintMenu button:not(:disabled),
+.complaintMenu a {
   cursor: pointer;
 }
 
-.complaintQuickActionIngresado {
-  background: var(--accent);
-  color: white;
+.complaintMenu button:hover:not(:disabled),
+.complaintMenu a:hover {
+  border-radius: 6px;
+  background: #f5f5f2;
 }
 
-.complaintQuickActionEnrevision {
-  background: #f6e9b8;
-  color: #8a6b1f;
+.complaintMenu .complaintMenuDanger:not(:disabled) {
+  color: #a43131;
 }
 
-.complaintQuickActionResuelto {
-  background: #dcefd2;
-  color: #4f6840;
-}
-
-.complaintQuickAction:disabled,
-.complaintStatusSelect:disabled {
-  opacity: 0.6;
+.complaintMenu button:disabled,
+.complaintMenu span {
+  color: var(--text-soft);
   cursor: not-allowed;
 }
 
@@ -218,13 +261,18 @@
   gap: 16px;
   margin-top: 14px;
   padding-top: 10px;
-  border-top: 1px solid var(--line);
+}
+
+.complaintPageSizeField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .complaintPagination {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   flex: 1;
 }
@@ -258,41 +306,11 @@
   }
 
   .complaintFooter {
-    gap: 12px;
-  }
-
-  .complaintActions {
     align-items: stretch;
-  }
-
-  .complaintStatusField,
-  .complaintStatusSelect,
-  .complaintQuickAction {
-    width: 100%;
+    flex-direction: column;
   }
 
   .complaintPagination {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    align-items: center;
-    gap: 10px;
-  }
-
-  .complaintPaginationInfo {
-    text-align: center;
-    font-size: 0.8rem;
-  }
-
-  .complaintPaginationButton {
-    width: 100%;
-    padding: 8px 10px;
-  }
-
-  .complaintPageSizeField {
-    width: fit-content;
-  }
-
-  .complaintPageSizeSelect {
-    min-width: 96px;
+    justify-content: space-between;
   }
 }

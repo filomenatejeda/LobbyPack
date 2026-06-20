@@ -5,6 +5,7 @@ import {
   confirmResidentParcelClaim,
   createResidentIssue,
   createParcel,
+  deleteIssue,
   deleteParcel,
   fetchDashboard,
   scanResidentParcel,
@@ -124,6 +125,8 @@ export function useHomeDashboard() {
     const searchableText = normalizeSearchText(
       [
         item.resident_name,
+        item.resident_email,
+        item.user_phone_number,
         item.id_parcel,
         item.issue_description,
         item.created_at,
@@ -520,6 +523,32 @@ export function useHomeDashboard() {
     }
   };
 
+  const handleDeleteIssue = async (issueId: string) => {
+    if (currentUser?.role !== "admin") {
+      return;
+    }
+
+    const confirmed = window.confirm("Quieres eliminar este reclamo?");
+
+    if (!confirmed) {
+      return;
+    }
+
+    setUpdatingIssueId(issueId);
+    setErrorMessage("");
+
+    try {
+      await deleteIssue(issueId);
+      setIssues((current) => current.filter((item) => item.id !== issueId));
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "No se pudo eliminar el reclamo.",
+      );
+    } finally {
+      setUpdatingIssueId(null);
+    }
+  };
+
   return {
     activeView,
     allVisibleSelected,
@@ -562,6 +591,7 @@ export function useHomeDashboard() {
     goToPreviousPage,
     handleAddPackage,
     handleDeletePackages,
+    handleDeleteIssue,
     handleEditPackage,
     handleEditSelected,
     handleIssueStatusChange,

@@ -41,6 +41,8 @@ export type IssueRow = RowDataPacket & {
   issue_description: string;
   created_at: string;
   resident_name: string;
+  resident_email: string | null;
+  user_phone_number: string | null;
   parcel_status: "pending" | "claimed";
   department_address: string;
   business_name: string;

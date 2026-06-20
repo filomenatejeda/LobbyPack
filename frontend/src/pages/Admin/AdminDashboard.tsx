@@ -121,6 +121,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           paginatedComplaints={dashboard.paginatedComplaints}
           updatingIssueId={dashboard.updatingIssueId}
           canManageStatus={canManageIssueStatus}
+          senderEmail={dashboard.currentUser?.email ?? ""}
           onSearchChange={dashboard.updateSearch}
           onPageSizeChange={dashboard.updatePageSizeValue}
           onPrevPage={dashboard.goToPreviousPage}
@@ -128,6 +129,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           onIssueStatusChange={(issueId, nextStatus) =>
             void dashboard.handleIssueStatusChange(issueId, nextStatus)
           }
+          onDeleteIssue={(issueId) => void dashboard.handleDeleteIssue(issueId)}
           startIndex={dashboard.startIndex}
         />
       ) : (
