@@ -138,11 +138,14 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
   const addTower = () => {
     setTowers((current) => [
       ...current,
-      createTower(
-        Date.now(),
-        `${structureLabels.groupSingular} ${String.fromCharCode(65 + current.length)}`,
-        3,
-      ),
+      {
+        ...createTower(
+          Date.now(),
+          `${structureLabels.groupSingular} ${String.fromCharCode(65 + current.length)}`,
+          3,
+        ),
+        is_editing: true,
+      },
     ]);
   };
 

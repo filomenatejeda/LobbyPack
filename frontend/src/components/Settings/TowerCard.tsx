@@ -1,4 +1,3 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { TowerConfig } from "../../types/settings";
 
 type TowerCardProps = {
@@ -53,7 +52,6 @@ export default function TowerCard({
   const selectedFloor =
     tower.floors.find((floor) => floor.floor_number === tower.selected_floor) ?? tower.floors[0];
   const selectedFloorNumber = selectedFloor?.floor_number ?? 1;
-  const maxFloor = tower.floors.length;
 
   return (
     <section className="towerCard">
@@ -61,6 +59,10 @@ export default function TowerCard({
         <div>
           <p className="settingsLabel">{labels.groupSingular}</p>
           <h3>{tower.tower_name}</h3>
+          <div className="towerMeta">
+            <span>{tower.floors.length} {labels.levelPlural.toLowerCase()}</span>
+            <span>{totalTowerUnits} {labels.unitPlural.toLowerCase()}</span>
+          </div>
         </div>
 
         {canEdit ? (
@@ -84,167 +86,123 @@ export default function TowerCard({
         ) : null}
       </div>
 
-      <div className="towerSummaryGrid">
-        <div className="towerSummaryItem">
-          <span>{labels.groupName}</span>
-          <strong>{tower.tower_name}</strong>
-        </div>
-        <div className="towerSummaryItem">
-          <span>{labels.levelCount}</span>
-          <strong>{tower.floors.length}</strong>
-        </div>
-        <div className="towerSummaryItem">
-          <span>{labels.unitPlural} totales</span>
-          <strong>{totalTowerUnits}</strong>
-        </div>
-      </div>
-
-      {tower.is_editing && canEdit ? (
-        <div className="towerEditor">
-          <div className="settingsForm towerForm">
-            <label className="settingsField">
-              <span>{labels.groupName}</span>
-              <input
-                type="text"
-                value={tower.tower_name}
-                onChange={(event) => onUpdateName(tower.id, event.target.value)}
-              />
-            </label>
-
-            <label className="settingsField">
-              <span>{labels.levelCount}</span>
-              <input
-                type="number"
-                min="1"
-                max="50"
-                value={tower.floors.length}
-                onChange={(event) => onUpdateFloorCount(tower.id, event.target.value)}
-              />
-            </label>
-          </div>
-
-          <div className="floorEditorList">
-            {tower.floors.map((floor) => (
-              <section key={`${tower.id}-${floor.floor_number}`} className="floorEditor">
-                <div className="floorEditorHeader">
-                  <div>
-                    <p className="settingsLabel">{labels.levelSingular}</p>
-                    <h4>
-                      {labels.levelSingular} {floor.floor_number}
-                    </h4>
-                  </div>
-                  <button
-                    type="button"
-                    className="secondaryButton"
-                    onClick={() => onAddApartment(tower.id, floor.floor_number)}
-                  >
-                    {labels.addUnit}
-                  </button>
-                </div>
-
-                <div className="apartmentEditorGrid">
-                  {floor.apartments.map((apartment, apartmentIndex) => (
-                    <div
-                      key={`${tower.id}-${floor.floor_number}-${apartmentIndex}`}
-                      className="apartmentEditorItem"
-                    >
-                      <input
-                        type="text"
-                        value={apartment}
-                        onChange={(event) =>
-                          onUpdateApartmentName(
-                            tower.id,
-                            floor.floor_number,
-                            apartmentIndex,
-                            event.target.value,
-                          )
-                        }
-                      />
-                      <button
-                        type="button"
-                        className="towerRemoveButton apartmentRemoveButton"
-                        onClick={() =>
-                          onRemoveApartment(tower.id, floor.floor_number, apartmentIndex)
-                        }
-                        disabled={floor.apartments.length === 1}
-                      >
-                        Quitar
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
       <div className="towerPreview">
         <div className="towerPreviewHeader">
           <div>
-            <p className="towerPreviewTitle">{labels.unitsByLevel}</p>
+            <p className="towerPreviewTitle">{labels.unitPlural}</p>
             <p className="towerPreviewText">
-              {labels.previewText}
+              {selectedFloor.apartments.length} en {labels.levelSingular.toLowerCase()}{" "}
+              {selectedFloorNumber}
             </p>
           </div>
 
-          <div className="towerFloorControl">
-            <span className="towerFloorControlLabel">{labels.levelSingular}</span>
-            <div className="towerFloorStepper" aria-label={`Seleccionar ${labels.levelSingular}`}>
-              <button
-                type="button"
-                className="towerFloorIconButton"
-                onClick={() => onSelectFloor(tower.id, String(selectedFloorNumber - 1))}
-                disabled={selectedFloorNumber <= 1}
-                aria-label={`${labels.levelSingular} anterior`}
-              >
-                <ChevronLeft size={18} aria-hidden="true" />
-              </button>
+          <label className="towerFloorSelectField">
+            <span>{labels.levelSingular}</span>
+            <select
+              id={`tower-selected-floor-${tower.id}`}
+              name="selected_floor"
+              value={selectedFloorNumber}
+              onChange={(event) => onSelectFloor(tower.id, event.target.value)}
+            >
+              {tower.floors.map((floor) => (
+                <option key={`${tower.id}-floor-${floor.floor_number}`} value={floor.floor_number}>
+                  {labels.levelSingular} {floor.floor_number}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
-              <label className="towerFloorNumberField">
-                <span className="srOnly">{labels.levelSingular}</span>
+        {tower.is_editing && canEdit ? (
+          <div className="towerInlineEditor">
+            <div className="settingsForm towerForm">
+              <label className="settingsField">
+                <span>{labels.groupName}</span>
                 <input
-                  type="number"
-                  min="1"
-                  max={maxFloor}
-                  value={selectedFloorNumber}
-                  onChange={(event) => onSelectFloor(tower.id, event.target.value)}
+                  type="text"
+                  id={`tower-name-${tower.id}`}
+                  name="tower_name"
+                  value={tower.tower_name}
+                  onChange={(event) => onUpdateName(tower.id, event.target.value)}
                 />
               </label>
 
-              <span className="towerFloorTotal">/ {maxFloor}</span>
+              <label className="settingsField">
+                <span>{labels.levelCount}</span>
+                <input
+                  type="number"
+                  id={`tower-floor-count-${tower.id}`}
+                  name="floor_count"
+                  min="1"
+                  max="50"
+                  value={tower.floors.length}
+                  onChange={(event) => onUpdateFloorCount(tower.id, event.target.value)}
+                />
+              </label>
+            </div>
 
+            <div className="floorEditorHeader">
+              <strong>
+                {labels.unitPlural} del {labels.levelSingular.toLowerCase()}{" "}
+                {selectedFloorNumber}
+              </strong>
               <button
                 type="button"
-                className="towerFloorIconButton"
-                onClick={() => onSelectFloor(tower.id, String(selectedFloorNumber + 1))}
-                disabled={selectedFloorNumber >= maxFloor}
-                aria-label={`${labels.levelSingular} siguiente`}
+                className="secondaryButton"
+                onClick={() => onAddApartment(tower.id, selectedFloorNumber)}
               >
-                <ChevronRight size={18} aria-hidden="true" />
+                {labels.addUnit}
               </button>
             </div>
+
+            <div className="apartmentEditorGrid">
+              {selectedFloor.apartments.map((apartment, apartmentIndex) => (
+                <div
+                  key={`${tower.id}-${selectedFloor.floor_number}-${apartmentIndex}`}
+                  className="apartmentEditorItem"
+                >
+                  <input
+                    type="text"
+                    id={`apartment-name-${tower.id}-${selectedFloor.floor_number}-${apartmentIndex}`}
+                    name="apartment_name"
+                    value={apartment}
+                    onChange={(event) =>
+                      onUpdateApartmentName(
+                        tower.id,
+                        selectedFloor.floor_number,
+                        apartmentIndex,
+                        event.target.value,
+                      )
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="towerRemoveButton apartmentRemoveButton"
+                    onClick={() =>
+                      onRemoveApartment(tower.id, selectedFloor.floor_number, apartmentIndex)
+                    }
+                    disabled={selectedFloor.apartments.length === 1}
+                  >
+                    Quitar
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-
-        <div className="towerPreviewChips">
-          {selectedFloor.apartments.map((apartment) => (
-            <button
-              key={`${tower.id}-${selectedFloor.floor_number}-${apartment}`}
-              type="button"
-              className="towerChip"
-              onClick={() => onApartmentClick(`${tower.tower_name} ${apartment}`)}
-            >
-              {apartment}
-            </button>
-          ))}
-        </div>
-
-        <p className="towerPreviewText">
-          {tower.tower_name} tiene {selectedFloor.apartments.length} {labels.unitPlural} en{" "}
-          {labels.levelSingular.toLowerCase()}{" "}
-          {selectedFloor.floor_number}.
-        </p>
+        ) : (
+          <div className="towerPreviewChips">
+            {selectedFloor.apartments.map((apartment) => (
+              <button
+                key={`${tower.id}-${selectedFloor.floor_number}-${apartment}`}
+                type="button"
+                className="towerChip"
+                onClick={() => onApartmentClick(`${tower.tower_name} ${apartment}`)}
+              >
+                {apartment}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

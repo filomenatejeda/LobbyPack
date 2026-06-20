@@ -50,6 +50,8 @@ export default function SettingsStructureCard({
   totalUnits,
   towers,
 }: SettingsStructureCardProps) {
+  const isEditingStructure = towers.some((tower) => tower.is_editing);
+
   return (
     <article className="settingsCard settingsCardWide">
       <div className="settingsCardHeader">
@@ -58,9 +60,31 @@ export default function SettingsStructureCard({
           <h2>{labels.title}</h2>
         </div>
         {canEdit ? (
-          <button type="button" className="secondaryButton" onClick={onAddTower}>
-            {labels.addGroup}
-          </button>
+          <div className="structureHeaderActions">
+            {isEditingStructure ? (
+              <>
+                <button
+                  type="button"
+                  className="secondaryButton"
+                  onClick={onCancel}
+                  disabled={isSaving || isLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="primaryButton"
+                  onClick={onSave}
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Guardando..." : "Guardar"}
+                </button>
+              </>
+            ) : null}
+            <button type="button" className="secondaryButton" onClick={onAddTower}>
+              {labels.addGroup}
+            </button>
+          </div>
         ) : null}
       </div>
 
@@ -119,21 +143,6 @@ export default function SettingsStructureCard({
         })}
       </div>
 
-      {canEdit ? (
-        <div className="settingsActions">
-          <button
-            type="button"
-            className="secondaryButton"
-            onClick={onCancel}
-            disabled={isSaving || isLoading}
-          >
-            Cancelar
-          </button>
-          <button type="button" className="primaryButton" onClick={onSave} disabled={isSaving}>
-            {isSaving ? "Guardando..." : "Guardar estructura"}
-          </button>
-        </div>
-      ) : null}
     </article>
   );
 }
