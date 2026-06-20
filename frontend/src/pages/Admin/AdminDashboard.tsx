@@ -122,14 +122,23 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           updatingIssueId={dashboard.updatingIssueId}
           canManageStatus={canManageIssueStatus}
           senderEmail={dashboard.currentUser?.email ?? ""}
+          selectedIssueIds={dashboard.selectedIssueIds}
+          selectedVisibleCount={dashboard.selectedVisibleIssueIds.length}
+          allVisibleSelected={dashboard.allVisibleComplaintsSelected}
           onSearchChange={dashboard.updateSearch}
           onPageSizeChange={dashboard.updatePageSizeValue}
           onPrevPage={dashboard.goToPreviousPage}
           onNextPage={dashboard.goToNextPage}
+          onSelect={dashboard.handleIssueSelection}
+          onSelectAllVisible={dashboard.handleSelectAllVisibleIssues}
           onIssueStatusChange={(issueId, nextStatus) =>
             void dashboard.handleIssueStatusChange(issueId, nextStatus)
           }
+          onBulkIssueStatusChange={(issueIds, nextStatus) =>
+            void dashboard.handleBulkIssueStatusChange(issueIds, nextStatus)
+          }
           onDeleteIssue={(issueId) => void dashboard.handleDeleteIssue(issueId)}
+          onDeleteSelectedIssues={(issueIds) => void dashboard.handleDeleteIssues(issueIds)}
           startIndex={dashboard.startIndex}
         />
       ) : (

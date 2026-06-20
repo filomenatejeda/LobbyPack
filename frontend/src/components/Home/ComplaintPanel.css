@@ -74,6 +74,59 @@
   color: var(--text-soft);
 }
 
+.complaintBulkBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  border: 1px solid #d8e4cc;
+  border-radius: 8px;
+  background: #f4f8ef;
+  padding: 8px 10px;
+}
+
+.complaintBulkBar strong {
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.complaintBulkBar span {
+  flex: 1;
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.complaintBulkActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.complaintBulkActions button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 7px 10px;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.complaintBulkActions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.complaintBulkActions .complaintBulkDanger:not(:disabled) {
+  border-color: rgba(164, 49, 49, 0.24);
+  color: #a43131;
+}
+
 .complaintTableWrap {
   margin-top: 14px;
   overflow-x: auto;
@@ -308,6 +361,15 @@
   .complaintFooter {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .complaintBulkBar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .complaintBulkActions {
+    justify-content: flex-start;
   }
 
   .complaintPagination {

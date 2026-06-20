@@ -22,12 +22,19 @@ type ComplaintPanelProps = {
   updatingIssueId: string | null;
   canManageStatus: boolean;
   senderEmail: string;
+  selectedIssueIds: string[];
+  selectedVisibleCount: number;
+  allVisibleSelected: boolean;
   onSearchChange: (value: string) => void;
   onPageSizeChange: (value: number) => void;
   onPrevPage: () => void;
   onNextPage: () => void;
+  onSelect: (issueId: string, checked: boolean) => void;
+  onSelectAllVisible: (checked: boolean) => void;
   onIssueStatusChange: (issueId: string, nextStatus: IssueStatus) => void;
+  onBulkIssueStatusChange: (issueIds: string[], nextStatus: IssueStatus) => void;
   onDeleteIssue: (issueId: string) => void;
+  onDeleteSelectedIssues: (issueIds: string[]) => void;
   startIndex: number;
 };
 
@@ -69,12 +76,19 @@ export default function ComplaintPanel({
   updatingIssueId,
   canManageStatus,
   senderEmail,
+  selectedIssueIds,
+  selectedVisibleCount,
+  allVisibleSelected,
   onSearchChange,
   onPageSizeChange,
   onPrevPage,
   onNextPage,
+  onSelect,
+  onSelectAllVisible,
   onIssueStatusChange,
+  onBulkIssueStatusChange,
   onDeleteIssue,
+  onDeleteSelectedIssues,
   startIndex,
 }: ComplaintPanelProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -84,6 +98,8 @@ export default function ComplaintPanel({
   const [sendBlindCopy, setSendBlindCopy] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [emailStatusMessage, setEmailStatusMessage] = useState("");
+  const hasSelectedIssues = selectedIssueIds.length > 0;
+  const isUpdatingIssues = updatingIssueId !== null;
 
   const handleStatusChange = (issueId: string, nextStatus: IssueStatus) => {
     onIssueStatusChange(issueId, nextStatus);
@@ -172,6 +188,40 @@ export default function ComplaintPanel({
         </label>
       </div>
 
+      {hasSelectedIssues ? (
+        <div className="complaintBulkBar">
+          <strong>
+            {selectedIssueIds.length} reclamo{selectedIssueIds.length === 1 ? "" : "s"} seleccionado
+            {selectedIssueIds.length === 1 ? "" : "s"}
+          </strong>
+          <span>{selectedVisibleCount} visible{selectedVisibleCount === 1 ? "" : "s"} en esta pagina</span>
+          <div className="complaintBulkActions">
+            <button
+              type="button"
+              onClick={() => onBulkIssueStatusChange(selectedIssueIds, "resolved")}
+              disabled={!canManageStatus || isUpdatingIssues}
+            >
+              Marcar respondido
+            </button>
+            <button
+              type="button"
+              onClick={() => onBulkIssueStatusChange(selectedIssueIds, "under_review")}
+              disabled={!canManageStatus || isUpdatingIssues}
+            >
+              En revision
+            </button>
+            <button
+              type="button"
+              className="complaintBulkDanger"
+              onClick={() => onDeleteSelectedIssues(selectedIssueIds)}
+              disabled={!canManageStatus || isUpdatingIssues}
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <p className="complaintResultsText">
         {filteredCount} reclamo{filteredCount === 1 ? "" : "s"} en total · página {safePage} de{" "}
         {totalPages}
@@ -182,7 +232,13 @@ export default function ComplaintPanel({
           <thead>
             <tr>
               <th>
-                <input type="checkbox" aria-label="Seleccionar reclamos" disabled />
+                <input
+                  type="checkbox"
+                  checked={allVisibleSelected}
+                  disabled={paginatedComplaints.length === 0}
+                  aria-label="Seleccionar reclamos visibles"
+                  onChange={(event) => onSelectAllVisible(event.target.checked)}
+                />
               </th>
               <th>Mensajes</th>
               <th>Fecha</th>
@@ -194,11 +250,17 @@ export default function ComplaintPanel({
             {paginatedComplaints.map((item) => {
               const isUpdating = updatingIssueId === item.id;
               const whatsappUrl = buildWhatsappUrl(item);
+              const isSelected = selectedIssueIds.includes(item.id);
 
               return (
                 <tr key={item.id}>
                   <td>
-                    <input type="checkbox" aria-label={`Seleccionar reclamo ${item.id}`} />
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      aria-label={`Seleccionar reclamo ${item.id}`}
+                      onChange={(event) => onSelect(item.id, event.target.checked)}
+                    />
                   </td>
                   <td className="complaintMessageCell">
                     <button type="button" className="complaintResidentLink">

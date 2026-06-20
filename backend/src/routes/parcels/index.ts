@@ -6,6 +6,10 @@ import {
   departmentAddressesMatch,
   normalizeDepartmentAddress,
 } from "../../utils/departments";
+import {
+  sendParcelArrivalEmailNotifications,
+  sendParcelClaimedEmailNotifications,
+} from "../../utils/email";
 import { normalizeTextInput } from "../../utils/textEncoding";
 import {
   sendParcelClaimedWhatsappNotifications,
@@ -131,8 +135,16 @@ export const parcelRoutes = new Elysia()
             recipients: departmentResidents,
             departmentAddress: validatedPayload.department_address,
           });
+          const emailResults = await sendParcelArrivalEmailNotifications({
+            recipients: departmentResidents,
+            departmentAddress: validatedPayload.department_address,
+            parcelId,
+          });
 
           const failedNotifications = notificationResults.filter(
+            (result) => result.status === "rejected",
+          );
+          const failedEmailNotifications = emailResults.filter(
             (result) => result.status === "rejected",
           );
 
@@ -140,6 +152,13 @@ export const parcelRoutes = new Elysia()
             console.warn(
               `No se pudieron enviar ${failedNotifications.length} notificaciones de WhatsApp para ${parcelId}.`,
               failedNotifications,
+            );
+          }
+
+          if (failedEmailNotifications.length > 0) {
+            console.warn(
+              `No se pudieron enviar ${failedEmailNotifications.length} notificaciones de email para ${parcelId}.`,
+              failedEmailNotifications,
             );
           }
         } catch (notificationError) {
@@ -342,8 +361,17 @@ export const parcelRoutes = new Elysia()
           parcelId: claimedParcel.id,
           claimedByName: claimedParcel.claimed_by_name || "un residente",
         });
+        const emailResults = await sendParcelClaimedEmailNotifications({
+          recipients: departmentResidents,
+          departmentAddress: claimedParcel.department_address,
+          parcelId: claimedParcel.id,
+          claimedByName: claimedParcel.claimed_by_name || "un residente",
+        });
 
         const failedNotifications = notificationResults.filter(
+          (result) => result.status === "rejected",
+        );
+        const failedEmailNotifications = emailResults.filter(
           (result) => result.status === "rejected",
         );
 
@@ -351,6 +379,13 @@ export const parcelRoutes = new Elysia()
           console.warn(
             `No se pudieron enviar ${failedNotifications.length} notificaciones de retiro por WhatsApp para ${claimedParcel.id}.`,
             failedNotifications,
+          );
+        }
+
+        if (failedEmailNotifications.length > 0) {
+          console.warn(
+            `No se pudieron enviar ${failedEmailNotifications.length} notificaciones de retiro por email para ${claimedParcel.id}.`,
+            failedEmailNotifications,
           );
         }
       } catch (notificationError) {

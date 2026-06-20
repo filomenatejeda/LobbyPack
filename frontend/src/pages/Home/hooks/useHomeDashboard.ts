@@ -37,6 +37,7 @@ export function useHomeDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [pageSize, setPageSize] = useState<number>(25);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedIssueIds, setSelectedIssueIds] = useState<string[]>([]);
   const [selectedIds, setSelectedIds] = useState<Record<PackageServiceView, string[]>>({
     received: [],
     pickedUp: [],
@@ -70,6 +71,11 @@ export function useHomeDashboard() {
       setPendingParcels(response.pending_parcels);
       setClaimedParcels(response.claimed_parcels);
       setIssues(response.issues);
+      setSelectedIssueIds((current) =>
+        current.filter((selectedId) =>
+          response.issues.some((issue) => issue.id === selectedId),
+        ),
+      );
       setCommunityStructure(response.community_structure);
       setQrPackage((current) => {
         if (!current) {
@@ -179,12 +185,18 @@ export function useHomeDashboard() {
   const paginatedPackages = filteredPackages.slice(startIndex, startIndex + pageSize);
   const paginatedComplaints = filteredComplaints.slice(startIndex, startIndex + pageSize);
   const currentSelections = activeView === "complaints" ? [] : selectedIds[activeView];
+  const selectedVisibleIssueIds = paginatedComplaints
+    .filter((item) => selectedIssueIds.includes(item.id))
+    .map((item) => item.id);
   const selectedVisibleIds = filteredPackages
     .filter((item) => currentSelections.includes(item.id))
     .map((item) => item.id);
   const allVisibleSelected =
     paginatedPackages.length > 0 &&
     paginatedPackages.every((item) => currentSelections.includes(item.id));
+  const allVisibleComplaintsSelected =
+    paginatedComplaints.length > 0 &&
+    paginatedComplaints.every((item) => selectedIssueIds.includes(item.id));
 
   const resetResidentClaimFlow = () => {
     setResidentScannedParcel(null);
@@ -199,6 +211,24 @@ export function useHomeDashboard() {
   const updateSearch = (value: string) => {
     setSearchTerm(value);
     setCurrentPage(1);
+  };
+
+  const handleIssueSelection = (id: string, checked: boolean) => {
+    setSelectedIssueIds((current) =>
+      checked
+        ? Array.from(new Set([...current, id]))
+        : current.filter((selectedId) => selectedId !== id),
+    );
+  };
+
+  const handleSelectAllVisibleIssues = (checked: boolean) => {
+    setSelectedIssueIds((current) =>
+      checked
+        ? Array.from(new Set([...current, ...paginatedComplaints.map((item) => item.id)]))
+        : current.filter(
+            (selectedId) => !paginatedComplaints.some((item) => item.id === selectedId),
+          ),
+    );
   };
 
   const updatePageSizeValue = (value: number) => {
@@ -523,35 +553,86 @@ export function useHomeDashboard() {
     }
   };
 
-  const handleDeleteIssue = async (issueId: string) => {
-    if (currentUser?.role !== "admin") {
+  const handleBulkIssueStatusChange = async (
+    issueIds: string[],
+    nextStatus: IssueItem["issue_status"],
+  ) => {
+    if (currentUser?.role !== "admin" || issueIds.length === 0) {
       return;
     }
 
-    const confirmed = window.confirm("Quieres eliminar este reclamo?");
+    const targetIds = issueIds.filter((issueId) => {
+      const issue = issues.find((item) => item.id === issueId);
+      return issue && issue.issue_status !== nextStatus;
+    });
 
-    if (!confirmed) {
+    if (targetIds.length === 0) {
       return;
     }
 
-    setUpdatingIssueId(issueId);
+    setUpdatingIssueId("__bulk__");
     setErrorMessage("");
 
     try {
-      await deleteIssue(issueId);
-      setIssues((current) => current.filter((item) => item.id !== issueId));
+      const updatedIssues = await Promise.all(
+        targetIds.map((issueId) => updateIssueStatus(issueId, nextStatus)),
+      );
+      setIssues((current) =>
+        current.map((item) => {
+          const updatedIssue = updatedIssues.find((issue) => issue.id === item.id);
+          return updatedIssue ?? item;
+        }),
+      );
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "No se pudo eliminar el reclamo.",
+        error instanceof Error ? error.message : "No se pudieron actualizar los reclamos.",
       );
     } finally {
       setUpdatingIssueId(null);
     }
   };
 
+  const handleDeleteIssues = async (issueIds: string[]) => {
+    if (currentUser?.role !== "admin" || issueIds.length === 0) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      issueIds.length === 1
+        ? "Quieres eliminar este reclamo?"
+        : `Quieres eliminar ${issueIds.length} reclamos?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setUpdatingIssueId("__bulk__");
+    setErrorMessage("");
+
+    try {
+      await Promise.all(issueIds.map((issueId) => deleteIssue(issueId)));
+      setIssues((current) => current.filter((item) => !issueIds.includes(item.id)));
+      setSelectedIssueIds((current) =>
+        current.filter((selectedId) => !issueIds.includes(selectedId)),
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "No se pudieron eliminar los reclamos.",
+      );
+    } finally {
+      setUpdatingIssueId(null);
+    }
+  };
+
+  const handleDeleteIssue = async (issueId: string) => {
+    await handleDeleteIssues([issueId]);
+  };
+
   return {
     activeView,
     allVisibleSelected,
+    allVisibleComplaintsSelected,
     claimedParcels,
     communityStructure,
     currentPage,
@@ -581,6 +662,8 @@ export function useHomeDashboard() {
     residentScannedParcel,
     safePage,
     searchTerm,
+    selectedIssueIds,
+    selectedVisibleIssueIds,
     selectedVisibleIds,
     startIndex,
     totalPages,
@@ -592,15 +675,19 @@ export function useHomeDashboard() {
     handleAddPackage,
     handleDeletePackages,
     handleDeleteIssue,
+    handleDeleteIssues,
     handleEditPackage,
     handleEditSelected,
+    handleBulkIssueStatusChange,
     handleIssueStatusChange,
+    handleIssueSelection,
     handlePackageSelection,
     handleQrScan,
     handleResidentConfirmClaim,
     handleResidentCreateIssue,
     handleResidentScan,
     handleSelectAllVisible,
+    handleSelectAllVisibleIssues,
     handleUpdatePackage,
     openQrModal,
     resetResidentClaimFlow,
