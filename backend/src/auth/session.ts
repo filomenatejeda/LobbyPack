@@ -11,6 +11,7 @@ export type AuthSession = {
   supabaseUserId: string;
   displayName?: string;
   residentName?: string;
+  residentPhoneNumber?: string;
   departmentAddress?: string;
   buildingId?: string;
 };
@@ -23,6 +24,7 @@ type AppUserRow = RowDataPacket & {
 
 type ResidentProfileRow = RowDataPacket & {
   resident_name: string;
+  user_phone_number: string | null;
   department_address: string;
   building_id: string | null;
 };
@@ -286,7 +288,7 @@ export async function requireAppRole(
 
   const [profiles] = await pool.query<ResidentProfileRow[]>(
     `
-      SELECT resident_name, department_address, building_id
+      SELECT resident_name, user_phone_number, department_address, building_id
       FROM Residents
       WHERE user_id = ?
       LIMIT 1
@@ -307,6 +309,7 @@ export async function requireAppRole(
     supabaseUserId,
     displayName: profile.resident_name,
     residentName: profile.resident_name,
+    residentPhoneNumber: profile.user_phone_number ?? "",
     departmentAddress: profile.department_address,
     buildingId: profile.building_id ?? undefined,
   } satisfies AuthSession;

@@ -7,6 +7,7 @@ import {
   normalizeDepartmentAddress,
 } from "../../utils/departments";
 import { createSequentialId } from "../../utils/ids";
+import { isValidInternationalPhone, normalizeInternationalPhone } from "../../utils/phone";
 import { normalizeTextInput, repairPotentialMojibake } from "../../utils/textEncoding";
 import type { AccountSecurityRow, ResidentRow } from "./types";
 
@@ -123,7 +124,15 @@ export async function createResidentAccount(
   const normalizedEmail = normalizeTextInput(residentEmail).toLowerCase();
   const normalizedResidentName = normalizeTextInput(residentName);
   const normalizedDepartmentAddress = normalizeDepartmentAddress(departmentAddress);
-  const normalizedPhoneNumber = normalizeTextInput(userPhoneNumber);
+  const normalizedPhoneNumber = normalizeInternationalPhone(userPhoneNumber);
+
+  if (!normalizedPhoneNumber) {
+    throw new Error("El telefono del residente es obligatorio.");
+  }
+
+  if (!isValidInternationalPhone(normalizedPhoneNumber)) {
+    throw new Error("El telefono debe usar codigo de pais, por ejemplo +56912345678.");
+  }
 
   const [existingUsers] = await connection.query<RowDataPacket[]>(
     `
@@ -382,4 +391,27 @@ export async function markResidentMfaVerified(residentId: string) {
     `,
     [residentId],
   );
+}
+
+export async function updateResidentPhoneNumber(residentId: string, phoneNumber: string) {
+  const normalizedPhoneNumber = normalizeInternationalPhone(phoneNumber);
+
+  if (!normalizedPhoneNumber) {
+    throw new Error("El telefono del residente es obligatorio.");
+  }
+
+  if (!isValidInternationalPhone(normalizedPhoneNumber)) {
+    throw new Error("El telefono debe usar codigo de pais, por ejemplo +56912345678.");
+  }
+
+  await pool.query(
+    `
+      UPDATE Residents
+      SET user_phone_number = ?
+      WHERE user_id = ?
+    `,
+    [normalizedPhoneNumber, residentId],
+  );
+
+  return getResidentById(residentId);
 }

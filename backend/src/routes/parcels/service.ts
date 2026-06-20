@@ -15,7 +15,11 @@ import {
   parseParcelQrValue,
 } from "../../utils/parcels";
 import { normalizeTextInput, repairPotentialMojibake } from "../../utils/textEncoding";
-import type { ParcelClaimRow, ParcelRow } from "../shared/types";
+import type {
+  ParcelClaimRow,
+  ParcelDepartmentResidentRow,
+  ParcelRow,
+} from "../shared/types";
 
 export { buildParcelQrValue, createParcelQrToken, createSequentialCode, createSequentialId };
 
@@ -100,7 +104,56 @@ function mapParcelRow(row: ParcelRow) {
     claimed_by_name: row.claimed_by_name
       ? repairPotentialMojibake(row.claimed_by_name)
       : null,
+    department_residents: [],
   };
+}
+
+function mapDepartmentResident(row: ParcelDepartmentResidentRow) {
+  return {
+    user_id: row.user_id,
+    email: repairPotentialMojibake(row.email),
+    resident_name: repairPotentialMojibake(row.resident_name),
+    user_phone_number: repairPotentialMojibake(row.user_phone_number ?? ""),
+    department_address: repairPotentialMojibake(row.department_address),
+  };
+}
+
+async function listResidentContacts(buildingId?: string | null) {
+  const [rows] = await pool.query<ParcelDepartmentResidentRow[]>(
+    `
+      SELECT
+        r.user_id,
+        u.email,
+        r.resident_name,
+        r.user_phone_number,
+        r.department_address
+      FROM Residents r
+      INNER JOIN Users u ON u.id = r.user_id
+      WHERE (? IS NULL OR r.building_id = ? OR r.building_id IS NULL)
+      ORDER BY r.department_address, r.resident_name
+    `,
+    [buildingId ?? null, buildingId ?? null],
+  );
+
+  return rows.map(mapDepartmentResident);
+}
+
+async function addDepartmentResidentContacts<T extends ReturnType<typeof mapParcelRow>>(
+  parcels: T[],
+  buildingId?: string | null,
+) {
+  if (parcels.length === 0) {
+    return parcels;
+  }
+
+  const contacts = await listResidentContacts(buildingId);
+
+  return parcels.map((parcel) => ({
+    ...parcel,
+    department_residents: contacts.filter((contact) =>
+      departmentAddressesMatch(contact.department_address, parcel.department_address),
+    ),
+  }));
 }
 
 export async function listParcels(
@@ -158,7 +211,10 @@ export async function listParcels(
     [parcelStatus, options?.buildingId ?? null, options?.buildingId ?? null],
   );
 
-  const mappedRows = rows.map(mapParcelRow);
+  const mappedRows = await addDepartmentResidentContacts(
+    rows.map(mapParcelRow),
+    options?.buildingId,
+  );
 
   if (!options?.departmentAddress) {
     return mappedRows;
@@ -217,7 +273,17 @@ export async function getParcelById(parcelId: string) {
   );
 
   const parcel = parcels[0];
-  return parcel ? mapParcelRow(parcel) : null;
+
+  if (!parcel) {
+    return null;
+  }
+
+  const [parcelWithContacts] = await addDepartmentResidentContacts(
+    [mapParcelRow(parcel)],
+    parcel.building_id,
+  );
+
+  return parcelWithContacts;
 }
 
 export function buildDashboardCurrentUser(session: AuthSession) {
@@ -226,6 +292,7 @@ export function buildDashboardCurrentUser(session: AuthSession) {
     email: session.email,
     role: session.role,
     display_name: session.displayName ?? session.residentName ?? session.email,
+    user_phone_number: session.residentPhoneNumber ?? "",
     department_address: session.departmentAddress ?? null,
   };
 }

@@ -26,6 +26,14 @@ export type ParcelRow = RowDataPacket & {
   claimed_by_name: string | null;
 };
 
+export type ParcelDepartmentResidentRow = RowDataPacket & {
+  user_id: string;
+  email: string;
+  resident_name: string;
+  user_phone_number: string | null;
+  department_address: string;
+};
+
 export type IssueRow = RowDataPacket & {
   id: string;
   id_parcel: string;

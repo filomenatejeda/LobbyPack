@@ -70,6 +70,13 @@ export function addResidentToDepartment(values: {
   });
 }
 
+export function updateResidentPhoneNumber(user_phone_number: string) {
+  return apiRequest<ResidentItem>("/api/resident/profile/phone", {
+    method: "PATCH",
+    body: JSON.stringify({ user_phone_number }),
+  });
+}
+
 export function inviteConcierge(values: {
   concierge_email: string;
   concierge_name: string;

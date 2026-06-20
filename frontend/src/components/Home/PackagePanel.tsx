@@ -17,6 +17,7 @@ type PackagePanelProps = {
   paginatedPackages: ParcelItem[];
   currentSelections: string[];
   activeView: PackageServiceView;
+  senderEmail: string;
   onSearchChange: (value: string) => void;
   onPageSizeChange: (value: number) => void;
   onSelectAllVisible: (checked: boolean) => void;
@@ -45,6 +46,7 @@ export default function PackagePanel(props: PackagePanelProps) {
     paginatedPackages,
     currentSelections,
     activeView,
+    senderEmail,
     onSearchChange,
     onPageSizeChange,
     onSelectAllVisible,
@@ -186,6 +188,7 @@ export default function PackagePanel(props: PackagePanelProps) {
             key={item.id}
             item={item}
             activeView={activeView}
+            senderEmail={senderEmail}
             checked={currentSelections.includes(item.id)}
             onSelect={onSelect}
             onShowQr={onShowQr}

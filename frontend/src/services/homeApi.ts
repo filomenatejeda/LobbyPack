@@ -61,6 +61,18 @@ export function createResidentIssue(id_parcel: string, issue_description: string
   });
 }
 
+export function sendContactEmail(values: {
+  to: string;
+  subject: string;
+  message: string;
+  bcc_sender: boolean;
+}) {
+  return apiRequest<{ ok: boolean; id: string | null }>("/api/messages/email", {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
+}
+
 export type { CommunityStructureTower };
 
 export function deleteParcel(id: string) {

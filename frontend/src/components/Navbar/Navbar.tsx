@@ -36,8 +36,10 @@ export default function Navbar() {
   useEffect(() => {
     let isActive = true;
 
-    const syncAuthState = async () => {
-      const { data, error } = await supabase.auth.getUser();
+    const syncAuthState = async (hasKnownSession?: boolean) => {
+      const { data, error } = hasKnownSession
+        ? { data: { user: true }, error: null }
+        : await supabase.auth.getUser();
 
       if (!isActive) {
         return;
@@ -53,9 +55,7 @@ export default function Navbar() {
             setCurrentRole(dashboard.current_user.role);
           }
         } catch {
-          if (isActive) {
-            setCurrentRole(null);
-          }
+          // Keep the last known role during transient session refreshes.
         }
       } else {
         setCurrentRole(null);
@@ -67,8 +67,14 @@ export default function Navbar() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(Boolean(session?.user));
-      setCurrentRole(null);
+      if (!session?.user) {
+        setIsAuthenticated(false);
+        setCurrentRole(null);
+        return;
+      }
+
+      setIsAuthenticated(true);
+      void syncAuthState(true);
     });
 
     return () => {

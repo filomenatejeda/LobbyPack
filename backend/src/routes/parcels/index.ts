@@ -7,9 +7,11 @@ import {
   normalizeDepartmentAddress,
 } from "../../utils/departments";
 import { normalizeTextInput } from "../../utils/textEncoding";
+import { sendParcelWhatsappNotifications } from "../../utils/whatsapp";
 import { parcelPayloadSchema, residentParcelQrSchema } from "../shared/schemas";
 import type { ParcelClaimRow } from "../shared/types";
 import { resolveBuildingIdForUserEmail } from "../shared/community";
+import { listResidentsByDepartment } from "../shared/residents";
 import { assertDepartmentExistsInStructure } from "../shared/structure";
 import { validateParcelPayload } from "./validation";
 import {
@@ -114,7 +116,37 @@ export const parcelRoutes = new Elysia()
 
         await connection.commit();
         set.status = 201;
-        return getParcelById(parcelId);
+        const createdParcel = await getParcelById(parcelId);
+
+        try {
+          const departmentResidents = await listResidentsByDepartment(
+            validatedPayload.department_address,
+            buildingId,
+          );
+
+          const notificationResults = await sendParcelWhatsappNotifications({
+            recipients: departmentResidents,
+            departmentAddress: validatedPayload.department_address,
+          });
+
+          const failedNotifications = notificationResults.filter(
+            (result) => result.status === "rejected",
+          );
+
+          if (failedNotifications.length > 0) {
+            console.warn(
+              `No se pudieron enviar ${failedNotifications.length} notificaciones de WhatsApp para ${parcelId}.`,
+              failedNotifications,
+            );
+          }
+        } catch (notificationError) {
+          console.warn(
+            `No se pudieron preparar las notificaciones de WhatsApp para ${parcelId}.`,
+            notificationError,
+          );
+        }
+
+        return createdParcel;
       } catch (error) {
         await connection.rollback();
         throw error;

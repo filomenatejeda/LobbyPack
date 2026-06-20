@@ -3,7 +3,7 @@ import { t } from "elysia";
 export const parcelPayloadSchema = t.Object({
   department_address: t.String({ minLength: 1, maxLength: 100 }),
   resident_name: t.String({ minLength: 1, maxLength: 30 }),
-  user_phone_number: t.Optional(t.String({ maxLength: 12 })),
+  user_phone_number: t.Optional(t.String({ maxLength: 16 })),
   business_name: t.Optional(t.String({ maxLength: 30 })),
   parcel_description: t.Optional(t.String({ maxLength: 150 })),
   is_urgent: t.Optional(t.Boolean()),
@@ -44,8 +44,12 @@ export const residentSettingsSchema = t.Object({
   resident_email: t.String({ minLength: 1 }),
   resident_name: t.String({ minLength: 1 }),
   resident_password: t.String({ minLength: 8 }),
-  user_phone_number: t.String(),
+  user_phone_number: t.String({ minLength: 1, maxLength: 16 }),
   department_address: t.String({ minLength: 1 }),
+});
+
+export const residentPhoneSchema = t.Object({
+  user_phone_number: t.String({ minLength: 1, maxLength: 16 }),
 });
 
 export const conciergeSettingsSchema = t.Object({

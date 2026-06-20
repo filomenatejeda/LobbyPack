@@ -1,7 +1,7 @@
 import type { AddPackageFormValues } from "../components/Home/packageFormTypes";
 import type { CommunityStructureTower } from "../types/home";
+import { isValidInternationalPhone, normalizeInternationalPhone } from "./phoneUtils";
 
-export const PHONE_REGEX = /^\+569\d{8}$/;
 export const PARCEL_NAME_REGEX = /^[\p{L}\p{N} ]{1,30}$/u;
 export const PARCEL_DESCRIPTION_REGEX = /^[\p{L}\p{N} .,:;¡¿?!@#$%^&*()"\-_=+]{1,150}$/u;
 
@@ -15,7 +15,7 @@ export function normalizeParcelFormValues(values: AddPackageFormValues): AddPack
   return {
     department_address: normalizeParcelText(values.department_address),
     resident_name: normalizeParcelText(values.resident_name),
-    user_phone_number: values.user_phone_number.trim(),
+    user_phone_number: normalizeInternationalPhone(values.user_phone_number),
     business_name: normalizeParcelText(values.business_name),
     concierge_name: normalizeParcelText(values.concierge_name),
     parcel_description: normalizeParcelText(values.parcel_description),
@@ -32,7 +32,7 @@ export function validateParcelField(
   }
 
   const normalizedValue =
-    field === "user_phone_number" ? value.trim() : normalizeParcelText(value);
+    field === "user_phone_number" ? normalizeInternationalPhone(value) : normalizeParcelText(value);
 
   if (field === "department_address") {
     if (!normalizedValue) {
@@ -51,8 +51,8 @@ export function validateParcelField(
       return null;
     }
 
-    if (!PHONE_REGEX.test(normalizedValue)) {
-      return "El teléfono debe seguir el formato +56912345678.";
+    if (!isValidInternationalPhone(normalizedValue)) {
+      return "El teléfono debe usar codigo de pais, por ejemplo +56912345678.";
     }
 
     return null;

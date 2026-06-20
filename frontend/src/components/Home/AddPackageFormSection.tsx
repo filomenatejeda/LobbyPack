@@ -181,9 +181,9 @@ export default function AddPackageFormSection({
             type="tel"
             value={values.user_phone_number}
             onChange={(event) => onChange("user_phone_number", event.target.value)}
-            placeholder="Opcional"
+            placeholder="Ej: +56912345678"
             inputMode="tel"
-            maxLength={12}
+            maxLength={16}
           />
         </label>
 

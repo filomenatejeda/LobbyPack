@@ -10,12 +10,21 @@ export type DashboardCurrentUser = {
   email: string;
   role: AppRole;
   display_name: string;
+  user_phone_number: string;
   department_address: string | null;
 };
 
 export type CommunityStructureTower = {
   tower_name: string;
   apartments: string[];
+};
+
+export type ParcelDepartmentResident = {
+  user_id: string;
+  email: string;
+  resident_name: string;
+  user_phone_number: string;
+  department_address: string;
 };
 
 export type ParcelItem = {
@@ -38,6 +47,7 @@ export type ParcelItem = {
   concierge_name: string;
   business_name: string;
   claimed_by_name: string | null;
+  department_residents: ParcelDepartmentResident[];
 };
 
 export type PackageView = {

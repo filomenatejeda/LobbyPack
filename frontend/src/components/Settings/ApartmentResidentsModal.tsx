@@ -2,6 +2,10 @@ import { useMemo, useState, type ComponentType, type FormEvent } from "react";
 import { Trash2, X } from "lucide-react";
 import QRCodeImport from "react-qr-code";
 import { createIsolatedSupabaseClient, supabaseConfigError } from "../../lib/client";
+import {
+  isValidInternationalPhone,
+  normalizeInternationalPhone,
+} from "../../utils/phoneUtils";
 import type {
   ResidentAccountCreationResponse,
   ResidentItem,
@@ -87,6 +91,16 @@ export default function ApartmentResidentsModal({
         throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
       }
 
+      const normalizedPhoneNumber = normalizeInternationalPhone(phoneNumber);
+
+      if (!normalizedPhoneNumber) {
+        throw new Error("El telefono del residente es obligatorio.");
+      }
+
+      if (!isValidInternationalPhone(normalizedPhoneNumber)) {
+        throw new Error("El telefono debe usar codigo de pais, por ejemplo +56912345678.");
+      }
+
       const signedUp = await residentSupabase.auth.signUp({
         email: residentEmail,
         password: residentPassword,
@@ -100,7 +114,7 @@ export default function ApartmentResidentsModal({
         resident_email: residentEmail,
         resident_name: residentName,
         resident_password: residentPassword,
-        user_phone_number: phoneNumber,
+        user_phone_number: normalizedPhoneNumber,
       });
       setCreatedResident(resident);
       setVerificationCode("");
@@ -328,7 +342,9 @@ export default function ApartmentResidentsModal({
                   type="tel"
                   value={phoneNumber}
                   onChange={(event) => setPhoneNumber(event.target.value)}
-                  placeholder="Opcional"
+                  placeholder="Ej: +56912345678"
+                  maxLength={16}
+                  required
                 />
               </label>
               <div className="residentActions">

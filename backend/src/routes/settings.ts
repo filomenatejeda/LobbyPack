@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import { requireAppRole } from "../auth/session";
 import { pool } from "../db/pool";
 import { normalizeTextInput } from "../utils/textEncoding";
-import { conciergeSettingsSchema, generalSettingsSchema, preferenceSettingsSchema, residentEmailVerificationSchema, residentMfaVerificationSchema, residentSettingsSchema, towersSchema } from "./shared/schemas";
+import { conciergeSettingsSchema, generalSettingsSchema, preferenceSettingsSchema, residentEmailVerificationSchema, residentMfaVerificationSchema, residentPhoneSchema, residentSettingsSchema, towersSchema } from "./shared/schemas";
 import type { BuildingRow, PreferenceRow, TeamRow, TowerRow } from "./shared/types";
 import { getSettingsContext, resolveBuildingIdForUserEmail } from "./shared/community";
 import {
@@ -26,6 +26,7 @@ import {
   listResidentsByDepartment,
   markResidentEmailVerified,
   markResidentMfaVerified,
+  updateResidentPhoneNumber,
 } from "./shared/residents";
 
 async function getSettingsPayload(adminEmail?: string) {
@@ -177,6 +178,42 @@ export const settingsRoutes = new Elysia()
     const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
     return getSettingsPayload(session.role === "admin" ? query.admin_email : session.email);
   })
+  .patch(
+    "/resident/profile/phone",
+    async ({ headers, body, set }) => {
+      const session = await requireAppRole(headers.authorization, ["resident"]);
+
+      try {
+        const resident = await updateResidentPhoneNumber(
+          session.userId,
+          body.user_phone_number,
+        );
+
+        if (!resident) {
+          set.status = 404;
+          return { message: "Residente no encontrado." };
+        }
+
+        return resident;
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          [
+            "El telefono del residente es obligatorio.",
+            "El telefono debe usar codigo de pais, por ejemplo +56912345678.",
+          ].includes(error.message)
+        ) {
+          set.status = 400;
+          return { message: error.message };
+        }
+
+        throw error;
+      }
+    },
+    {
+      body: residentPhoneSchema,
+    },
+  )
   .get("/settings/residents", async ({ headers, query }) => {
     const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
     const buildingId = await resolveBuildingIdForUserEmail(session.email);

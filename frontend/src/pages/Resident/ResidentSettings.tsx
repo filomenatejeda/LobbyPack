@@ -1,4 +1,10 @@
+import { useEffect, useState, type FormEvent } from "react";
+import { updateResidentPhoneNumber } from "../../services/settingsApi";
 import type { DashboardCurrentUser } from "../../types/home";
+import {
+  isValidInternationalPhone,
+  normalizeInternationalPhone,
+} from "../../utils/phoneUtils";
 import "../Settings/Settings.css";
 import "./ResidentSettings.css";
 
@@ -16,6 +22,55 @@ export default function ResidentSettings({
   packageCounts,
   statusMessage = "",
 }: ResidentSettingsProps) {
+  const [phoneNumber, setPhoneNumber] = useState(currentUser.user_phone_number);
+  const [savedPhoneNumber, setSavedPhoneNumber] = useState(currentUser.user_phone_number);
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [isSavingPhone, setIsSavingPhone] = useState(false);
+  const [phoneMessage, setPhoneMessage] = useState("");
+
+  useEffect(() => {
+    setPhoneNumber(currentUser.user_phone_number);
+    setSavedPhoneNumber(currentUser.user_phone_number);
+  }, [currentUser.user_phone_number]);
+
+  const handlePhoneSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const normalizedPhoneNumber = normalizeInternationalPhone(phoneNumber);
+
+    if (!normalizedPhoneNumber) {
+      setPhoneMessage("El telefono es obligatorio.");
+      return;
+    }
+
+    if (!isValidInternationalPhone(normalizedPhoneNumber)) {
+      setPhoneMessage("El telefono debe usar codigo de pais, por ejemplo +56912345678.");
+      return;
+    }
+
+    setIsSavingPhone(true);
+    setPhoneMessage("");
+
+    try {
+      const updatedResident = await updateResidentPhoneNumber(normalizedPhoneNumber);
+      setPhoneNumber(updatedResident.user_phone_number);
+      setSavedPhoneNumber(updatedResident.user_phone_number);
+      setIsEditingPhone(false);
+      setPhoneMessage("Telefono actualizado correctamente.");
+    } catch (error) {
+      setPhoneMessage(
+        error instanceof Error ? error.message : "No se pudo actualizar el telefono.",
+      );
+    } finally {
+      setIsSavingPhone(false);
+    }
+  };
+
+  const handleCancelPhoneEdit = () => {
+    setPhoneNumber(savedPhoneNumber);
+    setPhoneMessage("");
+    setIsEditingPhone(false);
+  };
+
   return (
     <main className="settingsPage residentSettingsPage">
       <section className="settingsHero residentSettingsHero">
@@ -46,6 +101,48 @@ export default function ResidentSettings({
             <div className="settingsReadOnlyItem">
               <dt>Departamento</dt>
               <dd>{currentUser.department_address ?? "Sin departamento asignado"}</dd>
+            </div>
+            <div className="settingsReadOnlyItem">
+              <dt>Telefono</dt>
+              <dd>
+                {isEditingPhone ? (
+                  <form className="residentPhoneForm" onSubmit={handlePhoneSubmit}>
+                    <input
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(event) => setPhoneNumber(event.target.value)}
+                      placeholder="Ej: +56912345678"
+                      maxLength={16}
+                      required
+                    />
+                    <div className="residentPhoneActions">
+                      <button type="submit" className="primaryButton" disabled={isSavingPhone}>
+                        {isSavingPhone ? "Guardando..." : "Guardar"}
+                      </button>
+                      <button
+                        type="button"
+                        className="secondaryButton"
+                        onClick={handleCancelPhoneEdit}
+                        disabled={isSavingPhone}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="residentPhoneRead">
+                    <span>{savedPhoneNumber || "Sin telefono registrado"}</span>
+                    <button
+                      type="button"
+                      className="secondaryButton"
+                      onClick={() => setIsEditingPhone(true)}
+                    >
+                      Editar
+                    </button>
+                  </div>
+                )}
+                {phoneMessage ? <p className="residentPhoneMessage">{phoneMessage}</p> : null}
+              </dd>
             </div>
           </dl>
         </article>

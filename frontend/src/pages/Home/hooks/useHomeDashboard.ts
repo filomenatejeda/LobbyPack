@@ -136,6 +136,16 @@ export function useHomeDashboard() {
   });
 
   const filteredPackages = (currentPackageView?.parcels ?? []).filter((item) => {
+    const departmentResidentText = (item.department_residents ?? [])
+      .map((resident) =>
+        [
+          resident.resident_name,
+          resident.user_phone_number,
+          resident.email,
+          resident.department_address,
+        ].join(" "),
+      )
+      .join(" ");
     const searchableText = normalizeSearchText(
       [
         item.id,
@@ -144,6 +154,7 @@ export function useHomeDashboard() {
         item.user_phone_number,
         item.business_name,
         item.concierge_name,
+        departmentResidentText,
         item.resident_claimed_by_name,
         item.resident_claim_confirmed_at,
         item.claimed_by_name,

@@ -47,6 +47,36 @@
   grid-template-columns: 1fr;
 }
 
+.residentPhoneRead,
+.residentPhoneForm,
+.residentPhoneActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.residentPhoneRead {
+  justify-content: space-between;
+}
+
+.residentPhoneForm input {
+  min-width: min(100%, 220px);
+  flex: 1;
+  border: 1px solid rgba(29, 55, 69, 0.16);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font: inherit;
+  font-weight: 700;
+  color: #182832;
+}
+
+.residentPhoneMessage {
+  margin: 8px 0 0;
+  color: #526573;
+  font-size: 0.86rem;
+}
+
 .residentSettingsList {
   display: grid;
   gap: 12px;

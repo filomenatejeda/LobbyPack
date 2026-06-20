@@ -148,6 +148,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
               paginatedPackages={dashboard.paginatedPackages}
               currentSelections={dashboard.currentSelections}
               activeView={packageView}
+              senderEmail={dashboard.currentUser?.email ?? ""}
               onSearchChange={dashboard.updateSearch}
               onPageSizeChange={dashboard.updatePageSizeValue}
               onSelectAllVisible={dashboard.handleSelectAllVisible}
