@@ -3,9 +3,12 @@ name: Unit Tests
 on:
   push:
     branches:
+      - QR
       - main
-      - master
   pull_request:
+    branches:
+      - QR
+      - main
 
 jobs:
   backend-tests:
