@@ -1,0 +1,134 @@
+.hero {
+  width: 100%;
+}
+
+.main {
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(32px, 6vw, 72px) 16px 24px;
+  text-align: center;
+}
+
+.eyebrow {
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.main h1 {
+  width: 100%;
+  margin: 0 auto;
+  font-size: clamp(3rem, 10vw, 7rem);
+  line-height: 0.9;
+  letter-spacing: -0.08em;
+  text-wrap: balance;
+}
+
+.titlePrimary {
+  color: #603e21;
+}
+
+.titleAccent {
+  color: #7c8033;
+}
+
+.lead {
+  max-width: none;
+  margin: 20px auto 0;
+  font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+  color: var(--text-soft);
+}
+
+.serviceToggle {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 12px;
+  margin-top: 32px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 8px;
+  width: min(100%, 760px);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 6px 20px rgba(60, 52, 45, 0.04);
+}
+
+.toggleButton {
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  font-weight: 700;
+  font-size: clamp(0.92rem, 1.8vw, 1.05rem);
+  padding: 12px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.toggleButton.active {
+  background: var(--surface-strong);
+  color: var(--text);
+  box-shadow: 0 4px 14px rgba(60, 52, 45, 0.08);
+}
+
+.addPackageButton {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--accent-strong);
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.floatingAddButton {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 20;
+  border-radius: 999px;
+  padding: 12px 18px;
+  box-shadow: 0 10px 24px rgba(60, 52, 45, 0.12);
+}
+
+@media (max-width: 768px) {
+  .main {
+    width: 100%;
+    padding: 24px 10px 16px;
+  }
+
+  .lead {
+    margin-top: 16px;
+  }
+
+  .floatingAddButton {
+    right: 12px;
+    bottom: 12px;
+    padding: 10px 14px;
+  }
+
+  .serviceToggle {
+    width: 100%;
+    gap: 10px;
+  }
+
+  .toggleButton {
+    width: 100%;
+    min-height: 48px;
+    font-size: 0.9rem;
+    padding: 10px 8px;
+  }
+}

@@ -1,0 +1,298 @@
+.complaintPanel {
+  width: 100%;
+  margin: 32px auto 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+
+.complaintHeader h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.complaintTools {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.complaintSearchField {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.complaintSearchField span,
+.complaintPageSizeField span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.complaintSearchInputWrap {
+  position: relative;
+}
+
+.complaintSearchIcon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  width: 16px;
+  height: 16px;
+  color: var(--text-soft);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.complaintSearchField input,
+.complaintPageSizeSelect {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfbf9;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.complaintSearchField input {
+  width: 100%;
+  padding-left: 34px;
+}
+
+.complaintPageSizeField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.complaintResultsText {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.complaintList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.complaintItem {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fcfcfa;
+  padding: 14px;
+}
+
+.complaintMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.complaintMeta strong {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.complaintMeta span {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.complaintBadge {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-weight: 700;
+}
+
+.complaintBadgeIngresado {
+  background: #efe7de;
+  color: #816b56;
+}
+
+.complaintBadgeEnrevision {
+  background: #f6e9b8;
+  color: #8a6b1f;
+}
+
+.complaintBadgeResuelto {
+  background: #dcefd2;
+  color: #4f6840;
+}
+
+.complaintText {
+  margin: 10px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.complaintActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.complaintStatusField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.complaintStatusField span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.complaintStatusSelect {
+  min-width: 180px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfbf9;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.complaintQuickAction {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.complaintQuickActionIngresado {
+  background: var(--accent);
+  color: white;
+}
+
+.complaintQuickActionEnrevision {
+  background: #f6e9b8;
+  color: #8a6b1f;
+}
+
+.complaintQuickActionResuelto {
+  background: #dcefd2;
+  color: #4f6840;
+}
+
+.complaintQuickAction:disabled,
+.complaintStatusSelect:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.complaintEmptyState {
+  margin-top: 14px;
+  font-size: 0.88rem;
+  color: var(--text-soft);
+}
+
+.complaintFooter {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.complaintPagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 1;
+}
+
+.complaintPaginationButton {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfbf9;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.complaintPaginationButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.complaintPaginationInfo {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+@media (max-width: 768px) {
+  .complaintTools {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .complaintFooter {
+    gap: 12px;
+  }
+
+  .complaintActions {
+    align-items: stretch;
+  }
+
+  .complaintStatusField,
+  .complaintStatusSelect,
+  .complaintQuickAction {
+    width: 100%;
+  }
+
+  .complaintPagination {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+  }
+
+  .complaintPaginationInfo {
+    text-align: center;
+    font-size: 0.8rem;
+  }
+
+  .complaintPaginationButton {
+    width: 100%;
+    padding: 8px 10px;
+  }
+
+  .complaintPageSizeField {
+    width: fit-content;
+  }
+
+  .complaintPageSizeSelect {
+    min-width: 96px;
+  }
+}
