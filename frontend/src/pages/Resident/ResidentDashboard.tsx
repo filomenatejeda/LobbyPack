@@ -1,5 +1,6 @@
 import jsQR from "jsqr";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type { DashboardCurrentUser, IssueItem, ParcelItem } from "../../types/home";
 import {
   formatIssueStatus,
@@ -102,6 +103,8 @@ export default function ResidentDashboard({
   issueTone,
   isCreatingIssue,
 }: ResidentDashboardProps) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -113,7 +116,9 @@ export default function ResidentDashboard({
   const [issueParcelId, setIssueParcelId] = useState("");
   const [issueDescription, setIssueDescription] = useState("");
   const [isIssueFormOpen, setIsIssueFormOpen] = useState(false);
-  const [activeResidentView, setActiveResidentView] = useState<ResidentView>("scanner");
+  const [activeResidentView, setActiveResidentView] = useState<ResidentView>(
+    searchParams.get("view") === "claimed" ? "claimed" : "scanner",
+  );
   const issueParcelOptions = useMemo(
     () => [...pendingParcels, ...claimedParcels],
     [pendingParcels, claimedParcels],
@@ -128,6 +133,12 @@ export default function ResidentDashboard({
     { value: "claimed", label: "Paquetes entregados", count: claimedParcels.length },
     { value: "issues", label: "Reclamos", count: issues.length },
   ];
+
+  useEffect(() => {
+    if (searchParams.get("view") === "claimed") {
+      setActiveResidentView("claimed");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!isCameraOpen) {
@@ -383,7 +394,18 @@ export default function ResidentDashboard({
                 type="button"
                 className="residentScannerButton"
                 disabled={isProcessing}
-                onClick={() => void onConfirmClaim()}
+                onClick={async () => {
+                  const confirmedParcel = scannedParcel;
+
+                  await onConfirmClaim();
+
+                  if (confirmedParcel) {
+                    navigate("/retiro-exitoso", {
+                      replace: true,
+                      state: { parcel: confirmedParcel },
+                    });
+                  }
+                }}
               >
                 {isProcessing ? "Confirmando..." : "Confirmar retiro"}
               </button>
