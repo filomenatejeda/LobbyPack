@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { AddPackageFormValues } from "../../../components/Home/packageFormTypes";
 import {
   claimParcel,
+  claimParcelWithPin,
   confirmResidentParcelClaim,
   createResidentIssue,
   createParcel,
@@ -50,7 +51,10 @@ export function useHomeDashboard() {
     pickedUp: [],
   });
   const [qrPackage, setQrPackage] = useState<ParcelItem | null>(null);
+  const [pinPackage, setPinPackage] = useState<ParcelItem | null>(null);
   const [qrScanMessage, setQrScanMessage] = useState("");
+  const [pinClaimMessage, setPinClaimMessage] = useState("");
+  const [isPinClaimProcessing, setIsPinClaimProcessing] = useState(false);
   const [isAddPackageOpen, setIsAddPackageOpen] = useState(false);
   const [editingParcel, setEditingParcel] = useState<ParcelItem | null>(null);
   const [updatingIssueId, setUpdatingIssueId] = useState<string | null>(null);
@@ -342,6 +346,43 @@ export function useHomeDashboard() {
 
   const closeQrModal = () => {
     setQrPackage(null);
+  };
+
+  const openPinModal = (item: ParcelItem) => {
+    setPinClaimMessage("");
+    setPinPackage(item);
+  };
+
+  const closePinModal = () => {
+    setPinPackage(null);
+    setPinClaimMessage("");
+  };
+
+  const handlePinClaim = async (parcelId: string, withdrawalPin: string) => {
+    setIsPinClaimProcessing(true);
+    setPinClaimMessage("");
+
+    try {
+      const movedParcel = await claimParcelWithPin(parcelId, withdrawalPin);
+
+      setPendingParcels((current) => current.filter((item) => item.id !== movedParcel.id));
+      setClaimedParcels((current) => [
+        movedParcel,
+        ...current.filter((item) => item.id !== movedParcel.id),
+      ]);
+      setSelectedIds((current) => ({
+        received: current.received.filter((selectedId) => selectedId !== movedParcel.id),
+        pickedUp: current.pickedUp,
+      }));
+      setPinClaimMessage(`Paquete ${movedParcel.id} marcado como retirado.`);
+      window.setTimeout(closePinModal, 900);
+    } catch (error) {
+      setPinClaimMessage(
+        error instanceof Error ? error.message : "No se pudo validar el PIN.",
+      );
+    } finally {
+      setIsPinClaimProcessing(false);
+    }
   };
 
   const handleQrScan = async (decodedText: string) => {
@@ -668,6 +709,7 @@ export function useHomeDashboard() {
     isAddPackageOpen,
     isCreatingResidentIssue,
     isLoading,
+    isPinClaimProcessing,
     isResident,
     isResidentProcessing,
     issues,
@@ -675,6 +717,8 @@ export function useHomeDashboard() {
     paginatedPackages,
     pageSize,
     pendingParcels,
+    pinClaimMessage,
+    pinPackage,
     qrPackage,
     qrScanMessage,
     residentFeedbackMessage,
@@ -691,6 +735,7 @@ export function useHomeDashboard() {
     totalPages,
     updatingIssueId,
     activateView,
+    closePinModal,
     closeQrModal,
     goToNextPage,
     goToPreviousPage,
@@ -704,6 +749,7 @@ export function useHomeDashboard() {
     handleIssueStatusChange,
     handleIssueSelection,
     handlePackageSelection,
+    handlePinClaim,
     handleQrScan,
     handleResidentConfirmClaim,
     handleResidentCreateIssue,
@@ -711,6 +757,7 @@ export function useHomeDashboard() {
     handleSelectAllVisible,
     handleSelectAllVisibleIssues,
     handleUpdatePackage,
+    openPinModal,
     openQrModal,
     resetResidentClaimFlow,
     setEditingParcel,

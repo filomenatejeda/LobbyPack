@@ -1,3 +1,4 @@
+import { useState } from "react";
 import AddPackageModal from "../../components/Home/AddPackageModal";
 import ComplaintPanel from "../../components/Home/ComplaintPanel";
 import PackagePanel from "../../components/Home/PackagePanel";
@@ -11,6 +12,7 @@ type AdminDashboardProps = {
 };
 
 export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
+  const [withdrawalPin, setWithdrawalPin] = useState("");
   const canManageIssueStatus = dashboard.currentUser?.role === "admin";
   const openIssues = dashboard.issues.filter((issue) => issue.issue_status === "open");
   const underReviewIssues = dashboard.issues.filter(
@@ -170,6 +172,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
               }
               onSelect={dashboard.handlePackageSelection}
               onShowQr={dashboard.openQrModal}
+              onShowPin={dashboard.openPinModal}
               onEdit={dashboard.handleEditPackage}
               onDelete={(view, ids) => void dashboard.handleDeletePackages(view, ids)}
               onPrevPage={dashboard.goToPreviousPage}
@@ -198,6 +201,92 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           onConfirm={(value) => void dashboard.handleQrScan(value)}
           qrScanMessage={dashboard.qrScanMessage}
         />
+      ) : null}
+
+      {dashboard.pinPackage ? (
+        <div className="pinModalOverlay" onClick={dashboard.closePinModal}>
+          <section
+            className="pinModal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pinModalTitle"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="pinModalHeader">
+              <div>
+                <p>Validacion por PIN</p>
+                <h3 id="pinModalTitle">Paquete {dashboard.pinPackage.id}</h3>
+              </div>
+              <button
+                type="button"
+                className="closeModalButton"
+                onClick={dashboard.closePinModal}
+                aria-label="Cerrar validacion por PIN"
+              >
+                x
+              </button>
+            </div>
+
+            <p className="pinModalText">
+              Ingresa el PIN de un residente del departamento{" "}
+              <strong>{dashboard.pinPackage.department_address}</strong> para marcar el paquete
+              como retirado.
+            </p>
+
+            <form
+              className="pinModalForm"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void dashboard.handlePinClaim(dashboard.pinPackage?.id ?? "", withdrawalPin);
+                setWithdrawalPin("");
+              }}
+            >
+              <label>
+                <span>PIN de retiro</span>
+                <input
+                  type="text"
+                  name="lobbypack-package-withdrawal-pin"
+                  className="pinCodeInput"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  pattern="[0-9]*"
+                  minLength={4}
+                  maxLength={6}
+                  value={withdrawalPin}
+                  onChange={(event) =>
+                    setWithdrawalPin(event.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  placeholder="4 a 6 digitos"
+                  autoFocus
+                />
+              </label>
+
+              {dashboard.pinClaimMessage ? (
+                <p className="pinModalStatus">{dashboard.pinClaimMessage}</p>
+              ) : null}
+
+              <div className="pinModalActions">
+                <button
+                  type="button"
+                  className="secondaryButton"
+                  onClick={dashboard.closePinModal}
+                  disabled={dashboard.isPinClaimProcessing}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="primaryButton"
+                  disabled={dashboard.isPinClaimProcessing || withdrawalPin.length < 4}
+                >
+                  {dashboard.isPinClaimProcessing ? "Validando..." : "Validar y retirar"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
       ) : null}
 
       {dashboard.isAddPackageOpen ? (

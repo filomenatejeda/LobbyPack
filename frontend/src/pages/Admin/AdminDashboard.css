@@ -107,6 +107,94 @@
   color: #7a5b19;
 }
 
+.pinModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: rgba(38, 32, 27, 0.42);
+  padding: 1rem;
+}
+
+.pinModal {
+  width: min(100%, 440px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-strong);
+  padding: 1.2rem;
+  box-shadow: 0 24px 70px rgba(38, 32, 27, 0.24);
+}
+
+.pinModalHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.pinModalHeader p,
+.pinModalHeader h3,
+.pinModalText {
+  margin: 0;
+}
+
+.pinModalHeader p {
+  color: var(--accent-strong);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pinModalHeader h3 {
+  margin-top: 0.25rem;
+  font-size: 1.25rem;
+}
+
+.pinModalText {
+  margin-top: 1rem;
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
+.pinModalForm {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.pinModalForm label {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.pinModalForm input {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  padding: 0.8rem 0.9rem;
+  font: inherit;
+}
+
+.pinCodeInput {
+  -webkit-text-security: disc;
+}
+
+.pinModalStatus {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.pinModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
 @media (max-width: 760px) {
   .adminOverview {
     display: flex;

@@ -15,6 +15,7 @@ export type AuthSession = {
   residentPhoneNumber?: string;
   departmentAddress?: string;
   buildingId?: string;
+  withdrawalPinConfigured?: boolean;
 };
 
 type AppUserRow = RowDataPacket & {
@@ -28,6 +29,7 @@ type ResidentProfileRow = RowDataPacket & {
   user_phone_number: string | null;
   department_address: string;
   building_id: string | null;
+  withdrawal_pin_hash: string | null;
 };
 
 type UserDisplayNameRow = RowDataPacket & {
@@ -286,9 +288,15 @@ export async function requireAppRole(
 
   const [profiles] = await pool.query<ResidentProfileRow[]>(
     `
-      SELECT resident_name, user_phone_number, department_address, building_id
-      FROM Residents
-      WHERE user_id = ?
+      SELECT
+        r.resident_name,
+        r.user_phone_number,
+        r.department_address,
+        r.building_id,
+        s.withdrawal_pin_hash
+      FROM Residents r
+      LEFT JOIN ResidentAccountSecurity s ON s.user_id = r.user_id
+      WHERE r.user_id = ?
       LIMIT 1
     `,
     [user.id],
@@ -310,5 +318,6 @@ export async function requireAppRole(
     residentPhoneNumber: profile.user_phone_number ?? "",
     departmentAddress: profile.department_address,
     buildingId: profile.building_id ?? undefined,
+    withdrawalPinConfigured: Boolean(profile.withdrawal_pin_hash),
   } satisfies AuthSession;
 }

@@ -34,6 +34,13 @@ export function claimParcel(id: string) {
   });
 }
 
+export function claimParcelWithPin(id: string, withdrawal_pin: string) {
+  return apiRequest<ParcelItem>(`/api/parcels/${id}/claim-with-pin`, {
+    method: "POST",
+    body: JSON.stringify({ withdrawal_pin }),
+  });
+}
+
 export function scanResidentParcel(qr_value: string) {
   return apiRequest<{ parcel: ParcelItem; current_user: DashboardCurrentUser }>(
     "/api/resident/parcels/scan",

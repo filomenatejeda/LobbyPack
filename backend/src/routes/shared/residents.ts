@@ -23,6 +23,44 @@ function hashVerificationCode(code: string) {
   return createHash("sha256").update(code).digest("hex");
 }
 
+function hashWithdrawalPin(pin: string) {
+  return createHash("sha256").update(pin).digest("hex");
+}
+
+function normalizeWithdrawalPin(pin: string) {
+  const normalizedPin = pin.trim();
+
+  if (!/^\d{4,6}$/.test(normalizedPin)) {
+    throw new Error("El PIN debe tener entre 4 y 6 digitos.");
+  }
+
+  return normalizedPin;
+}
+
+async function securityColumnExists(columnName: string) {
+  const [databaseRows] = await pool.query<Array<RowDataPacket & { database_name: string }>>(
+    "SELECT DATABASE() AS database_name",
+  );
+  const databaseName = databaseRows[0]?.database_name;
+
+  if (!databaseName) {
+    return false;
+  }
+
+  const [rows] = await pool.query<Array<RowDataPacket & { total: number }>>(
+    `
+      SELECT COUNT(*) AS total
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ?
+        AND TABLE_NAME = 'ResidentAccountSecurity'
+        AND COLUMN_NAME = ?
+    `,
+    [databaseName, columnName],
+  );
+
+  return Number(rows[0]?.total ?? 0) > 0;
+}
+
 function getSupabaseAdminClient() {
   const supabaseUrl = (
     process.env.SUPABASE_URL ??
@@ -103,11 +141,20 @@ export async function ensureResidentAccountSecurityTable() {
       email_verified BOOLEAN DEFAULT FALSE,
       totp_secret VARCHAR(64),
       totp_verified BOOLEAN DEFAULT FALSE,
+      withdrawal_pin_hash VARCHAR(64) NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
     ) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci
   `);
+
+  if (!(await securityColumnExists("withdrawal_pin_hash"))) {
+    await pool.query(`
+      ALTER TABLE ResidentAccountSecurity
+      ADD COLUMN withdrawal_pin_hash VARCHAR(64) NULL
+        AFTER totp_verified
+    `);
+  }
 }
 
 export async function createResidentAccount(
@@ -326,7 +373,7 @@ export async function getResidentSecurity(residentId: string) {
 
   const [securityRows] = await pool.query<AccountSecurityRow[]>(
     `
-      SELECT user_id, email_verification_code_hash, totp_secret
+      SELECT user_id, email_verification_code_hash, totp_secret, withdrawal_pin_hash
       FROM ResidentAccountSecurity
       WHERE user_id = ?
       LIMIT 1
@@ -335,6 +382,77 @@ export async function getResidentSecurity(residentId: string) {
   );
 
   return securityRows[0] ?? null;
+}
+
+export async function updateResidentWithdrawalPin(residentId: string, pin: string) {
+  await ensureResidentAccountSecurityTable();
+
+  const normalizedPin = normalizeWithdrawalPin(pin);
+
+  await pool.query(
+    `
+      INSERT INTO ResidentAccountSecurity (user_id, withdrawal_pin_hash)
+      VALUES (?, ?)
+      ON DUPLICATE KEY UPDATE withdrawal_pin_hash = VALUES(withdrawal_pin_hash)
+    `,
+    [residentId, hashWithdrawalPin(normalizedPin)],
+  );
+
+  return { withdrawal_pin_configured: true };
+}
+
+export async function isResidentWithdrawalPinConfigured(residentId: string) {
+  const security = await getResidentSecurity(residentId);
+  return Boolean(security?.withdrawal_pin_hash);
+}
+
+export async function findResidentByDepartmentAndWithdrawalPin(
+  departmentAddress: string,
+  pin: string,
+  buildingId?: string,
+) {
+  await ensureResidentAccountSecurityTable();
+
+  const normalizedPin = normalizeWithdrawalPin(pin);
+  const pinHash = hashWithdrawalPin(normalizedPin);
+  const [rows] = await pool.query<
+    Array<
+      RowDataPacket & {
+        user_id: string;
+        resident_name: string;
+        department_address: string;
+        withdrawal_pin_hash: string | null;
+      }
+    >
+  >(
+    `
+      SELECT
+        r.user_id,
+        r.resident_name,
+        r.department_address,
+        s.withdrawal_pin_hash
+      FROM Residents r
+      INNER JOIN ResidentAccountSecurity s ON s.user_id = r.user_id
+      WHERE s.withdrawal_pin_hash IS NOT NULL
+        AND (? IS NULL OR r.building_id = ? OR r.building_id IS NULL)
+    `,
+    [buildingId ?? null, buildingId ?? null],
+  );
+
+  const resident = rows.find(
+    (row) =>
+      row.withdrawal_pin_hash === pinHash &&
+      departmentAddressesMatch(row.department_address, departmentAddress),
+  );
+
+  if (!resident) {
+    return null;
+  }
+
+  return {
+    user_id: resident.user_id,
+    resident_name: repairPotentialMojibake(resident.resident_name),
+  };
 }
 
 export async function getResidentSecurityForMfa(residentId: string) {

@@ -1,5 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { updateResidentPhoneNumber } from "../../services/settingsApi";
+import {
+  updateResidentPhoneNumber,
+  updateResidentWithdrawalPin,
+} from "../../services/settingsApi";
 import type { DashboardCurrentUser } from "../../types/home";
 import {
   isValidInternationalPhone,
@@ -27,11 +30,19 @@ export default function ResidentSettings({
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [isSavingPhone, setIsSavingPhone] = useState(false);
   const [phoneMessage, setPhoneMessage] = useState("");
+  const [withdrawalPin, setWithdrawalPin] = useState("");
+  const [withdrawalPinConfirmation, setWithdrawalPinConfirmation] = useState("");
+  const [isSavingPin, setIsSavingPin] = useState(false);
+  const [pinMessage, setPinMessage] = useState("");
+  const [isPinConfigured, setIsPinConfigured] = useState(
+    currentUser.withdrawal_pin_configured,
+  );
 
   useEffect(() => {
     setPhoneNumber(currentUser.user_phone_number);
     setSavedPhoneNumber(currentUser.user_phone_number);
-  }, [currentUser.user_phone_number]);
+    setIsPinConfigured(currentUser.withdrawal_pin_configured);
+  }, [currentUser.user_phone_number, currentUser.withdrawal_pin_configured]);
 
   const handlePhoneSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -69,6 +80,35 @@ export default function ResidentSettings({
     setPhoneNumber(savedPhoneNumber);
     setPhoneMessage("");
     setIsEditingPhone(false);
+  };
+
+  const handlePinSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!/^\d{4,6}$/.test(withdrawalPin)) {
+      setPinMessage("El PIN debe tener entre 4 y 6 digitos.");
+      return;
+    }
+
+    if (withdrawalPin !== withdrawalPinConfirmation) {
+      setPinMessage("Los PIN no coinciden.");
+      return;
+    }
+
+    setIsSavingPin(true);
+    setPinMessage("");
+
+    try {
+      await updateResidentWithdrawalPin(withdrawalPin);
+      setWithdrawalPin("");
+      setWithdrawalPinConfirmation("");
+      setIsPinConfigured(true);
+      setPinMessage("PIN de retiro actualizado correctamente.");
+    } catch (error) {
+      setPinMessage(error instanceof Error ? error.message : "No se pudo guardar el PIN.");
+    } finally {
+      setIsSavingPin(false);
+    }
   };
 
   return (
@@ -156,14 +196,70 @@ export default function ResidentSettings({
           </div>
           <div className="residentSettingsList">
             <div>
-              <strong>Validacion por QR</strong>
-              <span>Activa para confirmar retiros solo de tu departamento.</span>
+              <strong>PIN de retiro</strong>
+              <span>
+                {isPinConfigured
+                  ? "Configurado para validar entregas cuando QR esta apagado."
+                  : "Configura un PIN de 4 a 6 digitos para retirar sin QR."}
+              </span>
             </div>
             <div>
               <strong>Sesion protegida</strong>
               <span>Usa tus credenciales registradas para ingresar a LobbyPack.</span>
             </div>
           </div>
+          <form className="residentPinForm" onSubmit={handlePinSubmit}>
+            <label className="settingsField">
+              <span>Nuevo PIN</span>
+              <input
+                type="text"
+                name="lobbypack-withdrawal-pin"
+                className="pinCodeInput"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                autoCorrect="off"
+                spellCheck={false}
+                pattern="[0-9]*"
+                minLength={4}
+                maxLength={6}
+                value={withdrawalPin}
+                onChange={(event) =>
+                  setWithdrawalPin(event.target.value.replace(/\D/g, "").slice(0, 6))
+                }
+                placeholder="4 a 6 digitos"
+              />
+            </label>
+            <label className="settingsField">
+              <span>Confirmar PIN</span>
+              <input
+                type="text"
+                name="lobbypack-withdrawal-pin-confirmation"
+                className="pinCodeInput"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                autoCorrect="off"
+                spellCheck={false}
+                pattern="[0-9]*"
+                minLength={4}
+                maxLength={6}
+                value={withdrawalPinConfirmation}
+                onChange={(event) =>
+                  setWithdrawalPinConfirmation(
+                    event.target.value.replace(/\D/g, "").slice(0, 6),
+                  )
+                }
+                placeholder="Repite tu PIN"
+              />
+            </label>
+            <button
+              type="submit"
+              className="primaryButton"
+              disabled={isSavingPin || !withdrawalPin || !withdrawalPinConfirmation}
+            >
+              {isSavingPin ? "Guardando..." : isPinConfigured ? "Cambiar PIN" : "Guardar PIN"}
+            </button>
+            {pinMessage ? <p className="residentPhoneMessage">{pinMessage}</p> : null}
+          </form>
         </article>
 
         <article className="settingsCard settingsCardWide residentPackageStatusCard">

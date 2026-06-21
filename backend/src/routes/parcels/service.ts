@@ -295,6 +295,7 @@ export function buildDashboardCurrentUser(session: AuthSession) {
     display_name: session.displayName ?? session.residentName ?? session.email,
     user_phone_number: session.residentPhoneNumber ?? "",
     department_address: session.departmentAddress ?? null,
+    withdrawal_pin_configured: Boolean(session.withdrawalPinConfigured),
   };
 }
 

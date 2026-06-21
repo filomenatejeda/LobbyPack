@@ -22,6 +22,7 @@ type PackageRowProps = {
   checked: boolean;
   onSelect: (view: PackageServiceView, id: string, checked: boolean) => void;
   onShowQr: (item: ParcelItem) => void;
+  onShowPin: (item: ParcelItem) => void;
   onEdit: (view: PackageServiceView, id: string) => void;
   onDelete: (view: PackageServiceView, ids: string[]) => void;
 };
@@ -69,6 +70,7 @@ export default function PackageRow({
   checked,
   onSelect,
   onShowQr,
+  onShowPin,
   onEdit,
   onDelete,
 }: PackageRowProps) {
@@ -185,6 +187,17 @@ export default function PackageRow({
                     strokeLinejoin="round"
                   />
                 </svg>
+              </button>
+            ) : null}
+            {item.parcel_status === "pending" && !qrAccessEnabled ? (
+              <button
+                type="button"
+                className="rowActionButton qrButton"
+                onClick={() => onShowPin(item)}
+                aria-label={`Validar PIN del paquete ${item.id}`}
+                title="Validar PIN"
+              >
+                PIN
               </button>
             ) : null}
             {packageWhatsappUrl ? (

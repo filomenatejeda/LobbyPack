@@ -52,6 +52,10 @@ export const residentPhoneSchema = t.Object({
   user_phone_number: t.String({ minLength: 1, maxLength: 16 }),
 });
 
+export const residentWithdrawalPinSchema = t.Object({
+  withdrawal_pin: t.String({ minLength: 4, maxLength: 6 }),
+});
+
 export const conciergeSettingsSchema = t.Object({
   concierge_email: t.String({ minLength: 1 }),
   concierge_name: t.String({ minLength: 1 }),

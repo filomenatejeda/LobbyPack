@@ -26,6 +26,7 @@ type PackagePanelProps = {
   onDeleteSelected: () => void;
   onSelect: (view: PackageServiceView, id: string, checked: boolean) => void;
   onShowQr: (item: ParcelItem) => void;
+  onShowPin: (item: ParcelItem) => void;
   onEdit: (view: PackageServiceView, id: string) => void;
   onDelete: (view: PackageServiceView, ids: string[]) => void;
   onPrevPage: () => void;
@@ -56,6 +57,7 @@ export default function PackagePanel(props: PackagePanelProps) {
     onDeleteSelected,
     onSelect,
     onShowQr,
+    onShowPin,
     onEdit,
     onDelete,
     onPrevPage,
@@ -195,6 +197,7 @@ export default function PackagePanel(props: PackagePanelProps) {
             checked={currentSelections.includes(item.id)}
             onSelect={onSelect}
             onShowQr={onShowQr}
+            onShowPin={onShowPin}
             onEdit={onEdit}
             onDelete={onDelete}
           />

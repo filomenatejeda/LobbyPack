@@ -105,6 +105,16 @@
   line-height: 1.45;
 }
 
+.residentPinForm {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.pinCodeInput {
+  -webkit-text-security: disc;
+}
+
 .residentSettingsStats {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }

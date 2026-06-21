@@ -99,6 +99,13 @@ export function updateResidentPhoneNumber(user_phone_number: string) {
   });
 }
 
+export function updateResidentWithdrawalPin(withdrawal_pin: string) {
+  return apiRequest<{ withdrawal_pin_configured: boolean }>("/api/resident/profile/pin", {
+    method: "PATCH",
+    body: JSON.stringify({ withdrawal_pin }),
+  });
+}
+
 export function inviteConcierge(values: {
   concierge_email: string;
   concierge_name: string;

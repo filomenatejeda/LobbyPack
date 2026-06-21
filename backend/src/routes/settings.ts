@@ -3,7 +3,7 @@ import { requireAppRole } from "../auth/session";
 import { pool } from "../db/pool";
 import { AppError } from "../errors/appError";
 import { normalizeTextInput } from "../utils/textEncoding";
-import { conciergeSettingsSchema, generalSettingsSchema, preferenceSettingsSchema, residentEmailVerificationSchema, residentMfaVerificationSchema, residentPhoneSchema, residentSettingsSchema, towersSchema } from "./shared/schemas";
+import { conciergeSettingsSchema, generalSettingsSchema, preferenceSettingsSchema, residentEmailVerificationSchema, residentMfaVerificationSchema, residentPhoneSchema, residentSettingsSchema, residentWithdrawalPinSchema, towersSchema } from "./shared/schemas";
 import type { BuildingRow, PreferenceRow, TeamRow, TowerRow } from "./shared/types";
 import { getSettingsContext, resolveBuildingIdForUserEmail } from "./shared/community";
 import { BUILDING_ID } from "./shared/constants";
@@ -29,6 +29,7 @@ import {
   markResidentEmailVerified,
   markResidentMfaVerified,
   updateResidentPhoneNumber,
+  updateResidentWithdrawalPin,
 } from "./shared/residents";
 
 async function getSettingsPayload(adminEmail?: string) {
@@ -212,6 +213,28 @@ export const settingsRoutes = new Elysia()
     },
     {
       body: residentPhoneSchema,
+    },
+  )
+  .patch(
+    "/resident/profile/pin",
+    async ({ headers, body }) => {
+      const session = await requireAppRole(headers.authorization, ["resident"]);
+
+      try {
+        return await updateResidentWithdrawalPin(session.userId, body.withdrawal_pin);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "El PIN debe tener entre 4 y 6 digitos."
+        ) {
+          throw new AppError(400, "VALIDATION_ERROR", error.message);
+        }
+
+        throw error;
+      }
+    },
+    {
+      body: residentWithdrawalPinSchema,
     },
   )
   .get("/settings/residents", async ({ headers, query }) => {

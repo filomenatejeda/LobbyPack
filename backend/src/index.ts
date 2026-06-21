@@ -13,6 +13,7 @@ import {
   repairParcelWithdrawalCodes,
 } from "./db/pool";
 import { api } from "./routes/api";
+import { ensureResidentAccountSecurityTable } from "./routes/shared/residents";
 import {
   ensureDailySummaryReportTable,
   startDailySummaryScheduler,
@@ -25,6 +26,7 @@ await ensureUtf8mb4();
 await ensureBuildingCommunityColumns();
 await ensureResidentCommunityColumns();
 await ensureConciergeCommunityColumns();
+await ensureResidentAccountSecurityTable();
 await ensureParcelQrSecurityColumns();
 await ensureIssueCreatorColumn();
 await ensureDailySummaryReportTable();

@@ -16,11 +16,11 @@ import {
   sendParcelClaimedWhatsappNotifications,
   sendParcelWhatsappNotifications,
 } from "../../utils/whatsapp";
-import { parcelPayloadSchema, residentParcelQrSchema } from "../shared/schemas";
+import { parcelPayloadSchema, residentParcelQrSchema, residentWithdrawalPinSchema } from "../shared/schemas";
 import type { ParcelClaimRow } from "../shared/types";
 import { getBuildingPreferences, resolveBuildingIdForUserEmail } from "../shared/community";
 import { BUILDING_ID } from "../shared/constants";
-import { listResidentsByDepartment } from "../shared/residents";
+import { findResidentByDepartmentAndWithdrawalPin, listResidentsByDepartment } from "../shared/residents";
 import { assertDepartmentExistsInStructure } from "../shared/structure";
 import { validateParcelPayload } from "./validation";
 import {
@@ -404,6 +404,134 @@ export const parcelRoutes = new Elysia()
 
     return claimedParcel;
   })
+  .post(
+    "/parcels/:id/claim-with-pin",
+    async ({ headers, params, body }) => {
+      const session = await requireAppRole(headers.authorization, ["admin", "concierge"]);
+      const buildingId = await resolveBuildingIdForUserEmail(session.email);
+      const preferences = await getBuildingPreferences(buildingId);
+
+      if (preferences.qrAccess) {
+        throw new AppError(
+          409,
+          "CONFLICT",
+          "La validacion por PIN se usa cuando el acceso con QR esta desactivado.",
+        );
+      }
+
+      const connection = await pool.getConnection();
+
+      try {
+        await connection.beginTransaction();
+
+        const [parcels] = await connection.query<
+          Array<
+            RowDataPacket & {
+              id: string;
+              parcel_status: "pending" | "claimed";
+              delivery_department_address: string | null;
+            }
+          >
+        >(
+          `
+            SELECT id, parcel_status, delivery_department_address
+            FROM Parcels
+            WHERE id = ?
+              AND building_id = ?
+            LIMIT 1
+            FOR UPDATE
+          `,
+          [params.id, buildingId],
+        );
+        const parcel = parcels[0];
+
+        if (!parcel) {
+          throw new AppError(404, "NOT_FOUND", "Paquete no encontrado.");
+        }
+
+        if (parcel.parcel_status !== "pending") {
+          throw new AppError(409, "CONFLICT", "El paquete ya fue retirado.");
+        }
+
+        const resident = await findResidentByDepartmentAndWithdrawalPin(
+          parcel.delivery_department_address ?? "",
+          body.withdrawal_pin,
+          buildingId,
+        );
+
+        if (!resident) {
+          throw new AppError(
+            403,
+            "FORBIDDEN",
+            "PIN invalido para el departamento de este paquete.",
+          );
+        }
+
+        const withdrawalCode = await createSequentialCode(connection, {
+          tableName: "Parcels",
+          columnName: "withdrawal_code",
+          prefix: "RET",
+          padLength: 4,
+        });
+
+        await connection.query(
+          `
+            UPDATE Parcels
+            SET
+              withdrawal_code = ?,
+              parcel_status = 'claimed',
+              claimed_date = CURRENT_TIMESTAMP,
+              claimed_by_user_id = ?
+            WHERE id = ?
+          `,
+          [withdrawalCode, resident.user_id, params.id],
+        );
+
+        await connection.commit();
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
+
+      const claimedParcel = await getParcelById(params.id);
+
+      if (claimedParcel && preferences.packageNotifications) {
+        try {
+          const departmentResidents = await listResidentsByDepartment(
+            claimedParcel.department_address,
+            buildingId,
+          );
+
+          await Promise.allSettled([
+            ...await sendParcelClaimedWhatsappNotifications({
+              recipients: departmentResidents,
+              departmentAddress: claimedParcel.department_address,
+              parcelId: claimedParcel.id,
+              claimedByName: claimedParcel.claimed_by_name || "un residente",
+            }),
+            ...await sendParcelClaimedEmailNotifications({
+              recipients: departmentResidents,
+              departmentAddress: claimedParcel.department_address,
+              parcelId: claimedParcel.id,
+              claimedByName: claimedParcel.claimed_by_name || "un residente",
+            }),
+          ]);
+        } catch (notificationError) {
+          console.warn(
+            `No se pudieron preparar las notificaciones de retiro por PIN para ${claimedParcel.id}.`,
+            notificationError,
+          );
+        }
+      }
+
+      return claimedParcel;
+    },
+    {
+      body: residentWithdrawalPinSchema,
+    },
+  )
   .post(
     "/resident/parcels/scan",
     async ({ headers, body }) => {

@@ -18,6 +18,7 @@ export type DashboardCurrentUser = {
   display_name: string;
   user_phone_number: string;
   department_address: string | null;
+  withdrawal_pin_configured: boolean;
 };
 
 export type CommunityStructureTower = {

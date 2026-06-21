@@ -79,6 +79,7 @@ export type AccountSecurityRow = RowDataPacket & {
   user_id: string;
   email_verification_code_hash: string | null;
   totp_secret: string | null;
+  withdrawal_pin_hash?: string | null;
 };
 
 export type BuildingRow = RowDataPacket & {
