@@ -1,5 +1,6 @@
 import type { RowDataPacket } from "mysql2/promise";
 import { pool } from "../db/pool";
+import { AppError, getErrorCodeForStatus } from "../errors/appError";
 import { createSequentialId } from "../utils/ids";
 
 export type AppRole = "admin" | "concierge" | "resident";
@@ -48,13 +49,10 @@ type SupabaseUserResponse = {
   email?: string;
 };
 
-export class AuthError extends Error {
-  status: number;
-
+export class AuthError extends AppError {
   constructor(status: number, message: string) {
-    super(message);
+    super(status, getErrorCodeForStatus(status), message);
     this.name = "AuthError";
-    this.status = status;
   }
 }
 

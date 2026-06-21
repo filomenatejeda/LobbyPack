@@ -2,6 +2,7 @@ import { Elysia } from "elysia";
 import type { RowDataPacket } from "mysql2/promise";
 import { requireAppRole } from "../auth/session";
 import { pool } from "../db/pool";
+import { AppError } from "../errors/appError";
 import { departmentAddressesMatch } from "../utils/departments";
 import { createSequentialId } from "../utils/ids";
 import { repairPotentialMojibake } from "../utils/textEncoding";
@@ -70,8 +71,11 @@ export const issuesRoutes = new Elysia()
       const session = await requireAppRole(headers.authorization, ["resident"]);
 
       if (!session.departmentAddress) {
-        set.status = 403;
-        return { message: "Tu cuenta residente no tiene un departamento asociado." };
+        throw new AppError(
+          403,
+          "FORBIDDEN",
+          "Tu cuenta residente no tiene un departamento asociado.",
+        );
       }
 
       const [parcels] = await pool.query<
@@ -98,20 +102,25 @@ export const issuesRoutes = new Elysia()
       const parcel = parcels[0];
 
       if (!parcel) {
-        set.status = 404;
-        return { message: "Paquete no encontrado." };
+        throw new AppError(404, "NOT_FOUND", "Paquete no encontrado.");
       }
 
       if (!departmentAddressesMatch(parcel.department_address ?? "", session.departmentAddress)) {
-        set.status = 403;
-        return { message: "Solo puedes crear reclamos para paquetes de tu departamento." };
+        throw new AppError(
+          403,
+          "FORBIDDEN",
+          "Solo puedes crear reclamos para paquetes de tu departamento.",
+        );
       }
 
       const description = body.issue_description.trim().replace(/\s+/g, " ");
 
       if (!description) {
-        set.status = 400;
-        return { message: "Describe el problema para crear el reclamo." };
+        throw new AppError(
+          400,
+          "VALIDATION_ERROR",
+          "Describe el problema para crear el reclamo.",
+        );
       }
 
       const connection = await pool.getConnection();
@@ -176,8 +185,7 @@ export const issuesRoutes = new Elysia()
       );
 
       if (issues.length === 0) {
-        set.status = 404;
-        return { message: "Issue not found" };
+        throw new AppError(404, "NOT_FOUND", "Reclamo no encontrado.");
       }
 
       await pool.query(
@@ -213,8 +221,7 @@ export const issuesRoutes = new Elysia()
     );
 
     if (issues.length === 0) {
-      set.status = 404;
-      return { message: "Issue not found" };
+      throw new AppError(404, "NOT_FOUND", "Reclamo no encontrado.");
     }
 
     await pool.query(

@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 import { requireAppRole } from "../auth/session";
+import { AppError, createErrorResponse } from "../errors/appError";
 import { sendLobbyPackEmail } from "../utils/email";
 import { normalizeTextInput } from "../utils/textEncoding";
 
@@ -27,11 +28,13 @@ export const messageRoutes = new Elysia().post(
         bcc: body.bcc_sender ? session.email : undefined,
       });
     } catch (error) {
-      set.status = 502;
-      return {
-        message:
-          error instanceof Error ? error.message : "No se pudo enviar el correo.",
-      };
+      const appError = new AppError(
+        502,
+        "EXTERNAL_SERVICE_ERROR",
+        error instanceof Error ? error.message : "No se pudo enviar el correo.",
+      );
+      set.status = appError.status;
+      return createErrorResponse(appError);
     }
   },
   {

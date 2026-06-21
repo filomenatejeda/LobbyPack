@@ -1,4 +1,5 @@
 import { supabase, supabaseConfigError } from "./client";
+import { ApiError, type ApiErrorCode } from "./apiError";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 
@@ -17,15 +18,26 @@ export async function apiRequest<T>(path: string, init?: RequestInit) {
   if (!response.ok) {
     const text = await response.text();
     let message = text || `Request failed with status ${response.status}`;
+    let code: ApiErrorCode = "UNKNOWN_ERROR";
+    let details: unknown;
 
     try {
-      const parsed = JSON.parse(text) as { message?: string };
-      message = parsed.message || message;
+      const parsed = JSON.parse(text) as {
+        message?: string;
+        error?: {
+          code?: ApiErrorCode;
+          message?: string;
+          details?: unknown;
+        };
+      };
+      message = parsed.error?.message || parsed.message || message;
+      code = parsed.error?.code || code;
+      details = parsed.error?.details;
     } catch {
       // Keep the raw response text when the body is not JSON.
     }
 
-    throw new Error(message);
+    throw new ApiError(message, response.status, code, details);
   }
 
   if (response.status === 204) {

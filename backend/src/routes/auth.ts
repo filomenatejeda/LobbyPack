@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import type { RowDataPacket } from "mysql2/promise";
 import { pool } from "../db/pool";
+import { AppError } from "../errors/appError";
 import { normalizeTextInput } from "../utils/textEncoding";
 import {
   adminEmailSchema,
@@ -149,10 +150,11 @@ export const authRoutes = new Elysia()
         matchingBuilding &&
         String(matchingBuilding.contact_email).toLowerCase() !== normalizedAdminEmail
       ) {
-        set.status = 409;
-        return {
-          message: "Esta direccion ya tiene una cuenta administradora registrada.",
-        };
+        throw new AppError(
+          409,
+          "CONFLICT",
+          "Esta direccion ya tiene una cuenta administradora registrada.",
+        );
       }
 
       const [existingRegistrations] = await pool.query<RowDataPacket[]>(
@@ -172,20 +174,22 @@ export const authRoutes = new Elysia()
         existingRegistration &&
         String(existingRegistration.admin_email).toLowerCase() !== normalizedAdminEmail
       ) {
-        set.status = 409;
-        return {
-          message: "Esta direccion ya tiene una cuenta administradora registrada.",
-        };
+        throw new AppError(
+          409,
+          "CONFLICT",
+          "Esta direccion ya tiene una cuenta administradora registrada.",
+        );
       }
 
       if (
         existingRegistration &&
         String(existingRegistration.address_fingerprint) !== addressFingerprint
       ) {
-        set.status = 409;
-        return {
-          message: "Este correo ya esta asociado a otra direccion registrada.",
-        };
+        throw new AppError(
+          409,
+          "CONFLICT",
+          "Este correo ya esta asociado a otra direccion registrada.",
+        );
       }
 
       if (existingRegistration) {

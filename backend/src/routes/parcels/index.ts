@@ -2,6 +2,7 @@ import { Elysia } from "elysia";
 import type { RowDataPacket } from "mysql2/promise";
 import { requireAppRole } from "../../auth/session";
 import { pool } from "../../db/pool";
+import { AppError } from "../../errors/appError";
 import {
   departmentAddressesMatch,
   normalizeDepartmentAddress,
@@ -214,8 +215,7 @@ export const parcelRoutes = new Elysia()
         );
 
         if (parcels.length === 0) {
-          set.status = 404;
-          return { message: "Parcel not found" };
+          throw new AppError(404, "NOT_FOUND", "Paquete no encontrado.");
         }
 
         const residentUserId = await findResidentForDepartment(
@@ -301,21 +301,19 @@ export const parcelRoutes = new Elysia()
       );
 
       if (result.length === 0) {
-        await connection.rollback();
-        set.status = 404;
-        return { message: "Parcel not found" };
+        throw new AppError(404, "NOT_FOUND", "Paquete no encontrado.");
       }
 
       if (String(result[0].parcel_status) !== "pending") {
-        await connection.rollback();
-        set.status = 409;
-        return { message: "El paquete ya fue retirado." };
+        throw new AppError(409, "CONFLICT", "El paquete ya fue retirado.");
       }
 
       if (!result[0].resident_claim_confirmed_at) {
-        await connection.rollback();
-        set.status = 409;
-        return { message: "El residente debe confirmar el retiro antes de entregar el paquete." };
+        throw new AppError(
+          409,
+          "CONFLICT",
+          "El residente debe confirmar el retiro antes de entregar el paquete.",
+        );
       }
 
       const withdrawalCode = await createSequentialCode(connection, {
@@ -420,8 +418,11 @@ export const parcelRoutes = new Elysia()
       const parcelAccess = await assertResidentParcelAccess(session, body.qr_value);
 
       if (parcelAccess.parcelId !== params.id) {
-        set.status = 400;
-        return { message: "El paquete indicado no coincide con el QR escaneado." };
+        throw new AppError(
+          400,
+          "VALIDATION_ERROR",
+          "El paquete indicado no coincide con el QR escaneado.",
+        );
       }
 
       const connection = await pool.getConnection();
@@ -450,15 +451,19 @@ export const parcelRoutes = new Elysia()
         const parcel = rows[0];
 
         if (!parcel || !parcel.qr_token || parcel.qr_token !== parcelAccess.qrToken) {
-          await connection.rollback();
-          set.status = 404;
-          return { message: "No se encontro un paquete asociado a ese QR." };
+          throw new AppError(
+            404,
+            "NOT_FOUND",
+            "No se encontro un paquete asociado a ese QR.",
+          );
         }
 
         if (parcel.parcel_status !== "pending") {
-          await connection.rollback();
-          set.status = 409;
-          return { message: "Ese paquete ya fue retirado o ya no esta disponible." };
+          throw new AppError(
+            409,
+            "CONFLICT",
+            "Ese paquete ya fue retirado o ya no esta disponible.",
+          );
         }
 
         if (
@@ -467,9 +472,11 @@ export const parcelRoutes = new Elysia()
             session.departmentAddress ?? "",
           )
         ) {
-          await connection.rollback();
-          set.status = 403;
-          return { message: "Ese QR no corresponde al departamento de tu cuenta." };
+          throw new AppError(
+            403,
+            "FORBIDDEN",
+            "Ese QR no corresponde al departamento de tu cuenta.",
+          );
         }
 
         await connection.query(

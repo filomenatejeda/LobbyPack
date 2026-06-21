@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { requireAppRole } from "../auth/session";
 import { pool } from "../db/pool";
+import { AppError } from "../errors/appError";
 import { normalizeTextInput } from "../utils/textEncoding";
 import { conciergeSettingsSchema, generalSettingsSchema, preferenceSettingsSchema, residentEmailVerificationSchema, residentMfaVerificationSchema, residentPhoneSchema, residentSettingsSchema, towersSchema } from "./shared/schemas";
 import type { BuildingRow, PreferenceRow, TeamRow, TowerRow } from "./shared/types";
@@ -180,7 +181,7 @@ export const settingsRoutes = new Elysia()
   })
   .patch(
     "/resident/profile/phone",
-    async ({ headers, body, set }) => {
+    async ({ headers, body }) => {
       const session = await requireAppRole(headers.authorization, ["resident"]);
 
       try {
@@ -190,8 +191,7 @@ export const settingsRoutes = new Elysia()
         );
 
         if (!resident) {
-          set.status = 404;
-          return { message: "Residente no encontrado." };
+          throw new AppError(404, "NOT_FOUND", "Residente no encontrado.");
         }
 
         return resident;
@@ -203,8 +203,7 @@ export const settingsRoutes = new Elysia()
             "El telefono debe usar codigo de pais, por ejemplo +56912345678.",
           ].includes(error.message)
         ) {
-          set.status = 400;
-          return { message: error.message };
+          throw new AppError(400, "VALIDATION_ERROR", error.message);
         }
 
         throw error;
@@ -256,8 +255,7 @@ export const settingsRoutes = new Elysia()
           error instanceof Error &&
           error.message === "Este correo ya tiene una cuenta registrada."
         ) {
-          set.status = 409;
-          return { message: error.message };
+          throw new AppError(409, "CONFLICT", error.message);
         }
 
         throw error;
@@ -271,7 +269,7 @@ export const settingsRoutes = new Elysia()
   )
   .post(
     "/settings/concierges/:id/verify-email",
-    async ({ headers, params, set }) => {
+    async ({ headers, params }) => {
       const session = await requireAppRole(headers.authorization, ["admin"]);
       const buildingId = await resolveBuildingIdForUserEmail(session.email);
 
@@ -279,13 +277,15 @@ export const settingsRoutes = new Elysia()
       const email = await getConciergeEmail(params.id);
 
       if (!email) {
-        set.status = 404;
-        return { message: "Conserje no encontrado." };
+        throw new AppError(404, "NOT_FOUND", "Conserje no encontrado.");
       }
 
       if (!security) {
-        set.status = 404;
-        return { message: "Seguridad de conserje no encontrada." };
+        throw new AppError(
+          404,
+          "NOT_FOUND",
+          "Seguridad de conserje no encontrada.",
+        );
       }
 
       await ensureConciergeBuilding(params.id, buildingId);
@@ -298,17 +298,18 @@ export const settingsRoutes = new Elysia()
   )
   .post(
     "/settings/concierges/:id/verify-mfa",
-    async ({ headers, params, set }) => {
+    async ({ headers, params }) => {
       const session = await requireAppRole(headers.authorization, ["admin"]);
       const buildingId = await resolveBuildingIdForUserEmail(session.email);
 
       const security = await getConciergeSecurityForMfa(params.id);
 
       if (!security) {
-        set.status = 400;
-        return {
-          message: "El correo del conserje debe estar verificado antes de activar MFA.",
-        };
+        throw new AppError(
+          400,
+          "VALIDATION_ERROR",
+          "El correo del conserje debe estar verificado antes de activar MFA.",
+        );
       }
 
       await ensureConciergeBuilding(params.id, buildingId);
@@ -359,8 +360,7 @@ export const settingsRoutes = new Elysia()
           error instanceof Error &&
           error.message === "Este correo ya tiene una cuenta registrada."
         ) {
-          set.status = 409;
-          return { message: error.message };
+          throw new AppError(409, "CONFLICT", error.message);
         }
 
         throw error;
@@ -378,8 +378,7 @@ export const settingsRoutes = new Elysia()
     const resident = await getResidentById(params.id);
 
     if (!resident) {
-      set.status = 404;
-      return { message: "Residente no encontrado." };
+      throw new AppError(404, "NOT_FOUND", "Residente no encontrado.");
     }
 
     await deleteSupabaseResidentUser(resident.email);
@@ -401,20 +400,22 @@ export const settingsRoutes = new Elysia()
   })
   .post(
     "/settings/residents/:id/verify-email",
-    async ({ headers, params, set }) => {
+    async ({ headers, params }) => {
       await requireAppRole(headers.authorization, ["admin"]);
 
       const security = await getResidentSecurity(params.id);
       const email = await getResidentEmail(params.id);
 
       if (!email) {
-        set.status = 404;
-        return { message: "Residente no encontrado." };
+        throw new AppError(404, "NOT_FOUND", "Residente no encontrado.");
       }
 
       if (!security) {
-        set.status = 404;
-        return { message: "Seguridad de residente no encontrada." };
+        throw new AppError(
+          404,
+          "NOT_FOUND",
+          "Seguridad de residente no encontrada.",
+        );
       }
 
       await markResidentEmailVerified(params.id);
@@ -426,16 +427,17 @@ export const settingsRoutes = new Elysia()
   )
   .post(
     "/settings/residents/:id/verify-mfa",
-    async ({ headers, params, set }) => {
+    async ({ headers, params }) => {
       await requireAppRole(headers.authorization, ["admin"]);
 
       const security = await getResidentSecurityForMfa(params.id);
 
       if (!security) {
-        set.status = 400;
-        return {
-          message: "El correo del residente debe estar verificado antes de activar MFA.",
-        };
+        throw new AppError(
+          400,
+          "VALIDATION_ERROR",
+          "El correo del residente debe estar verificado antes de activar MFA.",
+        );
       }
 
       await markResidentMfaVerified(params.id);
