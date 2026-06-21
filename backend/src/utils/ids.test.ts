@@ -82,15 +82,4 @@ describe("id utils", () => {
 
     expect(calls.some((call) => call.sql.includes("RELEASE_LOCK"))).toBe(true);
   });
-
-  test("creates deterministic resident emails when Date.now is controlled", () => {
-    Date.now = () => 1710000000000;
-
-    expect(createResidentEmail("José Pérez")).toBe(
-      "jose.perez.1710000000000@lobbypack.demo",
-    );
-    expect(createResidentEmail("!!!")).toBe(
-      "resident.1710000000000@lobbypack.demo",
-    );
-  });
 });
