@@ -1,3 +1,4 @@
+import "./env";
 import { cors } from "@elysiajs/cors";
 import { Elysia } from "elysia";
 import {

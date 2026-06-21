@@ -138,6 +138,7 @@ export const parcelRoutes = new Elysia()
             const notificationResults = await sendParcelWhatsappNotifications({
               recipients: departmentResidents,
               departmentAddress: validatedPayload.department_address,
+              parcelId,
             });
             const emailResults = await sendParcelArrivalEmailNotifications({
               recipients: departmentResidents,
@@ -504,20 +505,39 @@ export const parcelRoutes = new Elysia()
             buildingId,
           );
 
-          await Promise.allSettled([
-            ...await sendParcelClaimedWhatsappNotifications({
-              recipients: departmentResidents,
-              departmentAddress: claimedParcel.department_address,
-              parcelId: claimedParcel.id,
-              claimedByName: claimedParcel.claimed_by_name || "un residente",
-            }),
-            ...await sendParcelClaimedEmailNotifications({
-              recipients: departmentResidents,
-              departmentAddress: claimedParcel.department_address,
-              parcelId: claimedParcel.id,
-              claimedByName: claimedParcel.claimed_by_name || "un residente",
-            }),
-          ]);
+          const notificationResults = await sendParcelClaimedWhatsappNotifications({
+            recipients: departmentResidents,
+            departmentAddress: claimedParcel.department_address,
+            parcelId: claimedParcel.id,
+            claimedByName: claimedParcel.claimed_by_name || "un residente",
+          });
+          const emailResults = await sendParcelClaimedEmailNotifications({
+            recipients: departmentResidents,
+            departmentAddress: claimedParcel.department_address,
+            parcelId: claimedParcel.id,
+            claimedByName: claimedParcel.claimed_by_name || "un residente",
+          });
+
+          const failedNotifications = notificationResults.filter(
+            (result) => result.status === "rejected",
+          );
+          const failedEmailNotifications = emailResults.filter(
+            (result) => result.status === "rejected",
+          );
+
+          if (failedNotifications.length > 0) {
+            console.warn(
+              `No se pudieron enviar ${failedNotifications.length} notificaciones de retiro por PIN via WhatsApp para ${claimedParcel.id}.`,
+              failedNotifications,
+            );
+          }
+
+          if (failedEmailNotifications.length > 0) {
+            console.warn(
+              `No se pudieron enviar ${failedEmailNotifications.length} notificaciones de retiro por PIN via email para ${claimedParcel.id}.`,
+              failedEmailNotifications,
+            );
+          }
         } catch (notificationError) {
           console.warn(
             `No se pudieron preparar las notificaciones de retiro por PIN para ${claimedParcel.id}.`,

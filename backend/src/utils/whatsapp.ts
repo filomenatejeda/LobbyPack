@@ -8,6 +8,7 @@ type WhatsappRecipient = {
 type ParcelWhatsappNotification = {
   recipients: WhatsappRecipient[];
   departmentAddress: string;
+  parcelId?: string;
 };
 
 type ParcelClaimedWhatsappNotification = ParcelWhatsappNotification & {
@@ -160,14 +161,39 @@ function getUniqueWhatsappRecipients(recipients: WhatsappRecipient[]) {
     new Map(
       recipients
         .filter((recipient) => toWhatsappAddress(recipient.user_phone_number))
-        .map((recipient) => [recipient.user_phone_number, recipient]),
+        .map((recipient) => [
+          toWhatsappAddress(recipient.user_phone_number),
+          {
+            ...recipient,
+            user_phone_number: normalizeInternationalPhone(recipient.user_phone_number),
+          },
+        ]),
     ).values(),
   );
+}
+
+function logWhatsappRejectedResults(
+  label: string,
+  recipients: WhatsappRecipient[],
+  results: PromiseSettledResult<unknown>[],
+) {
+  results.forEach((result, index) => {
+    if (result.status !== "rejected") {
+      return;
+    }
+
+    const recipient = recipients[index];
+    console.warn(
+      `${label} fallo para ${recipient?.resident_name ?? "residente"} (${recipient?.user_phone_number ?? "sin telefono"}):`,
+      result.reason instanceof Error ? result.reason.message : result.reason,
+    );
+  });
 }
 
 export async function sendParcelWhatsappNotifications({
   recipients,
   departmentAddress,
+  parcelId,
 }: ParcelWhatsappNotification) {
   const config = getTwilioConfig();
 
@@ -192,6 +218,12 @@ export async function sendParcelWhatsappNotifications({
     return [];
   }
 
+  console.info(
+    `WhatsApp llegada ${parcelId ?? ""}: enviando a ${uniqueRecipients
+      .map((recipient) => `${recipient.resident_name} ${recipient.user_phone_number}`)
+      .join(", ")}.`,
+  );
+
   const results = await Promise.allSettled(
     uniqueRecipients.map((recipient) =>
       sendTwilioWhatsappTemplate(recipient, departmentAddress),
@@ -200,6 +232,7 @@ export async function sendParcelWhatsappNotifications({
 
   const sentCount = results.filter((result) => result.status === "fulfilled").length;
   console.info(`WhatsApp: ${sentCount}/${uniqueRecipients.length} notificaciones procesadas.`);
+  logWhatsappRejectedResults("WhatsApp llegada", uniqueRecipients, results);
 
   return results;
 }
@@ -238,6 +271,12 @@ export async function sendParcelClaimedWhatsappNotifications({
     return [];
   }
 
+  console.info(
+    `WhatsApp retiro ${parcelId}: enviando a ${uniqueRecipients
+      .map((recipient) => `${recipient.resident_name} ${recipient.user_phone_number}`)
+      .join(", ")}.`,
+  );
+
   const results = await Promise.allSettled(
     uniqueRecipients.map((recipient) =>
       sendTwilioParcelClaimedTemplate(recipient, {
@@ -251,6 +290,7 @@ export async function sendParcelClaimedWhatsappNotifications({
 
   const sentCount = results.filter((result) => result.status === "fulfilled").length;
   console.info(`WhatsApp retiro: ${sentCount}/${uniqueRecipients.length} notificaciones procesadas.`);
+  logWhatsappRejectedResults("WhatsApp retiro", uniqueRecipients, results);
 
   return results;
 }

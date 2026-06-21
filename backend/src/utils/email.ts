@@ -52,6 +52,24 @@ function uniqueEmailRecipients(recipients: EmailRecipient[]) {
   );
 }
 
+function logEmailRejectedResults(
+  label: string,
+  recipients: EmailRecipient[],
+  results: PromiseSettledResult<unknown>[],
+) {
+  results.forEach((result, index) => {
+    if (result.status !== "rejected") {
+      return;
+    }
+
+    const recipient = recipients[index];
+    console.warn(
+      `${label} fallo para ${recipient?.resident_name ?? "residente"} (${recipient?.email ?? "sin correo"}):`,
+      result.reason instanceof Error ? result.reason.message : result.reason,
+    );
+  });
+}
+
 export async function sendLobbyPackEmail({
   to,
   subject,
@@ -119,6 +137,7 @@ export async function sendParcelArrivalEmailNotifications({
 
   const sentCount = results.filter((result) => result.status === "fulfilled").length;
   console.info(`Email llegada: ${sentCount}/${uniqueRecipients.length} notificaciones procesadas.`);
+  logEmailRejectedResults("Email llegada", uniqueRecipients, results);
 
   return results;
 }
@@ -148,6 +167,7 @@ export async function sendParcelClaimedEmailNotifications({
 
   const sentCount = results.filter((result) => result.status === "fulfilled").length;
   console.info(`Email retiro: ${sentCount}/${uniqueRecipients.length} notificaciones procesadas.`);
+  logEmailRejectedResults("Email retiro", uniqueRecipients, results);
 
   return results;
 }
