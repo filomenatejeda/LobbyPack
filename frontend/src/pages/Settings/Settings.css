@@ -226,11 +226,110 @@
   color: var(--text-soft);
 }
 
-.settingsOption input {
+.settingsInlineActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.settingsInlineAction {
+  width: fit-content;
+  border: 1px solid var(--accent-strong);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  color: var(--accent-strong);
+  padding: 0.52rem 0.75rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.settingsInlineAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.settingsModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  background: rgba(38, 32, 27, 0.42);
+  padding: 1rem;
+}
+
+.settingsReportModal {
+  width: min(100%, 520px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-strong);
+  padding: 1.35rem;
+  box-shadow: 0 24px 70px rgba(38, 32, 27, 0.24);
+}
+
+.settingsSwitchWrap {
+  display: inline-flex;
+  min-width: 86px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.settingsSwitchText {
+  min-width: 18px;
+  color: var(--accent-strong);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.settingsSwitchWrap input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.settingsSwitchTrack {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #ece8df;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.settingsSwitchThumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
   width: 18px;
   height: 18px;
-  margin-top: 2px;
-  accent-color: var(--accent-strong);
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(60, 52, 45, 0.2);
+  transition: transform 0.18s ease;
+}
+
+.settingsSwitchWrap input:checked + .settingsSwitchTrack {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
+}
+
+.settingsSwitchWrap input:checked + .settingsSwitchTrack .settingsSwitchThumb {
+  transform: translateX(18px);
+}
+
+.settingsSwitchWrap input:disabled + .settingsSwitchTrack {
+  opacity: 0.55;
 }
 
 .settingsTable {

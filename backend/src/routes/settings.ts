@@ -6,6 +6,7 @@ import { normalizeTextInput } from "../utils/textEncoding";
 import { conciergeSettingsSchema, generalSettingsSchema, preferenceSettingsSchema, residentEmailVerificationSchema, residentMfaVerificationSchema, residentPhoneSchema, residentSettingsSchema, towersSchema } from "./shared/schemas";
 import type { BuildingRow, PreferenceRow, TeamRow, TowerRow } from "./shared/types";
 import { getSettingsContext, resolveBuildingIdForUserEmail } from "./shared/community";
+import { BUILDING_ID } from "./shared/constants";
 import {
   createConciergeAccount,
   ensureConciergeBuilding,
@@ -515,15 +516,39 @@ export const settingsRoutes = new Elysia()
 
       await pool.query(
         `
-          UPDATE BuildingPreferences
-          SET
-            package_notifications = ?,
-            daily_summary = ?,
-            qr_access = ?
-          WHERE building_id = ?
+          INSERT INTO BuildingPreferences (
+            building_id,
+            package_notifications,
+            daily_summary,
+            qr_access
+          )
+          VALUES (?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+            package_notifications = VALUES(package_notifications),
+            daily_summary = VALUES(daily_summary),
+            qr_access = VALUES(qr_access)
         `,
-        [body.package_notifications, body.daily_summary, body.qr_access, buildingId],
+        [buildingId, body.package_notifications, body.daily_summary, body.qr_access],
       );
+
+      if (buildingId !== BUILDING_ID) {
+        await pool.query(
+          `
+            INSERT INTO BuildingPreferences (
+              building_id,
+              package_notifications,
+              daily_summary,
+              qr_access
+            )
+            VALUES (?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+              package_notifications = VALUES(package_notifications),
+              daily_summary = VALUES(daily_summary),
+              qr_access = VALUES(qr_access)
+          `,
+          [BUILDING_ID, body.package_notifications, body.daily_summary, body.qr_access],
+        );
+      }
 
       return body;
     },

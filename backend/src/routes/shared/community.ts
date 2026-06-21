@@ -3,7 +3,7 @@ import { pool } from "../../db/pool";
 import { createSequentialId } from "../../utils/ids";
 import { normalizeTextInput } from "../../utils/textEncoding";
 import { BUILDING_ID } from "./constants";
-import type { CommunityRegistrationRow, SettingsContext } from "./types";
+import type { CommunityRegistrationRow, PreferenceRow, SettingsContext } from "./types";
 
 export function createAddressFingerprint(country: string, location: string, address: string) {
   return [country, location, address]
@@ -242,4 +242,50 @@ export async function resolveBuildingIdForUserEmail(email?: string) {
   );
 
   return buildings[0]?.id ?? settingsContext.buildingId;
+}
+
+export async function getBuildingPreferences(buildingId: string) {
+  const [preferences] = await pool.query<PreferenceRow[]>(
+    `
+      SELECT package_notifications, daily_summary, qr_access
+      FROM BuildingPreferences
+      WHERE building_id = ?
+      LIMIT 1
+    `,
+    [buildingId],
+  );
+
+  let preference = preferences[0] ?? {
+    package_notifications: 1,
+    daily_summary: 1,
+    qr_access: 1,
+  };
+
+  if (buildingId === BUILDING_ID) {
+    const [communityPreferences] = await pool.query<PreferenceRow[]>(
+      `
+        SELECT package_notifications, daily_summary, qr_access
+        FROM BuildingPreferences
+        WHERE building_id <> ?
+      `,
+      [BUILDING_ID],
+    );
+
+    if (communityPreferences.length > 0) {
+      preference = {
+        package_notifications:
+          preference.package_notifications && communityPreferences.every((item) => item.package_notifications),
+        daily_summary:
+          preference.daily_summary && communityPreferences.every((item) => item.daily_summary),
+        qr_access:
+          preference.qr_access && communityPreferences.every((item) => item.qr_access),
+      };
+    }
+  }
+
+  return {
+    packageNotifications: Boolean(preference.package_notifications),
+    dailySummary: Boolean(preference.daily_summary),
+    qrAccess: Boolean(preference.qr_access),
+  };
 }

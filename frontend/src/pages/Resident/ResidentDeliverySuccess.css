@@ -2,27 +2,48 @@
   display: grid;
   min-height: calc(100vh - 210px);
   place-items: center;
-  padding: 2rem 1rem 3rem;
+  padding: 3rem 1.25rem 4rem;
   background:
-    radial-gradient(circle at top left, rgba(91, 123, 76, 0.1), transparent 30%),
+    radial-gradient(circle at 22% 18%, rgba(91, 123, 76, 0.12), transparent 28%),
+    radial-gradient(circle at 82% 82%, rgba(122, 96, 62, 0.08), transparent 34%),
     var(--surface);
 }
 
 .deliverySuccessCard {
   display: grid;
-  width: min(100%, 420px);
-  justify-items: center;
-  gap: 0.85rem;
+  grid-template-columns: minmax(230px, 0.8fr) minmax(320px, 1fr);
+  width: min(100%, 860px);
+  align-items: center;
+  gap: 2.5rem;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: var(--surface-strong);
-  padding: 2.4rem 1.8rem;
-  text-align: center;
+  padding: 3rem;
   box-shadow: 0 24px 60px rgba(60, 52, 45, 0.14);
 }
 
+.deliverySuccessVisual,
+.deliverySuccessContent {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.deliverySuccessVisual {
+  min-height: 260px;
+  align-content: center;
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(91, 123, 76, 0.1), rgba(255, 255, 255, 0));
+}
+
+.deliverySuccessContent {
+  justify-items: start;
+  text-align: left;
+}
+
 .deliverySuccessLogo {
-  width: 148px;
+  width: 180px;
   height: auto;
   object-fit: contain;
 }
@@ -45,7 +66,7 @@
 }
 
 .deliverySuccessEyebrow {
-  margin: 0.25rem 0 0;
+  margin: 0;
   color: var(--accent-strong);
   font-size: 0.74rem;
   font-weight: 800;
@@ -54,15 +75,15 @@
 }
 
 .deliverySuccessCard h1 {
-  max-width: 300px;
+  max-width: 420px;
   margin: 0;
   color: var(--text);
-  font-size: clamp(1.65rem, 4vw, 2.1rem);
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
   line-height: 1.1;
 }
 
 .deliverySuccessText {
-  max-width: 320px;
+  max-width: 420px;
   margin: 0;
   color: var(--text-soft);
   line-height: 1.55;
@@ -98,6 +119,28 @@
   }
 
   .deliverySuccessCard {
+    grid-template-columns: 1fr;
+    width: min(100%, 420px);
+    gap: 0.85rem;
     padding: 2rem 1.25rem;
+  }
+
+  .deliverySuccessVisual {
+    min-height: auto;
+    background: transparent;
+  }
+
+  .deliverySuccessContent {
+    justify-items: center;
+    text-align: center;
+  }
+
+  .deliverySuccessLogo {
+    width: 148px;
+  }
+
+  .deliverySuccessCard h1 {
+    max-width: 300px;
+    font-size: clamp(1.65rem, 8vw, 2.1rem);
   }
 }

@@ -9,6 +9,10 @@ type SendLobbyPackEmailOptions = {
   text: string;
   replyTo?: string;
   bcc?: string;
+  attachments?: Array<{
+    filename: string;
+    content: string;
+  }>;
 };
 
 type ParcelEmailNotification = {
@@ -54,6 +58,7 @@ export async function sendLobbyPackEmail({
   text,
   replyTo,
   bcc,
+  attachments,
 }: SendLobbyPackEmailOptions) {
   const normalizedTo = to.trim().toLowerCase();
   const resendConfig = getResendConfig();
@@ -75,6 +80,7 @@ export async function sendLobbyPackEmail({
       text: text || subject,
       ...(replyTo ? { reply_to: replyTo } : {}),
       ...(bcc ? { bcc } : {}),
+      ...(attachments && attachments.length > 0 ? { attachments } : {}),
     }),
   });
 

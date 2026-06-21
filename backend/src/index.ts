@@ -13,6 +13,10 @@ import {
   repairParcelWithdrawalCodes,
 } from "./db/pool";
 import { api } from "./routes/api";
+import {
+  ensureDailySummaryReportTable,
+  startDailySummaryScheduler,
+} from "./utils/dailySummary";
 
 const port = Number(process.env.PORT ?? 3000);
 
@@ -23,6 +27,7 @@ await ensureResidentCommunityColumns();
 await ensureConciergeCommunityColumns();
 await ensureParcelQrSecurityColumns();
 await ensureIssueCreatorColumn();
+await ensureDailySummaryReportTable();
 await repairIssueEncoding();
 await repairParcelEncoding();
 await repairParcelWithdrawalCodes();
@@ -37,5 +42,7 @@ const app = new Elysia()
   .get("/health", () => ({ status: "ok" }))
   .use(api)
   .listen(port);
+
+startDailySummaryScheduler();
 
 console.log(`LobbyPack backend listening on port ${app.server?.port ?? port}`);

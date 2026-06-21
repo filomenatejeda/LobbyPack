@@ -160,6 +160,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
               currentSelections={dashboard.currentSelections}
               activeView={packageView}
               senderEmail={dashboard.currentUser?.email ?? ""}
+              qrAccessEnabled={dashboard.preferenceSettings.qr_access}
               onSearchChange={dashboard.updateSearch}
               onPageSizeChange={dashboard.updatePageSizeValue}
               onSelectAllVisible={dashboard.handleSelectAllVisible}
@@ -192,6 +193,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
       {dashboard.qrPackage ? (
         <QrModal
           qrPackage={dashboard.qrPackage}
+          qrAccessEnabled={dashboard.preferenceSettings.qr_access}
           onClose={dashboard.closeQrModal}
           onConfirm={(value) => void dashboard.handleQrScan(value)}
           qrScanMessage={dashboard.qrScanMessage}

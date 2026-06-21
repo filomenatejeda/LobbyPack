@@ -15,6 +15,7 @@ import {
 import type {
   CommunityStructureTower,
   DashboardCurrentUser,
+  DashboardPreferenceSettings,
   IssueItem,
   PackageServiceView,
   ParcelItem,
@@ -34,6 +35,12 @@ export function useHomeDashboard() {
   const [claimedParcels, setClaimedParcels] = useState<ParcelItem[]>([]);
   const [issues, setIssues] = useState<IssueItem[]>([]);
   const [communityStructure, setCommunityStructure] = useState<CommunityStructureTower[]>([]);
+  const [preferenceSettings, setPreferenceSettings] =
+    useState<DashboardPreferenceSettings>({
+      package_notifications: true,
+      daily_summary: true,
+      qr_access: true,
+    });
   const [searchTerm, setSearchTerm] = useState("");
   const [pageSize, setPageSize] = useState<number>(25);
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,6 +78,7 @@ export function useHomeDashboard() {
       setPendingParcels(response.pending_parcels);
       setClaimedParcels(response.claimed_parcels);
       setIssues(response.issues);
+      setPreferenceSettings(response.preference_settings);
       setSelectedIssueIds((current) =>
         current.filter((selectedId) =>
           response.issues.some((issue) => issue.id === selectedId),
@@ -323,6 +331,11 @@ export function useHomeDashboard() {
   };
 
   const openQrModal = (item: ParcelItem) => {
+    if (!preferenceSettings.qr_access) {
+      setQrScanMessage("El acceso con QR esta desactivado para esta comunidad.");
+      return;
+    }
+
     setQrScanMessage("");
     setQrPackage(item);
   };
@@ -332,6 +345,11 @@ export function useHomeDashboard() {
   };
 
   const handleQrScan = async (decodedText: string) => {
+    if (!preferenceSettings.qr_access) {
+      setQrScanMessage("El acceso con QR esta desactivado para esta comunidad.");
+      return;
+    }
+
     const packageId =
       decodedText.split(":")[2]?.trim() ||
       decodedText.replace("LobbyPack:", "").trim();
@@ -397,7 +415,7 @@ export function useHomeDashboard() {
 
   const handleResidentConfirmClaim = async () => {
     if (!residentScannedParcel || !residentScannedQrValue) {
-      return;
+      return false;
     }
 
     setIsResidentProcessing(true);
@@ -421,6 +439,8 @@ export function useHomeDashboard() {
         `Retiro confirmado por residente. Espera la confirmacion final de conserjeria para completar la entrega del paquete ${confirmedParcel.id}.`,
       );
       resetResidentClaimFlow();
+      await loadDashboard(false);
+      return true;
     } catch (error) {
       setResidentFeedbackTone("error");
       setResidentFeedbackMessage(
@@ -428,6 +448,7 @@ export function useHomeDashboard() {
           ? error.message
           : "No se pudo confirmar el retiro del paquete.",
       );
+      return false;
     } finally {
       setIsResidentProcessing(false);
     }
@@ -635,6 +656,7 @@ export function useHomeDashboard() {
     allVisibleComplaintsSelected,
     claimedParcels,
     communityStructure,
+    preferenceSettings,
     currentPage,
     currentPackageView,
     currentSelections,

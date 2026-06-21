@@ -18,6 +18,7 @@ type PackagePanelProps = {
   currentSelections: string[];
   activeView: PackageServiceView;
   senderEmail: string;
+  qrAccessEnabled: boolean;
   onSearchChange: (value: string) => void;
   onPageSizeChange: (value: number) => void;
   onSelectAllVisible: (checked: boolean) => void;
@@ -47,6 +48,7 @@ export default function PackagePanel(props: PackagePanelProps) {
     currentSelections,
     activeView,
     senderEmail,
+    qrAccessEnabled,
     onSearchChange,
     onPageSizeChange,
     onSelectAllVisible,
@@ -189,6 +191,7 @@ export default function PackagePanel(props: PackagePanelProps) {
             item={item}
             activeView={activeView}
             senderEmail={senderEmail}
+            qrAccessEnabled={qrAccessEnabled}
             checked={currentSelections.includes(item.id)}
             onSelect={onSelect}
             onShowQr={onShowQr}

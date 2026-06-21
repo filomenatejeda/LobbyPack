@@ -1,4 +1,4 @@
-import { apiRequest } from "../lib/api";
+import { apiBlobRequest, apiRequest } from "../lib/api";
 import type {
   ConciergeAccountCreationResponse,
   GeneralSettings,
@@ -43,6 +43,28 @@ export function savePreferenceSettings(preference_settings: PreferenceSettings, 
     method: "PUT",
     body: JSON.stringify(preference_settings),
   });
+}
+
+export function sendDailySummaryNow(date: string) {
+  return apiRequest<{
+    results: Array<{
+      buildingId: string;
+      buildingName: string;
+      reportDate: string;
+      recipientCount: number;
+      sentCount: number;
+      skipped: boolean;
+      reason?: string;
+    }>;
+  }>("/api/reports/daily-summary/send", {
+    method: "POST",
+    body: JSON.stringify({ date }),
+  });
+}
+
+export function downloadDailySummaryPdf(date: string) {
+  const params = new URLSearchParams({ date });
+  return apiBlobRequest(`/api/reports/daily-summary/pdf?${params.toString()}`);
 }
 
 export function saveTowers(towers: TowerConfig[], adminEmail?: string) {

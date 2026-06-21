@@ -46,3 +46,28 @@ export async function apiRequest<T>(path: string, init?: RequestInit) {
 
   return (await response.json()) as T;
 }
+
+export async function apiBlobRequest(path: string, init?: RequestInit) {
+  const session = supabaseConfigError ? null : await supabase.auth.getSession();
+  const accessToken = session?.data.session?.access_token;
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: {
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+    ...init,
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new ApiError(text || `Request failed with status ${response.status}`, response.status);
+  }
+
+  return {
+    blob: await response.blob(),
+    filename:
+      response.headers
+        .get("content-disposition")
+        ?.match(/filename="([^"]+)"/)?.[1] ?? "resumen-diario.pdf",
+  };
+}

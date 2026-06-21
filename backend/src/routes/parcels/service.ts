@@ -1,6 +1,7 @@
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
 import { AuthError, type AuthSession } from "../../auth/session";
 import { pool } from "../../db/pool";
+import { BUILDING_ID } from "../shared/constants";
 import {
   departmentAddressesMatch,
   normalizeDepartmentAddress,
@@ -313,6 +314,10 @@ export async function assertResidentParcelAccess(session: AuthSession, qrValue: 
   }
 
   const parsed = parseParcelClaimPayload(qrValue);
+  const dataBuildingId =
+    session.buildingId && session.buildingId !== BUILDING_ID
+      ? session.buildingId
+      : undefined;
   const [rows] = await pool.query<ParcelClaimRow[]>(
     `
       SELECT
@@ -327,7 +332,7 @@ export async function assertResidentParcelAccess(session: AuthSession, qrValue: 
         AND (? IS NULL OR p.building_id = ?)
       LIMIT 1
     `,
-    [parsed.parcelId, session.buildingId ?? null, session.buildingId ?? null],
+    [parsed.parcelId, dataBuildingId ?? null, dataBuildingId ?? null],
   );
 
   const parcel = rows[0];

@@ -17,6 +17,7 @@ const QRCodeComponent =
 
 type QrModalProps = {
   qrPackage: ParcelItem;
+  qrAccessEnabled: boolean;
   onClose: () => void;
   onConfirm: (value: string) => void;
   qrScanMessage: string;
@@ -24,6 +25,7 @@ type QrModalProps = {
 
 export default function QrModal({
   qrPackage,
+  qrAccessEnabled,
   onClose,
   onConfirm,
   qrScanMessage,
@@ -47,19 +49,24 @@ export default function QrModal({
         </div>
 
         <div className="qrCodeBox">
-          {QRCodeComponent ? (
+          {qrAccessEnabled && QRCodeComponent ? (
             <QRCodeComponent value={qrValue} size={180} />
           ) : (
-            <p className="qrFallback">No se pudo cargar el componente QR.</p>
+            <p className="qrFallback">
+              {qrAccessEnabled
+                ? "No se pudo cargar el componente QR."
+                : "El acceso con QR esta desactivado para esta comunidad."}
+            </p>
           )}
         </div>
 
         <p className="qrHint">
-          Este QR representa un retiro seguro y solo debe escanearlo un residente del mismo
-          departamento.
+          {qrAccessEnabled
+            ? "Este QR representa un retiro seguro y solo debe escanearlo un residente del mismo departamento."
+            : "Activa Acceso con QR en Configuracion para volver a mostrar codigos de retiro."}
         </p>
 
-        {residentConfirmedClaim ? (
+        {qrAccessEnabled && residentConfirmedClaim ? (
           <button
             type="button"
             className="simulateScanButton"
@@ -67,10 +74,12 @@ export default function QrModal({
           >
             Marcar como retirado
           </button>
-        ) : (
+        ) : qrAccessEnabled ? (
           <p className="qrHint">
             El boton de retiro aparecera cuando el residente confirme desde su cuenta.
           </p>
+        ) : (
+          null
         )}
 
         {qrScanMessage ? <p className="qrSuccess">{qrScanMessage}</p> : null}

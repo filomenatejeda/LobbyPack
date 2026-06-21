@@ -5,6 +5,12 @@ export type ParcelStatus = "pending" | "claimed";
 export type IssueStatus = "open" | "under_review" | "resolved";
 export type AppRole = "admin" | "concierge" | "resident";
 
+export type DashboardPreferenceSettings = {
+  package_notifications: boolean;
+  daily_summary: boolean;
+  qr_access: boolean;
+};
+
 export type DashboardCurrentUser = {
   user_id: string;
   email: string;
@@ -75,4 +81,5 @@ export type HomeDashboardResponse = {
   claimed_parcels: ParcelItem[];
   issues: IssueItem[];
   community_structure: CommunityStructureTower[];
+  preference_settings: DashboardPreferenceSettings;
 };

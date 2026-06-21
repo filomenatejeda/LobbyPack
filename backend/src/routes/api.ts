@@ -10,6 +10,7 @@ import { dashboardRoutes } from "./dashboard";
 import { issuesRoutes } from "./issues";
 import { messageRoutes } from "./messages";
 import { parcelRoutes } from "./parcels";
+import { reportRoutes } from "./reports";
 import { settingsRoutes } from "./settings";
 
 export const api = new Elysia({ prefix: "/api" })
@@ -44,5 +45,6 @@ export const api = new Elysia({ prefix: "/api" })
   .use(parcelRoutes)
   .use(issuesRoutes)
   .use(messageRoutes)
+  .use(reportRoutes)
   .use(settingsRoutes)
   .use(dashboardRoutes);

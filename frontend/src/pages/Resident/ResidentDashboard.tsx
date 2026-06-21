@@ -1,7 +1,12 @@
 import jsQR from "jsqr";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import type { DashboardCurrentUser, IssueItem, ParcelItem } from "../../types/home";
+import type {
+  DashboardCurrentUser,
+  DashboardPreferenceSettings,
+  IssueItem,
+  ParcelItem,
+} from "../../types/home";
 import {
   formatIssueStatus,
   formatParcelDate,
@@ -14,6 +19,7 @@ import "./ResidentDashboard.css";
 
 type ResidentDashboardProps = {
   currentUser: DashboardCurrentUser;
+  preferenceSettings: DashboardPreferenceSettings;
   pendingParcels: ParcelItem[];
   claimedParcels: ParcelItem[];
   issues: IssueItem[];
@@ -22,7 +28,7 @@ type ResidentDashboardProps = {
   feedbackTone: "neutral" | "success" | "error";
   isProcessing: boolean;
   onScan: (qrValue: string) => Promise<void>;
-  onConfirmClaim: () => Promise<void>;
+  onConfirmClaim: () => Promise<boolean>;
   onResetScan: () => void;
   onCreateIssue: (parcelId: string, issueDescription: string) => Promise<boolean>;
   issueMessage: string;
@@ -88,6 +94,7 @@ function ResidentIssueCard({ item }: { item: IssueItem }) {
 
 export default function ResidentDashboard({
   currentUser,
+  preferenceSettings,
   pendingParcels,
   claimedParcels,
   issues,
@@ -116,14 +123,15 @@ export default function ResidentDashboard({
   const [issueParcelId, setIssueParcelId] = useState("");
   const [issueDescription, setIssueDescription] = useState("");
   const [isIssueFormOpen, setIsIssueFormOpen] = useState(false);
+  const qrAccessEnabled = preferenceSettings.qr_access;
   const [activeResidentView, setActiveResidentView] = useState<ResidentView>(
-    searchParams.get("view") === "claimed" ? "claimed" : "scanner",
+    searchParams.get("view") === "claimed" ? "claimed" : qrAccessEnabled ? "scanner" : "pending",
   );
   const issueParcelOptions = useMemo(
     () => [...pendingParcels, ...claimedParcels],
     [pendingParcels, claimedParcels],
   );
-  const residentMenuItems: Array<{
+  const allResidentMenuItems: Array<{
     value: ResidentView;
     label: string;
     count?: number;
@@ -133,12 +141,24 @@ export default function ResidentDashboard({
     { value: "claimed", label: "Paquetes entregados", count: claimedParcels.length },
     { value: "issues", label: "Reclamos", count: issues.length },
   ];
+  const residentMenuItems = qrAccessEnabled
+    ? allResidentMenuItems
+    : allResidentMenuItems.filter((item) => item.value !== "scanner");
 
   useEffect(() => {
     if (searchParams.get("view") === "claimed") {
       setActiveResidentView("claimed");
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!qrAccessEnabled && activeResidentView === "scanner") {
+      setActiveResidentView("pending");
+      setIsCameraOpen(false);
+      setCameraMessage("");
+      setManualQrValue("");
+    }
+  }, [activeResidentView, qrAccessEnabled]);
 
   useEffect(() => {
     if (!isCameraOpen) {
@@ -294,11 +314,14 @@ export default function ResidentDashboard({
     <section className="residentDashboard" aria-live="polite">
       <div className="residentHero">
         <div>
-          <p className="residentEyebrow">Retiro seguro por QR</p>
+          <p className="residentEyebrow">
+            {qrAccessEnabled ? "Retiro seguro por QR" : "Gestion de paquetes"}
+          </p>
           <h2>{currentUser.display_name}</h2>
           <p className="residentLead">
-            Escanea el QR mostrado en conserjeria y confirma el retiro si el paquete pertenece a tu
-            departamento.
+            {qrAccessEnabled
+              ? "Escanea el QR mostrado en conserjeria y confirma el retiro si el paquete pertenece a tu departamento."
+              : "Revisa tus paquetes pendientes, entregados y reclamos asociados a tu departamento."}
           </p>
         </div>
         <div className="residentDepartmentCard">
@@ -327,6 +350,16 @@ export default function ResidentDashboard({
 
       {activeResidentView === "scanner" ? (
         <div className="residentScannerPanel">
+        {!qrAccessEnabled ? (
+          <div className="residentQrDisabled">
+            <h3>Retiro por QR desactivado</h3>
+            <p>
+              La administracion desactivo el acceso con QR para esta comunidad. Puedes revisar tus
+              paquetes pendientes o contactar a conserjeria.
+            </p>
+          </div>
+        ) : (
+        <>
         <div className="residentScannerHeader">
           <h3>Escanear QR</h3>
           <button
@@ -397,9 +430,9 @@ export default function ResidentDashboard({
                 onClick={async () => {
                   const confirmedParcel = scannedParcel;
 
-                  await onConfirmClaim();
+                  const wasConfirmed = await onConfirmClaim();
 
-                  if (confirmedParcel) {
+                  if (wasConfirmed && confirmedParcel) {
                     navigate("/retiro-exitoso", {
                       replace: true,
                       state: { parcel: confirmedParcel },
@@ -420,6 +453,8 @@ export default function ResidentDashboard({
             </div>
           </div>
         ) : null}
+        </>
+        )}
       </div>
       ) : null}
 

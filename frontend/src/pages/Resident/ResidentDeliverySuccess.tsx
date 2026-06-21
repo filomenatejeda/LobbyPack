@@ -19,25 +19,29 @@ export default function ResidentDeliverySuccess() {
   return (
     <main className="deliverySuccessPage">
       <section className="deliverySuccessCard" aria-live="polite">
-        <img className="deliverySuccessLogo" src={logo} alt="LobbyPack" />
-        <div className="deliverySuccessCheck" aria-hidden="true">
-          <svg viewBox="0 0 24 24" role="img">
-            <path d="M9.2 16.6 4.9 12.3l1.7-1.7 2.6 2.6 8.2-8.2 1.7 1.7z" />
-          </svg>
+        <div className="deliverySuccessVisual">
+          <img className="deliverySuccessLogo" src={logo} alt="LobbyPack" />
+          <div className="deliverySuccessCheck" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="img">
+              <path d="M9.2 16.6 4.9 12.3l1.7-1.7 2.6 2.6 8.2-8.2 1.7 1.7z" />
+            </svg>
+          </div>
         </div>
-        <p className="deliverySuccessEyebrow">Retiro confirmado</p>
-        <h1>Paquete entregado con exito</h1>
-        <p className="deliverySuccessText">
-          El paquete quedo registrado como retirado correctamente.
-        </p>
-        <strong className="deliverySuccessParcel">{parcel.id}</strong>
-        <button
-          type="button"
-          className="deliverySuccessButton"
-          onClick={() => navigate("/dashboard?view=claimed", { replace: true })}
-        >
-          Ver detalles
-        </button>
+        <div className="deliverySuccessContent">
+          <p className="deliverySuccessEyebrow">Retiro confirmado</p>
+          <h1>Paquete entregado con exito</h1>
+          <p className="deliverySuccessText">
+            El paquete quedo registrado como retirado correctamente.
+          </p>
+          <strong className="deliverySuccessParcel">{parcel.id}</strong>
+          <button
+            type="button"
+            className="deliverySuccessButton"
+            onClick={() => navigate("/dashboard?view=claimed", { replace: true })}
+          >
+            Ver detalles
+          </button>
+        </div>
       </section>
     </main>
   );

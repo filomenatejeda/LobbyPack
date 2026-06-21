@@ -23,7 +23,9 @@ export default function Home() {
           </h1>
           <p className="lead">
             {dashboard.isResident
-              ? "Valida tu departamento, escanea el QR y confirma la entrega sin depender de un boton interno."
+              ? dashboard.preferenceSettings.qr_access
+                ? "Valida tu departamento, escanea el QR y confirma la entrega sin depender de un boton interno."
+                : "Revisa tus paquetes pendientes, entregados y reclamos asociados a tu departamento."
               : "Administra paquetes recepcionados y retirados desde una sola vista."}
           </p>
 
@@ -37,6 +39,7 @@ export default function Home() {
               currentUser={dashboard.currentUser}
               pendingParcels={dashboard.pendingParcels}
               claimedParcels={dashboard.claimedParcels}
+              preferenceSettings={dashboard.preferenceSettings}
               issues={dashboard.issues}
               scannedParcel={dashboard.residentScannedParcel}
               feedbackMessage={dashboard.residentFeedbackMessage}

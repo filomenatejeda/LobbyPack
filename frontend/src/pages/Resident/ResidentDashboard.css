@@ -120,11 +120,35 @@
   color: #ffffff;
 }
 
+.residentViewButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .residentScannerPanel,
 .residentIssuePanel,
 .residentParcelSection,
 .residentConfirmationCard {
   padding: 1.35rem;
+}
+
+.residentQrDisabled {
+  display: grid;
+  gap: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 1rem;
+}
+
+.residentQrDisabled h3,
+.residentQrDisabled p {
+  margin: 0;
+}
+
+.residentQrDisabled p {
+  color: var(--text-soft);
+  line-height: 1.55;
 }
 
 .residentScannerHeader,

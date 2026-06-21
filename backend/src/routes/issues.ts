@@ -7,6 +7,7 @@ import { departmentAddressesMatch } from "../utils/departments";
 import { createSequentialId } from "../utils/ids";
 import { repairPotentialMojibake } from "../utils/textEncoding";
 import { resolveBuildingIdForUserEmail } from "./shared/community";
+import { BUILDING_ID } from "./shared/constants";
 import { issueStatusSchema, residentIssueSchema } from "./shared/schemas";
 import type { IssueRow } from "./shared/types";
 
@@ -69,6 +70,10 @@ export const issuesRoutes = new Elysia()
     "/resident/issues",
     async ({ headers, body, set }) => {
       const session = await requireAppRole(headers.authorization, ["resident"]);
+      const dataBuildingId =
+        session.buildingId && session.buildingId !== BUILDING_ID
+          ? session.buildingId
+          : undefined;
 
       if (!session.departmentAddress) {
         throw new AppError(
@@ -96,7 +101,7 @@ export const issuesRoutes = new Elysia()
             AND (? IS NULL OR p.building_id = ?)
           LIMIT 1
         `,
-        [body.id_parcel, session.buildingId ?? null, session.buildingId ?? null],
+        [body.id_parcel, dataBuildingId ?? null, dataBuildingId ?? null],
       );
 
       const parcel = parcels[0];
@@ -152,7 +157,10 @@ export const issuesRoutes = new Elysia()
         await connection.commit();
         set.status = 201;
 
-        const issues = await listIssues({ buildingId: session.buildingId });
+        const issues = await listIssues({
+          departmentAddress: session.departmentAddress,
+          buildingId: dataBuildingId,
+        });
         return issues.find((issue) => issue.id === issueId);
       } catch (error) {
         await connection.rollback();

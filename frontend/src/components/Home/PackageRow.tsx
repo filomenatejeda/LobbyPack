@@ -18,6 +18,7 @@ type PackageRowProps = {
   item: ParcelItem;
   activeView: PackageServiceView;
   senderEmail: string;
+  qrAccessEnabled: boolean;
   checked: boolean;
   onSelect: (view: PackageServiceView, id: string, checked: boolean) => void;
   onShowQr: (item: ParcelItem) => void;
@@ -64,6 +65,7 @@ export default function PackageRow({
   item,
   activeView,
   senderEmail,
+  qrAccessEnabled,
   checked,
   onSelect,
   onShowQr,
@@ -158,7 +160,7 @@ export default function PackageRow({
           </div>
 
           <div className="packageActions inlineActions">
-            {item.parcel_status === "pending" ? (
+            {item.parcel_status === "pending" && qrAccessEnabled ? (
               <button
                 type="button"
                 className="rowActionButton qrButton"

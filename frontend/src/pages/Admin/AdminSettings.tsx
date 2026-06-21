@@ -3,8 +3,11 @@ import ConciergeInviteModal from "../../components/Settings/ConciergeInviteModal
 import ApartmentResidentsModal from "../../components/Settings/ApartmentResidentsModal";
 import {
   fetchSettings,
+  downloadDailySummaryPdf,
   inviteConcierge,
   saveGeneralSettings,
+  savePreferenceSettings,
+  sendDailySummaryNow,
   saveTowers,
   verifyConciergeEmail,
   verifyConciergeMfa,
@@ -68,6 +71,12 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
   const [towers, setTowers] = useState<TowerConfig[]>([]);
   const [team, setTeam] = useState<TeamItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDownloadingDailySummary, setIsDownloadingDailySummary] = useState(false);
+  const [isSendingDailySummary, setIsSendingDailySummary] = useState(false);
+  const [isDailySummaryModalOpen, setIsDailySummaryModalOpen] = useState(false);
+  const [dailySummaryDate, setDailySummaryDate] = useState(() =>
+    new Date().toLocaleDateString("en-CA"),
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isEditingGeneralSettings, setIsEditingGeneralSettings] = useState(false);
   const [isInvitingConcierge, setIsInvitingConcierge] = useState(false);
@@ -125,14 +134,82 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
     }));
   };
 
-  const updatePreferenceSettings = <K extends keyof PreferenceSettings>(
+  const handlePreferenceToggle = async <K extends keyof PreferenceSettings>(
     field: K,
     value: PreferenceSettings[K],
   ) => {
-    setPreferenceSettings((current) => ({
-      ...current,
+    const nextPreferences = {
+      ...preferenceSettings,
       [field]: value,
-    }));
+    };
+
+    setPreferenceSettings(nextPreferences);
+    setIsSaving(true);
+    setStatusMessage("");
+
+    try {
+      await savePreferenceSettings(nextPreferences, adminEmail);
+      setStatusMessage("Preferencias de automatizacion guardadas.");
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : "No se pudieron guardar las preferencias.",
+      );
+      await loadSettings();
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSendDailySummaryNow = async () => {
+    setIsSendingDailySummary(true);
+    setStatusMessage("");
+
+    try {
+      const response = await sendDailySummaryNow(dailySummaryDate);
+      const sentCount = response.results.reduce((sum, result) => sum + result.sentCount, 0);
+      const recipientCount = response.results.reduce(
+        (sum, result) => sum + result.recipientCount,
+        0,
+      );
+
+      setStatusMessage(
+        sentCount > 0
+          ? `Resumen diario enviado a ${sentCount} de ${recipientCount} destinatarios.`
+          : response.results[0]?.reason ?? "No se envio el resumen diario.",
+      );
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error ? error.message : "No se pudo enviar el resumen diario.",
+      );
+    } finally {
+      setIsSendingDailySummary(false);
+    }
+  };
+
+  const handleDownloadDailySummaryPdf = async () => {
+    setIsDownloadingDailySummary(true);
+    setStatusMessage("");
+
+    try {
+      const { blob, filename } = await downloadDailySummaryPdf(dailySummaryDate);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setStatusMessage("PDF del resumen diario descargado.");
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error ? error.message : "No se pudo descargar el PDF.",
+      );
+    } finally {
+      setIsDownloadingDailySummary(false);
+    }
   };
 
   const addTower = () => {
@@ -434,8 +511,9 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
 
             <SettingsPreferencesCard
               preferenceSettings={preferenceSettings}
-              canEdit={canManageSettings}
-              onToggle={updatePreferenceSettings}
+              canEdit={canManageSettings && !isSaving}
+              onOpenDailySummaryReport={() => setIsDailySummaryModalOpen(true)}
+              onToggle={(field, value) => void handlePreferenceToggle(field, value)}
             />
           </>
         ) : null}
@@ -484,6 +562,64 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
           onVerifyMfa={handleVerifyConciergeMfa}
           onDone={loadSettings}
         />
+      ) : null}
+
+      {isDailySummaryModalOpen ? (
+        <div className="settingsModalOverlay" onClick={() => setIsDailySummaryModalOpen(false)}>
+          <section
+            className="settingsReportModal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dailySummaryTitle"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="settingsCardHeader">
+              <div>
+                <p className="settingsLabel">Reporte</p>
+                <h2 id="dailySummaryTitle">Resumen diario</h2>
+              </div>
+              <button
+                type="button"
+                className="secondaryButton"
+                onClick={() => setIsDailySummaryModalOpen(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <p className="settingsSectionLead">
+              Elige una fecha para descargar el PDF o enviarlo por correo al equipo.
+            </p>
+
+            <label className="settingsField">
+              <span>Fecha del reporte</span>
+              <input
+                type="date"
+                value={dailySummaryDate}
+                onChange={(event) => setDailySummaryDate(event.target.value)}
+              />
+            </label>
+
+            <div className="settingsActions">
+              <button
+                type="button"
+                className="secondaryButton"
+                disabled={isDownloadingDailySummary || !dailySummaryDate}
+                onClick={() => void handleDownloadDailySummaryPdf()}
+              >
+                {isDownloadingDailySummary ? "Descargando..." : "Descargar PDF"}
+              </button>
+              <button
+                type="button"
+                className="primaryButton"
+                disabled={isSendingDailySummary || !dailySummaryDate}
+                onClick={() => void handleSendDailySummaryNow()}
+              >
+                {isSendingDailySummary ? "Enviando..." : "Enviar por correo"}
+              </button>
+            </div>
+          </section>
+        </div>
       ) : null}
 
       {apartmentResidents.selectedApartment ? (
