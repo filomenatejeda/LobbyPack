@@ -134,7 +134,7 @@ export function getAuthErrorMessage(message: string) {
     case "Token has expired or is invalid":
       return "Error: el codigo expiro o no es valido.";
     case "User already registered":
-      return "Error: el usuario ya esta registrado.";
+      return "Error: este correo ya existe en Supabase Auth. Inicia sesion o elimina ese usuario desde Authentication > Users.";
     case "Auth session missing!":
       return "Error: la sesion ha expirado.";
     case "AAL2 session is required to update email or password when MFA is enabled.":

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 
 import { supabase, supabaseConfigError } from "@/lib/client";
+import { getSupabaseRedirectUrl } from "@/lib/authRedirect";
 import { isGoogleSSOUser } from "@/lib/auth-provider";
 import { checkAdminEmailRegistration } from "@/services/authRegistrationApi";
 import googleGLogo from "@/assets/google-g.svg";
@@ -12,13 +13,6 @@ const Phase = {
   Login: 0,
   MFA: 1,
 } as const;
-
-function getAuthRedirectUrl() {
-  const configuredRedirectUrl =
-    window.__LOBBYPACK_CONFIG__?.VITE_AUTH_REDIRECT_URL ?? import.meta.env.VITE_AUTH_REDIRECT_URL;
-
-  return configuredRedirectUrl || `${window.location.origin}/auth/login`;
-}
 
 export function LoginForm() {
   const location = useLocation();
@@ -213,7 +207,7 @@ export function LoginForm() {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: getAuthRedirectUrl(),
+          redirectTo: getSupabaseRedirectUrl("/auth/login"),
           queryParams: {
             access_type: "offline",
             prompt: "consent",

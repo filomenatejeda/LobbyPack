@@ -1,18 +1,8 @@
 import { useState } from "react";
 
+import { getSupabaseRedirectUrl } from "@/lib/authRedirect";
 import { supabase, supabaseConfigError } from "@/lib/client";
 import "./login-form.css";
-
-function getPasswordResetRedirectUrl() {
-  const configuredRedirectUrl =
-    window.__LOBBYPACK_CONFIG__?.VITE_AUTH_REDIRECT_URL ?? import.meta.env.VITE_AUTH_REDIRECT_URL;
-
-  if (!configuredRedirectUrl) {
-    return `${window.location.origin}/auth/update-password`;
-  }
-
-  return new URL("/auth/update-password", configuredRedirectUrl).toString();
-}
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -31,7 +21,7 @@ export function ForgotPasswordForm() {
       }
 
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: getPasswordResetRedirectUrl(),
+        redirectTo: getSupabaseRedirectUrl("/auth/update-password"),
       });
 
       if (resetError) throw resetError;
