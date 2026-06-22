@@ -93,7 +93,7 @@ export default function TowerCard({
           <div>
             <p className="towerPreviewTitle">{labels.unitPlural}</p>
             <p className="towerPreviewText">
-              {selectedFloor.apartments.length} en {labels.levelSingular.toLowerCase()}{" "}
+              {selectedFloor.apartments.length} {t("settings.in")} {labels.levelSingular.toLowerCase()}{" "}
               {selectedFloorNumber}
             </p>
           </div>
@@ -145,7 +145,7 @@ export default function TowerCard({
 
             <div className="floorEditorHeader">
               <strong>
-                {labels.unitPlural} del {labels.levelSingular.toLowerCase()}{" "}
+                {labels.unitPlural} {t("settings.fromLevel")} {labels.levelSingular.toLowerCase()}{" "}
                 {selectedFloorNumber}
               </strong>
               <button
@@ -185,7 +185,7 @@ export default function TowerCard({
                     }
                     disabled={selectedFloor.apartments.length === 1}
                   >
-                    Quitar
+                    {t("settings.remove")}
                   </button>
                 </div>
               ))}

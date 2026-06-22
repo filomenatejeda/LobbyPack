@@ -2,6 +2,7 @@ import { type ComponentType } from "react";
 import QRCodeImport from "react-qr-code";
 import "./QrModal.css";
 import type { ParcelItem } from "../../types/home";
+import { useI18n } from "../../lib/i18n";
 
 type QRCodeModule = {
   default?: ComponentType<{ value: string; size?: number }>;
@@ -30,6 +31,7 @@ export default function QrModal({
   onConfirm,
   qrScanMessage,
 }: QrModalProps) {
+  const { t } = useI18n();
   const qrValue = qrPackage.qr_code_url ?? `LobbyPack:claim:${qrPackage.id}:demo`;
   const residentConfirmedClaim = Boolean(qrPackage.resident_claim_confirmed_at);
 
@@ -37,12 +39,12 @@ export default function QrModal({
     <div className="qrModalOverlay" onClick={onClose}>
       <div className="qrModal" onClick={(event) => event.stopPropagation()}>
         <div className="qrModalHeader">
-          <h3>QR del paquete {qrPackage.id}</h3>
+          <h3>{t("qr.packageTitle").replace("{id}", String(qrPackage.id))}</h3>
           <button
             type="button"
             className="closeModalButton"
             onClick={onClose}
-            aria-label="Cerrar QR"
+            aria-label={t("qr.close")}
           >
             x
           </button>
@@ -54,16 +56,16 @@ export default function QrModal({
           ) : (
             <p className="qrFallback">
               {qrAccessEnabled
-                ? "No se pudo cargar el componente QR."
-                : "El acceso con QR esta desactivado para esta comunidad."}
+                ? t("qr.componentError")
+                : t("qr.disabled")}
             </p>
           )}
         </div>
 
         <p className="qrHint">
           {qrAccessEnabled
-            ? "Este QR representa un retiro seguro y solo debe escanearlo un residente del mismo departamento."
-            : "Activa Acceso con QR en Configuracion para volver a mostrar codigos de retiro."}
+            ? t("qr.enabledHint")
+            : t("qr.disabledHint")}
         </p>
 
         {qrAccessEnabled && residentConfirmedClaim ? (
@@ -72,11 +74,11 @@ export default function QrModal({
             className="simulateScanButton"
             onClick={() => onConfirm(qrValue)}
           >
-            Marcar como retirado
+            {t("qr.markWithdrawn")}
           </button>
         ) : qrAccessEnabled ? (
           <p className="qrHint">
-            El boton de retiro aparecera cuando el residente confirme desde su cuenta.
+            {t("qr.waitResident")}
           </p>
         ) : (
           null

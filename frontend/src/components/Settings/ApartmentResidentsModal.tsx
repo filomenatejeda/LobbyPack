@@ -87,7 +87,7 @@ export default function ApartmentResidentsModal({
 
     try {
       if (!residentSupabase) {
-        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+        throw new Error(supabaseConfigError ?? t("resident.supabasePrepareError"));
       }
 
       const normalizedPhoneNumber = normalizeInternationalPhone(phoneNumber);
@@ -116,9 +116,7 @@ export default function ApartmentResidentsModal({
         });
 
         if (signedIn.error || !signedIn.data.session) {
-          throw new Error(
-            "Supabase esta pidiendo confirmar el correo antes de configurar MFA. Desactiva Confirm email en Authentication > Sign In / Providers > Email.",
-          );
+          throw new Error(t("resident.supabaseNeedsEmailConfirm"));
         }
       }
 
@@ -147,7 +145,7 @@ export default function ApartmentResidentsModal({
       setMfaCode("");
       setAccountPhase(ResidentAccountPhase.Mfa);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "No se pudo crear la cuenta.");
+      setFormError(error instanceof Error ? error.message : t("resident.createError"));
     }
   };
 
@@ -162,11 +160,11 @@ export default function ApartmentResidentsModal({
 
     try {
       if (!residentSupabase) {
-        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+        throw new Error(supabaseConfigError ?? t("resident.supabasePrepareError"));
       }
 
       if (!mfaFactorId) {
-        throw new Error("No se encontro el autenticador pendiente de configuracion.");
+        throw new Error(t("resident.authenticatorMissing"));
       }
 
       const challenge = await residentSupabase.auth.mfa.challenge({ factorId: mfaFactorId });
@@ -189,7 +187,7 @@ export default function ApartmentResidentsModal({
       await residentSupabase.auth.signOut();
       setAccountPhase(ResidentAccountPhase.Done);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Codigo del autenticador invalido.");
+      setFormError(error instanceof Error ? error.message : t("resident.authenticatorInvalid"));
     }
   };
 
@@ -219,7 +217,7 @@ export default function ApartmentResidentsModal({
       await onDeleteResident(residentToDelete.user_id);
       setResidentToDelete(null);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "No se pudo eliminar el residente.");
+      setFormError(error instanceof Error ? error.message : t("resident.deleteError"));
     }
   };
 
@@ -228,26 +226,26 @@ export default function ApartmentResidentsModal({
       <section className="residentModal" onClick={(event) => event.stopPropagation()}>
         <div className="residentModalHeader">
           <div>
-            <p className="settingsLabel">Cuenta residente</p>
+            <p className="settingsLabel">{t("resident.addAccount")}</p>
             <h3>{apartmentName}</h3>
             <p className="residentModalLead">
               {canManageResidents
-                ? `Crea accesos de residente asociados a este ${unitSingular}.`
-                : `Revisa las cuentas residentes asociadas a este ${unitSingular}.`}
+                ? t("resident.createAccesses").replace("{unit}", unitSingular)
+                : t("resident.reviewAccounts").replace("{unit}", unitSingular)}
             </p>
           </div>
           <button
             type="button"
             className="residentModalClose"
             onClick={onClose}
-            aria-label="Cerrar"
+            aria-label={t("settings.close")}
           >
             <X size={18} aria-hidden="true" />
           </button>
         </div>
 
         <div className="residentModalBody">
-          {isLoading ? <p className="residentEmptyText">Cargando personas...</p> : null}
+          {isLoading ? <p className="residentEmptyText">{t("resident.peopleLoading")}</p> : null}
 
           {!isLoading && !isAdding && residents.length > 0 ? (
             <div className="residentList">
@@ -259,8 +257,8 @@ export default function ApartmentResidentsModal({
                     <span>{resident.user_phone_number || t("resident.phoneEmpty")}</span>
                     <span>
                       {resident.email_verified && resident.mfa_enabled
-                        ? "Verificado con autenticador"
-                        : "Verificacion pendiente"}
+                        ? t("resident.authenticatorActive")
+                        : t("resident.authenticatorPending")}
                     </span>
                   </div>
                   {canManageResidents ? (
@@ -282,14 +280,14 @@ export default function ApartmentResidentsModal({
 
           {!isLoading && residents.length === 0 && !isAdding ? (
             <p className="residentEmptyText">
-              No hay cuentas residentes registradas en este {unitSingular}.
+              {t("resident.noAccounts").replace("{unit}", unitSingular)}
             </p>
           ) : null}
 
           {isAdding && accountPhase === ResidentAccountPhase.Form ? (
             <form className="residentForm" onSubmit={handleSubmit}>
               <label className="settingsField">
-                <span>Correo de acceso</span>
+                <span>{t("resident.emailAccess")}</span>
                 <input
                   type="email"
                   value={residentEmail}
@@ -298,7 +296,7 @@ export default function ApartmentResidentsModal({
                 />
               </label>
               <label className="settingsField">
-                <span>Nombre de la persona</span>
+                <span>{t("resident.personName")}</span>
                 <input
                   type="text"
                   value={residentName}
@@ -337,7 +335,7 @@ export default function ApartmentResidentsModal({
                   {t("admin.cancel")}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? "Creando..." : "Crear cuenta"}
+                  {isSaving ? t("resident.creating") : t("auth.createAccount")}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}
@@ -351,18 +349,18 @@ export default function ApartmentResidentsModal({
                   {QRCodeComponent ? (
                     <QRCodeComponent value={totpSetup.totp_uri} size={176} />
                   ) : (
-                    <p>No se pudo cargar el QR.</p>
+                    <p>{t("resident.qrLoadError")}</p>
                   )}
                 </div>
                 <p>
-                  Escanea este QR con Google Authenticator, Microsoft Authenticator o una app TOTP.
+                  {t("resident.mfaHelp")}
                 </p>
                 <p className="residentSecret">
-                  Clave manual: <strong>{totpSetup.totp_secret}</strong>
+                  {t("resident.mfaManualKey")} <strong>{totpSetup.totp_secret}</strong>
                 </p>
               </div>
               <label className="settingsField">
-                <span>Codigo del autenticador</span>
+                <span>{t("resident.authCode")}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -377,7 +375,7 @@ export default function ApartmentResidentsModal({
                   {t("admin.cancel")}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? "Activando..." : "Activar autenticador"}
+                  {isSaving ? t("resident.activating") : t("resident.activateAuthenticator")}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}
@@ -386,11 +384,11 @@ export default function ApartmentResidentsModal({
 
           {isAdding && accountPhase === ResidentAccountPhase.Done ? (
             <div className="residentVerificationBox">
-              <strong>Cuenta residente lista</strong>
-              <p>El correo fue verificado y el autenticador quedo activado.</p>
+              <strong>{t("resident.readyAccount")}</strong>
+              <p>{t("resident.readyAccountText")}</p>
               <div className="residentActions">
                 <button type="button" className="primaryButton" onClick={resetCreateFlow}>
-                  Terminar
+                  {t("resident.done")}
                 </button>
               </div>
             </div>
@@ -415,9 +413,9 @@ export default function ApartmentResidentsModal({
             aria-modal="true"
             aria-labelledby="residentDeleteTitle"
           >
-            <p className="settingsLabel">Confirmar eliminacion</p>
+            <p className="settingsLabel">{t("resident.confirmDelete")}</p>
             <h4 id="residentDeleteTitle">
-              Estas seguro de querer eliminar al residente {residentToDelete.resident_name}
+              {t("resident.deleteConfirm").replace("{name}", residentToDelete.resident_name)}
             </h4>
             <div className="residentActions">
               <button
@@ -426,7 +424,7 @@ export default function ApartmentResidentsModal({
                 onClick={() => setResidentToDelete(null)}
                 disabled={isSaving}
               >
-                No
+                {t("common.no")}
               </button>
               <button
                 type="button"
@@ -434,7 +432,7 @@ export default function ApartmentResidentsModal({
                 onClick={() => void handleDeleteResident()}
                 disabled={isSaving}
               >
-                {isSaving ? "Eliminando..." : "Si"}
+                {isSaving ? t("resident.deleting") : t("common.yes")}
               </button>
             </div>
           </section>

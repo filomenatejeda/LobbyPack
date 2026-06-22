@@ -3,6 +3,7 @@ import { REGEXP_ONLY_DIGITS } from "input-otp";
 
 import { cn } from "@/lib/utils";
 import { supabase, supabaseConfigError } from "@/lib/client";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function UpdatePasswordForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+  const { language, t } = useI18n();
   const [password, setPassword] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [mfaFactorId, setMfaFactorId] = useState("");
@@ -51,7 +53,11 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
         const factorId = factors.data?.all[0]?.id;
 
         if (!factorId) {
-          throw new Error("No se encontro un autenticador configurado para esta cuenta.");
+          throw new Error(
+            language === "en"
+              ? "No authenticator configured for this account was found."
+              : "No se encontro un autenticador configurado para esta cuenta.",
+          );
         }
 
         const challenge = await supabase.auth.mfa.challenge({ factorId });
@@ -69,7 +75,11 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
         }
 
         setError(
-          caughtError instanceof Error ? handleError(caughtError.message) : "Ocurrio un error.",
+          caughtError instanceof Error
+            ? handleError(caughtError.message)
+            : language === "en"
+              ? "An error occurred."
+              : "Ocurrio un error.",
         );
       } finally {
         if (isActive) {
@@ -116,7 +126,13 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
 
       location.href = "/dashboard";
     } catch (caughtError: unknown) {
-      setError(caughtError instanceof Error ? handleError(caughtError.message) : "Ocurrio un error.");
+      setError(
+        caughtError instanceof Error
+          ? handleError(caughtError.message)
+          : language === "en"
+            ? "An error occurred."
+            : "Ocurrio un error.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -125,21 +141,31 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
   function handleError(message: string) {
     switch (message) {
       case "email rate limit exceeded":
-        return "Error: espera 1 minuto antes de volver a intentarlo.";
+        return language === "en"
+          ? "Error: wait 1 minute before trying again."
+          : "Error: espera 1 minuto antes de volver a intentarlo.";
       case "Code needs to be non-empty":
-        return "Error: ingresa el codigo del autenticador.";
+        return language === "en"
+          ? "Error: enter the authenticator code."
+          : "Error: ingresa el codigo del autenticador.";
       case "Invalid TOTP code entered":
-        return "Error: el codigo del autenticador no es valido.";
+        return language === "en"
+          ? "Error: the authenticator code is invalid."
+          : "Error: el codigo del autenticador no es valido.";
       case "Auth session missing!":
-        return "Error: la sesion de recuperacion expiro. Solicita un nuevo enlace.";
+        return language === "en"
+          ? "Error: the recovery session expired. Request a new link."
+          : "Error: la sesion de recuperacion expiro. Solicita un nuevo enlace.";
       case "AAL2 session is required to update email or password when MFA is enabled.":
-        return "Error: debes verificar el codigo del autenticador antes de actualizar la contrasena.";
+        return language === "en"
+          ? "Error: verify the authenticator code before updating the password."
+          : "Error: debes verificar el codigo del autenticador antes de actualizar la contrasena.";
       default:
         break;
     }
 
     if (message.startsWith("Email address ")) {
-      return "Error: correo invalido.";
+      return language === "en" ? "Error: invalid email." : "Error: correo invalido.";
     }
 
     return message;
@@ -149,17 +175,15 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Reinicia tu contrasena</CardTitle>
-          <CardDescription>
-            Verifica el codigo del autenticador y luego ingresa tu nueva contrasena.
-          </CardDescription>
+          <CardTitle className="text-2xl">{t("auth.resetPassword")}</CardTitle>
+          <CardDescription>{t("auth.updatePasswordDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleForgotPassword}>
             <div className="flex flex-col gap-6">
               {!isMfaVerified && (
                 <div className="grid gap-2">
-                  <Label htmlFor="mfa">Codigo del autenticador</Label>
+                  <Label htmlFor="mfa">{t("resident.authCode")}</Label>
                   <Input
                     id="mfa"
                     inputMode="numeric"
@@ -174,11 +198,11 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                 </div>
               )}
               <div className="grid gap-2">
-                <Label htmlFor="password">Nueva contrasena</Label>
+                <Label htmlFor="password">{t("auth.newPassword")}</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Nueva contrasena"
+                  placeholder={t("auth.newPassword")}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -191,10 +215,10 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                 disabled={isLoading || isPreparingMfa}
               >
                 {isLoading
-                  ? "Guardando..."
+                  ? t("resident.saving")
                   : isMfaVerified
-                    ? "Guardar nueva contrasena"
-                    : "Verificar y guardar"}
+                    ? t("auth.saveNewPassword")
+                    : t("auth.verifyAndSave")}
               </Button>
             </div>
           </form>

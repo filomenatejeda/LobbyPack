@@ -1,19 +1,24 @@
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Eye, EyeOff } from "lucide-react";
-import { COMMUNITY_TYPE_OPTIONS, geoapifyApiKey, Phase } from "./constants";
+import { geoapifyApiKey, Phase } from "./constants";
 import type { UseSignUpFormResult } from "./useSignUpForm";
+import { useI18n } from "@/lib/i18n";
+import { getCommunityTypeOptions } from "@/pages/Settings/settingsConfig";
 
 type SignUpPhaseFieldsProps = {
   form: UseSignUpFormResult;
 };
 
 export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
+  const { language, t } = useI18n();
+  const communityTypeOptions = getCommunityTypeOptions(language);
+
   return (
     <div className="authFields">
       {form.phase === Phase.Community && (
         <>
           <label className="authField">
-            <span>Nombre de la comunidad</span>
+            <span>{t("auth.communityName")}</span>
             <input
               className="authInput"
               id="community-name"
@@ -26,7 +31,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
           </label>
 
           <label className="authField">
-            <span>Tipo de comunidad</span>
+            <span>{t("settings.communityType")}</span>
             <select
               className="authInput"
               id="community-type"
@@ -34,7 +39,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               value={form.communityType}
               onChange={(event) => form.setCommunityType(event.target.value)}
             >
-              {COMMUNITY_TYPE_OPTIONS.map((type) => (
+              {communityTypeOptions.map((type) => (
                 <option key={type} value={type}>
                   {type}
                 </option>
@@ -43,7 +48,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
           </label>
 
           <label className="authField">
-            <span>Pais</span>
+            <span>{t("auth.country")}</span>
             <input
               className="authInput"
               id="community-country"
@@ -78,7 +83,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
           </label>
 
           <label className="authField">
-            <span>Ciudad</span>
+            <span>{t("auth.city")}</span>
             <input
               className="authInput"
               id="community-location"
@@ -88,8 +93,8 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               disabled={!form.communityCountry.trim()}
               placeholder={
                 form.communityCountry.trim()
-                  ? "Ingresa tu ciudad"
-                  : "Primero selecciona un pais"
+                  ? t("auth.cityPlaceholder")
+                  : t("auth.cityRequiredFirst")
               }
               value={form.communityLocation}
               onBlur={() => window.setTimeout(() => form.setFocusedAutocomplete(null), 120)}
@@ -106,18 +111,18 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
             />
             {!form.communityCountry.trim() && (
               <p className="authFieldNote">
-                Selecciona primero un pais para habilitar la ciudad.
+                {t("auth.countryEnableCity")}
               </p>
             )}
             {form.focusedAutocomplete === "location" && form.communityCountry.trim() && (
               <div className="authSuggestions">
                 {!geoapifyApiKey && (
                   <div className="authSuggestionStatus">
-                    Falta configurar la clave de Geoapify para buscar ciudades.
+                    {t("auth.geoapifyCityMissing")}
                   </div>
                 )}
                 {form.isLoadingLocations && (
-                  <div className="authSuggestionStatus">Buscando ciudades...</div>
+                  <div className="authSuggestionStatus">{t("auth.loadingCities")}</div>
                 )}
                 {!form.isLoadingLocations &&
                   form.locationSuggestions.map((location) => (
@@ -138,7 +143,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                   form.communityLocation.trim().length >= 2 &&
                   form.locationSuggestions.length === 0 && (
                     <div className="authSuggestionStatus">
-                      Sin resultados, puedes escribirlo manualmente.
+                      {t("auth.noManualResultsCity")}
                     </div>
                   )}
               </div>
@@ -146,7 +151,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
           </label>
 
           <label className="authField">
-            <span>Direccion</span>
+            <span>{t("settings.address")}</span>
             <input
               className="authInput"
               id="community-address"
@@ -156,8 +161,8 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               disabled={!form.communityCountry.trim() || !form.communityLocation.trim()}
               placeholder={
                 form.communityCountry.trim() && form.communityLocation.trim()
-                  ? "Ingresa tu direccion"
-                  : "Primero selecciona pais y ciudad"
+                  ? t("auth.addressPlaceholder")
+                  : t("auth.addressRequiredFirst")
               }
               value={form.communityAddress}
               onBlur={() => window.setTimeout(() => form.setFocusedAutocomplete(null), 120)}
@@ -174,7 +179,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
             />
             {(!form.communityCountry.trim() || !form.communityLocation.trim()) && (
               <p className="authFieldNote">
-                Selecciona pais y ciudad para habilitar la direccion.
+                {t("auth.communityAddressEnable")}
               </p>
             )}
             {form.focusedAutocomplete === "address" &&
@@ -183,11 +188,11 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               <div className="authSuggestions">
                 {!geoapifyApiKey && (
                   <div className="authSuggestionStatus">
-                    Falta configurar la clave de Geoapify para buscar direcciones.
+                    {t("auth.geoapifyAddressMissing")}
                   </div>
                 )}
                 {form.isLoadingAddresses && (
-                  <div className="authSuggestionStatus">Buscando direcciones...</div>
+                  <div className="authSuggestionStatus">{t("auth.loadingAddresses")}</div>
                 )}
                 {!form.isLoadingAddresses &&
                   form.addressSuggestions.map((address) => (
@@ -208,13 +213,13 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                   form.communityAddress.trim().length >= 3 &&
                   form.addressSuggestions.length === 0 && (
                     <div className="authSuggestionStatus">
-                      Sin resultados, puedes escribirla manualmente.
+                      {t("auth.noManualResultsAddress")}
                     </div>
                   )}
               </div>
             ) : null}
             {form.isCheckingCommunityAddress && (
-              <p className="authFieldNote">Verificando direccion...</p>
+              <p className="authFieldNote">{t("auth.verifyingAddress")}</p>
             )}
             {!form.isCheckingCommunityAddress && form.communityAddressStatus.message && (
               <p className={`authFieldNote authFieldNote-${form.communityAddressStatus.type}`}>
@@ -228,7 +233,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
       {form.phase === Phase.Admin && (
         <>
           <label className="authField">
-            <span>Nombre de la persona administradora</span>
+            <span>{t("auth.adminFirstName")}</span>
             <input
               className="authInput"
               id="admin-first-name"
@@ -241,7 +246,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
           </label>
 
           <label className="authField">
-            <span>Apellido de la persona administradora</span>
+            <span>{t("auth.adminLastName")}</span>
             <input
               className="authInput"
               id="admin-last-name"
@@ -259,7 +264,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               className="authTextButton"
               onClick={() => form.goToPreviousStep()}
             >
-              Volver a comunidad
+              {t("auth.backToCommunity")}
             </button>
           </div>
         </>
@@ -267,7 +272,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
 
       {form.phase !== Phase.Community && (
         <label className="authField">
-          <span>Correo electronico</span>
+          <span>{t("auth.email")}</span>
           <input
             className="authInput"
             id="email"
@@ -285,7 +290,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
       {form.phase === Phase.OTP && (
         <>
           <label className="authField">
-            <span>Codigo OTP</span>
+            <span>{t("auth.otpCode")}</span>
             <input
               className="authInput authInputCode"
               id="otp"
@@ -304,14 +309,14 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               className="authTextButton"
               onClick={() => void form.resendEmail()}
             >
-              Reenviar codigo
+              {t("auth.resendCode")}
             </button>
             <button
               type="button"
               className="authTextButton"
               onClick={() => form.resetToEmailStep()}
             >
-              Cambiar correo
+              {t("auth.changeEmail")}
             </button>
           </div>
         </>
@@ -326,18 +331,18 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
 
             <div className="authMfaInfo">
               <p className="authMfaText">
-                Vincula esta cuenta con tu autenticador escaneando el QR.
+                {t("auth.totpLink")}
               </p>
               {form.mfaSecret ? (
                 <p className="authMfaSecret">
-                  Tambien puedes usar esta clave manual: <strong>{form.mfaSecret}</strong>
+                  {t("auth.totpManual")} <strong>{form.mfaSecret}</strong>
                 </p>
               ) : null}
             </div>
           </div>
 
           <label className="authField">
-            <span>Codigo del autenticador</span>
+            <span>{t("resident.authCode")}</span>
             <input
               className="authInput authInputCode"
               id="mfa"
@@ -356,7 +361,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
       {form.phase === Phase.Password && (
         <>
           <label className="authField">
-            <span>Contrasena</span>
+            <span>{t("auth.password")}</span>
             <div className="authPasswordInputWrap">
               <input
                 className="authInput authInputWithAction"
@@ -372,7 +377,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                 type="button"
                 className="authInputIconButton"
                 aria-label={
-                  form.showPassword ? "Ocultar contrasena" : "Mostrar contrasena"
+                  form.showPassword ? t("auth.hidePassword") : t("auth.showPassword")
                 }
                 onClick={() => form.setShowPassword((current) => !current)}
               >
@@ -400,7 +405,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
           </div>
 
           <label className="authField">
-            <span>Confirmar contrasena</span>
+            <span>{t("auth.passwordConfirm")}</span>
             <div className="authPasswordInputWrap">
               <input
                 className="authInput authInputWithAction"
@@ -415,7 +420,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                 type="button"
                 className="authInputIconButton"
                 aria-label={
-                  form.showRepeatPassword ? "Ocultar contrasena" : "Mostrar contrasena"
+                  form.showRepeatPassword ? t("auth.hidePassword") : t("auth.showPassword")
                 }
                 onClick={() => form.setShowRepeatPassword((current) => !current)}
               >

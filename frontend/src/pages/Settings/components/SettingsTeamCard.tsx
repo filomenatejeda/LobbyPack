@@ -1,4 +1,5 @@
 import type { TeamItem } from "../../../types/settings";
+import { useI18n } from "../../../lib/i18n";
 
 type SettingsTeamCardProps = {
   team: TeamItem[];
@@ -7,16 +8,18 @@ type SettingsTeamCardProps = {
 };
 
 export default function SettingsTeamCard({ team, canInvite, onInvite }: SettingsTeamCardProps) {
+  const { t } = useI18n();
+
   return (
     <article className="settingsCard settingsCardWide">
       <div className="settingsCardHeader">
         <div>
-          <p className="settingsLabel">Equipo</p>
-          <h2>Accesos y permisos</h2>
+          <p className="settingsLabel">{t("settings.team")}</p>
+          <h2>{t("settings.accessPermissions")}</h2>
         </div>
         {canInvite ? (
           <button type="button" className="secondaryButton" onClick={onInvite}>
-            Invitar usuario
+            {t("settings.inviteUser")}
           </button>
         ) : null}
       </div>

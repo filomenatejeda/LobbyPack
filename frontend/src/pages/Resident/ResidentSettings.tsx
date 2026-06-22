@@ -68,7 +68,7 @@ export default function ResidentSettings({
       setPhoneNumber(updatedResident.user_phone_number);
       setSavedPhoneNumber(updatedResident.user_phone_number);
       setIsEditingPhone(false);
-      setPhoneMessage("Telefono actualizado correctamente.");
+      setPhoneMessage(t("resident.phoneUpdated"));
     } catch (error) {
       setPhoneMessage(
         error instanceof Error ? error.message : t("resident.phoneUpdateError"),

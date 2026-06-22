@@ -2,9 +2,11 @@ import { useState } from "react";
 
 import { getSupabaseRedirectUrl } from "@/lib/authRedirect";
 import { supabase, supabaseConfigError } from "@/lib/client";
+import { useI18n } from "@/lib/i18n";
 import "./login-form.css";
 
 export function ForgotPasswordForm() {
+  const { language, t } = useI18n();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -28,7 +30,11 @@ export function ForgotPasswordForm() {
       setSuccess(true);
     } catch (caughtError: unknown) {
       setError(
-        caughtError instanceof Error ? handleError(caughtError.message) : "Ocurrio un error.",
+        caughtError instanceof Error
+          ? handleError(caughtError.message)
+          : language === "en"
+            ? "An error occurred."
+            : "Ocurrio un error.",
       );
     } finally {
       setIsLoading(false);
@@ -38,13 +44,15 @@ export function ForgotPasswordForm() {
   const handleError = (message: string) => {
     switch (message) {
       case "email rate limit exceeded":
-        return "Error: espera 1 minuto antes de volver a intentarlo.";
+        return language === "en"
+          ? "Error: wait 1 minute before trying again."
+          : "Error: espera 1 minuto antes de volver a intentarlo.";
       default:
         break;
     }
 
     if (message.startsWith("Email address ")) {
-      return "Error: correo invalido.";
+      return language === "en" ? "Error: invalid email." : "Error: correo invalido.";
     }
 
     return message;
@@ -53,14 +61,14 @@ export function ForgotPasswordForm() {
   return (
     <form className="authCard" onSubmit={handleForgotPassword}>
       <div className="authCardHeader">
-        <p className="authEyebrow">Recuperacion</p>
+        <p className="authEyebrow">{t("auth.recovery")}</p>
         <h2 className="authTitle">
-          {success ? "Revisa tu correo" : "Reinicia tu contrasena"}
+          {success ? t("auth.checkEmail") : t("auth.resetPassword")}
         </h2>
         <p className="authDescription">
           {success
-            ? "Te enviamos un enlace para actualizar tu contrasena y volver a entrar al sistema."
-            : "Ingresa tu correo electronico y te enviaremos un enlace para recuperar el acceso."}
+            ? t("auth.resetSentText")
+            : t("auth.resetPromptText")}
         </p>
       </div>
 
@@ -68,7 +76,7 @@ export function ForgotPasswordForm() {
         <>
           <div className="authFields">
             <label className="authField">
-              <span>Correo electronico</span>
+              <span>{t("auth.email")}</span>
               <input
                 className="authInput"
                 id="email"
@@ -92,25 +100,25 @@ export function ForgotPasswordForm() {
               className="authPrimaryButton"
               disabled={isLoading || Boolean(supabaseConfigError)}
             >
-              {isLoading ? "Enviando..." : "Enviar correo de recuperacion"}
+              {isLoading ? t("admin.sending") : t("auth.sendRecovery")}
             </button>
 
             <a className="authSecondaryLink" href="/auth/login">
-              Volver al inicio de sesion
+              {t("auth.backToLogin")}
             </a>
           </div>
         </>
       ) : (
         <div className="authActions">
           <a className="authPrimaryButton authPrimaryButtonLink" href="/auth/login">
-            Ir a iniciar sesion
+            {t("auth.goLogin")}
           </a>
         </div>
       )}
 
       <div className="authFooter">
-        <span>Ya tienes una cuenta?</span>
-        <a href="/auth/login">Inicia sesion</a>
+        <span>{t("auth.alreadyAccount")}</span>
+        <a href="/auth/login">{t("auth.login")}</a>
       </div>
     </form>
   );

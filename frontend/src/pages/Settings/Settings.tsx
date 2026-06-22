@@ -3,6 +3,7 @@ import { fetchDashboard } from "../../services/homeApi";
 import type { DashboardCurrentUser } from "../../types/home";
 import ResidentSettings from "../Resident/ResidentSettings";
 import AdminSettings from "../Admin/AdminSettings";
+import { useI18n } from "../../lib/i18n";
 import "./Settings.css";
 
 type SettingsProps = {
@@ -10,6 +11,7 @@ type SettingsProps = {
 };
 
 export default function Settings({ adminSection = "general" }: SettingsProps) {
+  const { t } = useI18n();
   const [currentUser, setCurrentUser] = useState<DashboardCurrentUser | null>(null);
   const [packageCounts, setPackageCounts] = useState({
     pending: 0,
@@ -32,7 +34,7 @@ export default function Settings({ adminSection = "general" }: SettingsProps) {
         });
       } catch (error) {
         setStatusMessage(
-          error instanceof Error ? error.message : "No se pudo cargar la configuracion.",
+          error instanceof Error ? error.message : t("settings.generalLoadError"),
         );
       } finally {
         setIsLoading(false);
@@ -50,8 +52,8 @@ export default function Settings({ adminSection = "general" }: SettingsProps) {
     return (
       <main className="settingsPage">
         <section className="settingsHero">
-          <p className="settingsEyebrow">Configuracion</p>
-          <h1>No se pudo cargar tu cuenta</h1>
+          <p className="settingsEyebrow">{t("nav.config")}</p>
+          <h1>{t("settings.accountLoadError")}</h1>
           {statusMessage ? <p className="settingsLead">{statusMessage}</p> : null}
         </section>
       </main>

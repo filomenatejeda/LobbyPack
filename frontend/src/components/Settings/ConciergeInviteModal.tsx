@@ -71,7 +71,7 @@ export default function ConciergeInviteModal({
 
     try {
       if (!conciergeSupabase) {
-        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+        throw new Error(supabaseConfigError ?? t("resident.supabasePrepareError"));
       }
 
       const signedUp = await conciergeSupabase.auth.signUp({
@@ -92,7 +92,7 @@ export default function ConciergeInviteModal({
       setVerificationCode("");
       setAccountPhase(ConciergeAccountPhase.Code);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "No se pudo crear la cuenta.");
+      setFormError(error instanceof Error ? error.message : t("resident.createError"));
     }
   };
 
@@ -107,7 +107,7 @@ export default function ConciergeInviteModal({
 
     try {
       if (!conciergeSupabase) {
-        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+        throw new Error(supabaseConfigError ?? t("resident.supabasePrepareError"));
       }
 
       const verifiedOtp = await conciergeSupabase.auth.verifyOtp({
@@ -138,7 +138,7 @@ export default function ConciergeInviteModal({
       setMfaCode("");
       setAccountPhase(ConciergeAccountPhase.Mfa);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Codigo invalido.");
+      setFormError(error instanceof Error ? error.message : t("settings.codeInvalid"));
     }
   };
 
@@ -153,11 +153,11 @@ export default function ConciergeInviteModal({
 
     try {
       if (!conciergeSupabase) {
-        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+        throw new Error(supabaseConfigError ?? t("resident.supabasePrepareError"));
       }
 
       if (!mfaFactorId) {
-        throw new Error("No se encontro el autenticador pendiente de configuracion.");
+        throw new Error(t("resident.authenticatorMissing"));
       }
 
       const challenge = await conciergeSupabase.auth.mfa.challenge({ factorId: mfaFactorId });
@@ -180,7 +180,7 @@ export default function ConciergeInviteModal({
       await conciergeSupabase.auth.signOut();
       setAccountPhase(ConciergeAccountPhase.Done);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Codigo del autenticador invalido.");
+      setFormError(error instanceof Error ? error.message : t("resident.authenticatorInvalid"));
     }
   };
 
@@ -209,17 +209,17 @@ export default function ConciergeInviteModal({
       <section className="residentModal" onClick={(event) => event.stopPropagation()}>
         <div className="residentModalHeader">
           <div>
-            <p className="settingsLabel">Cuenta conserje</p>
-            <h3>Invitar usuario</h3>
+            <p className="settingsLabel">{t("settings.conciergeAccount")}</p>
+            <h3>{t("settings.inviteUser")}</h3>
             <p className="residentModalLead">
-              Crea un acceso de conserje para operar la recepcion de paquetes.
+              {t("settings.conciergeInviteLead")}
             </p>
           </div>
           <button
             type="button"
             className="residentModalClose"
             onClick={onClose}
-            aria-label="Cerrar"
+            aria-label={t("settings.close")}
           >
             <X size={18} aria-hidden="true" />
           </button>
@@ -229,7 +229,7 @@ export default function ConciergeInviteModal({
           {accountPhase === ConciergeAccountPhase.Form ? (
             <form className="residentForm" onSubmit={handleSubmit}>
               <label className="settingsField">
-                <span>Correo de acceso</span>
+                <span>{t("resident.emailAccess")}</span>
                 <input
                   type="email"
                   value={conciergeEmail}
@@ -238,7 +238,7 @@ export default function ConciergeInviteModal({
                 />
               </label>
               <label className="settingsField">
-                <span>Nombre de la persona</span>
+                <span>{t("resident.personName")}</span>
                 <input
                   type="text"
                   value={conciergeName}
@@ -247,7 +247,7 @@ export default function ConciergeInviteModal({
                 />
               </label>
               <label className="settingsField">
-                <span>Contrasena</span>
+                <span>{t("auth.password")}</span>
                 <input
                   type="password"
                   value={conciergePassword}
@@ -266,7 +266,7 @@ export default function ConciergeInviteModal({
                   {t("admin.cancel")}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? "Creando..." : "Crear cuenta"}
+                  {isSaving ? t("resident.creating") : t("auth.createAccount")}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}
@@ -276,11 +276,11 @@ export default function ConciergeInviteModal({
           {accountPhase === ConciergeAccountPhase.Code && createdConcierge ? (
             <form className="residentForm" onSubmit={handleVerifyEmail}>
               <div className="residentVerificationBox">
-                <strong>Codigo de verificacion</strong>
-                <p>Ingresa el codigo enviado al correo {createdConcierge.email}.</p>
+                <strong>{t("auth.emailCodeTitle")}</strong>
+                <p>{t("auth.emailCodeHelp").replace("{email}", createdConcierge.email)}</p>
               </div>
               <label className="settingsField">
-                <span>Codigo</span>
+                <span>{t("settings.code")}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -295,7 +295,7 @@ export default function ConciergeInviteModal({
                   {t("admin.cancel")}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? "Verificando..." : "Verificar codigo"}
+                  {isSaving ? t("settings.verifying") : t("settings.verifyCode")}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}
@@ -309,18 +309,18 @@ export default function ConciergeInviteModal({
                   {QRCodeComponent ? (
                     <QRCodeComponent value={totpSetup.totp_uri} size={176} />
                   ) : (
-                    <p>No se pudo cargar el QR.</p>
+                    <p>{t("resident.qrLoadError")}</p>
                   )}
                 </div>
                 <p>
-                  Escanea este QR con Google Authenticator, Microsoft Authenticator o una app TOTP.
+                  {t("resident.mfaHelp")}
                 </p>
                 <p className="residentSecret">
-                  Clave manual: <strong>{totpSetup.totp_secret}</strong>
+                  {t("resident.mfaManualKey")} <strong>{totpSetup.totp_secret}</strong>
                 </p>
               </div>
               <label className="settingsField">
-                <span>Codigo del autenticador</span>
+                <span>{t("resident.authCode")}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -335,7 +335,7 @@ export default function ConciergeInviteModal({
                   {t("admin.cancel")}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? "Activando..." : "Activar autenticador"}
+                  {isSaving ? t("resident.activating") : t("resident.activateAuthenticator")}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}
@@ -344,15 +344,15 @@ export default function ConciergeInviteModal({
 
           {accountPhase === ConciergeAccountPhase.Done ? (
             <div className="residentVerificationBox">
-              <strong>Cuenta conserje lista</strong>
-              <p>El correo fue verificado y el autenticador quedo activado.</p>
+              <strong>{t("settings.conciergeReady")}</strong>
+              <p>{t("resident.readyAccountText")}</p>
               <div className="residentActions">
                 <button
                   type="button"
                   className="primaryButton"
                   onClick={() => void handleDone()}
                 >
-                  Terminar
+                  {t("resident.done")}
                 </button>
               </div>
             </div>

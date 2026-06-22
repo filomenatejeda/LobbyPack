@@ -1,4 +1,5 @@
 import TowerCard from "../../../components/Settings/TowerCard";
+import { useI18n } from "../../../lib/i18n";
 import type { TowerConfig } from "../../../types/settings";
 import type { StructureLabels } from "../settingsConfig";
 
@@ -50,13 +51,14 @@ export default function SettingsStructureCard({
   totalUnits,
   towers,
 }: SettingsStructureCardProps) {
+  const { t } = useI18n();
   const isEditingStructure = towers.some((tower) => tower.is_editing);
 
   return (
     <article className="settingsCard settingsCardWide">
       <div className="settingsCardHeader">
         <div>
-          <p className="settingsLabel">Estructura</p>
+          <p className="settingsLabel">{t("settings.structure")}</p>
           <h2>{labels.title}</h2>
         </div>
         {canEdit ? (
@@ -69,7 +71,7 @@ export default function SettingsStructureCard({
                   onClick={onCancel}
                   disabled={isSaving || isLoading}
                 >
-                  Cancelar
+                  {t("admin.cancel")}
                 </button>
                 <button
                   type="button"
@@ -77,7 +79,7 @@ export default function SettingsStructureCard({
                   onClick={onSave}
                   disabled={isSaving}
                 >
-                  {isSaving ? "Guardando..." : "Guardar"}
+                  {isSaving ? t("resident.saving") : t("resident.save")}
                 </button>
               </>
             ) : null}
@@ -93,11 +95,11 @@ export default function SettingsStructureCard({
       <div className="settingsStats">
         <div className="settingsStat">
           <strong>{towers.length}</strong>
-          <span>{labels.groupPlural} registrados</span>
+          <span>{labels.groupPlural} {t("settings.registered")}</span>
         </div>
         <div className="settingsStat">
           <strong>{totalFloors}</strong>
-          <span>{labels.levelPlural} en total</span>
+          <span>{labels.levelPlural} {t("settings.total")}</span>
         </div>
         <div className="settingsStat">
           <strong>{totalUnits}</strong>
@@ -108,9 +110,12 @@ export default function SettingsStructureCard({
       <div className="towerList">
         {towers.length === 0 ? (
           <div className="settingsEmptyState">
-            <strong>La estructura aun no esta configurada.</strong>
+            <strong>{t("settings.emptyStructure")}</strong>
             <p>
-              Agrega {labels.groupPlural.toLowerCase()} para comenzar a ordenar la comunidad.
+              {t("settings.emptyStructureText").replace(
+                "{groups}",
+                labels.groupPlural.toLowerCase(),
+              )}
             </p>
           </div>
         ) : null}

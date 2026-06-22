@@ -85,6 +85,17 @@ export const PASSWORD_REQUIREMENTS = [
   },
 ];
 
+export const getPasswordRequirements = (language: AppLanguage) =>
+  language === "en"
+    ? [
+        { label: "Minimum 8 characters", test: PASSWORD_REQUIREMENTS[0].test },
+        { label: "One uppercase letter", test: PASSWORD_REQUIREMENTS[1].test },
+        { label: "One lowercase letter", test: PASSWORD_REQUIREMENTS[2].test },
+        { label: "One number", test: PASSWORD_REQUIREMENTS[3].test },
+        { label: "One symbol", test: PASSWORD_REQUIREMENTS[4].test },
+      ]
+    : PASSWORD_REQUIREMENTS;
+
 export const normalizeSearchText = (value: string) =>
   value
     .normalize("NFD")
@@ -123,28 +134,42 @@ export function getPhaseDescription(
   return "Define tu contrasena y su confirmacion para actualizarla en Supabase.";
 }
 
-export function getAuthErrorMessage(message: string) {
+export function getAuthErrorMessage(message: string, language: AppLanguage = "es") {
   switch (message) {
     case "email rate limit exceeded":
-      return "Error: limite de correos enviados alcanzado, vuelve a intentarlo mas tarde.";
+      return language === "en"
+        ? "Error: email rate limit reached, try again later."
+        : "Error: limite de correos enviados alcanzado, vuelve a intentarlo mas tarde.";
     case "Code needs to be non-empty":
-      return "Error: ingresa el codigo de verificacion.";
+      return language === "en"
+        ? "Error: enter the verification code."
+        : "Error: ingresa el codigo de verificacion.";
     case "Invalid TOTP code entered":
-      return "Error: el codigo del autenticador no es valido.";
+      return language === "en"
+        ? "Error: the authenticator code is invalid."
+        : "Error: el codigo del autenticador no es valido.";
     case "Token has expired or is invalid":
-      return "Error: el codigo expiro o no es valido.";
+      return language === "en"
+        ? "Error: the code expired or is invalid."
+        : "Error: el codigo expiro o no es valido.";
     case "User already registered":
-      return "Error: este correo ya existe en Supabase Auth. Inicia sesion o elimina ese usuario desde Authentication > Users.";
+      return language === "en"
+        ? "Error: this email already exists in Supabase Auth. Log in or delete that user from Authentication > Users."
+        : "Error: este correo ya existe en Supabase Auth. Inicia sesion o elimina ese usuario desde Authentication > Users.";
     case "Auth session missing!":
-      return "Error: la sesion ha expirado.";
+      return language === "en"
+        ? "Error: the session has expired."
+        : "Error: la sesion ha expirado.";
     case "AAL2 session is required to update email or password when MFA is enabled.":
-      return "Error: debes verificar el codigo del autenticador antes de actualizar la contrasena.";
+      return language === "en"
+        ? "Error: verify the authenticator code before updating the password."
+        : "Error: debes verificar el codigo del autenticador antes de actualizar la contrasena.";
     default:
       break;
   }
 
   if (message.startsWith("Email address ")) {
-    return "Error: correo invalido.";
+    return language === "en" ? "Error: invalid email." : "Error: correo invalido.";
   }
 
   return message;
@@ -154,26 +179,32 @@ export function getSubmitLabel(
   phase: SignUpPhase,
   isLoading: boolean,
   isCompletingGoogleRegistration: boolean,
+  language: AppLanguage = "es",
 ) {
   if (isLoading) {
-    return "Cargando...";
+    return language === "en" ? "Loading..." : "Cargando...";
   }
 
   if (phase === Phase.Community) {
-    return "Siguiente";
+    return language === "en" ? "Next" : "Siguiente";
   }
 
   if (phase === Phase.Admin) {
-    return "Continuar a contrasena";
+    return language === "en" ? "Continue to password" : "Continuar a contrasena";
   }
 
   if (phase === Phase.OTP) {
-    return "Verificar codigo";
+    return language === "en" ? "Verify code" : "Verificar codigo";
   }
 
   if (phase === Phase.MFA) {
-    return "Verificar autenticador";
+    return language === "en" ? "Verify authenticator" : "Verificar autenticador";
   }
 
-  return isCompletingGoogleRegistration ? "Guardar contrasena" : "Crear cuenta";
+  if (isCompletingGoogleRegistration) {
+    return language === "en" ? "Save password" : "Guardar contrasena";
+  }
+
+  return language === "en" ? "Create account" : "Crear cuenta";
 }
+import type { AppLanguage } from "@/lib/i18n";

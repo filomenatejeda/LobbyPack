@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { isGoogleSSOUser } from "@/lib/auth-provider";
 import { supabase, supabaseConfigError } from "@/lib/client";
+import { useI18n } from "@/lib/i18n";
 import {
   checkCommunityAddressAvailability,
   reserveCommunityRegistration,
@@ -12,10 +13,10 @@ import {
   COUNTRY_OPTIONS,
   geoapifyApiKey,
   getAuthErrorMessage,
+  getPasswordRequirements,
   getSubmitLabel,
   type GeoapifyResponse,
   normalizeSearchText,
-  PASSWORD_REQUIREMENTS,
   Phase,
   type SignUpPhase,
   uniqueSuggestions,
@@ -93,6 +94,7 @@ export type UseSignUpFormResult = {
 };
 
 export function useSignUpForm(): UseSignUpFormResult {
+  const { language, t } = useI18n();
   const navigate = useNavigate();
   const [communityName, setCommunityNameState] = useState("");
   const [communityType, setCommunityTypeState] = useState(COMMUNITY_TYPE_OPTIONS[0]);
@@ -139,7 +141,7 @@ export function useSignUpForm(): UseSignUpFormResult {
       normalizeSearchText(country.name) === normalizeSearchText(communityCountry),
   )?.code;
 
-  const passwordChecks = PASSWORD_REQUIREMENTS.map((requirement) => ({
+  const passwordChecks = getPasswordRequirements(language).map((requirement) => ({
     label: requirement.label,
     isValid: requirement.test(password),
   }));
@@ -432,16 +434,16 @@ export function useSignUpForm(): UseSignUpFormResult {
 
         setCommunityAddressStatus(
           response.available
-            ? { message: "Direccion disponible.", type: "available" }
+            ? { message: t("auth.addressAvailable"), type: "available" }
             : {
-                message: response.message || "Esta direccion ya esta tomada.",
+                message: response.message || t("auth.addressTaken"),
                 type: "taken",
               },
         );
       } catch {
         if (isActive) {
           setCommunityAddressStatus({
-            message: "No se pudo verificar la direccion en este momento.",
+            message: t("auth.addressCheckError"),
             type: "error",
           });
         }
@@ -578,11 +580,17 @@ export function useSignUpForm(): UseSignUpFormResult {
       }
 
       if (password !== repeatPassword) {
-        throw new Error("Las contrasenas no coinciden.");
+        throw new Error(
+          language === "en" ? "Passwords do not match." : "Las contrasenas no coinciden.",
+        );
       }
 
       if (!isPasswordSecure) {
-        throw new Error("La contrasena no cumple los requisitos de seguridad.");
+        throw new Error(
+          language === "en"
+            ? "The password does not meet the security requirements."
+            : "La contrasena no cumple los requisitos de seguridad.",
+        );
       }
 
       if (isCompletingGoogleRegistration) {
@@ -615,8 +623,10 @@ export function useSignUpForm(): UseSignUpFormResult {
     } catch (caughtError: unknown) {
       setError(
         caughtError instanceof Error
-          ? getAuthErrorMessage(caughtError.message)
-          : "Ocurrio un error.",
+          ? getAuthErrorMessage(caughtError.message, language)
+          : language === "en"
+            ? "An error occurred."
+            : "Ocurrio un error.",
       );
     } finally {
       setIsLoading(false);
@@ -643,8 +653,10 @@ export function useSignUpForm(): UseSignUpFormResult {
     } catch (caughtError: unknown) {
       setError(
         caughtError instanceof Error
-          ? getAuthErrorMessage(caughtError.message)
-          : "Ocurrio un error.",
+          ? getAuthErrorMessage(caughtError.message, language)
+          : language === "en"
+            ? "An error occurred."
+            : "Ocurrio un error.",
       );
     } finally {
       setIsLoading(false);
@@ -696,7 +708,12 @@ export function useSignUpForm(): UseSignUpFormResult {
     navigate("/auth/login", { replace: true });
   };
 
-  const submitLabel = getSubmitLabel(phase, isLoading, isCompletingGoogleRegistration);
+  const submitLabel = getSubmitLabel(
+    phase,
+    isLoading,
+    isCompletingGoogleRegistration,
+    language,
+  );
   const displayError = supabaseConfigError ?? error;
   const isSubmitDisabled =
     isLoading ||

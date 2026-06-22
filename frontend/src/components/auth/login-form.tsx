@@ -16,7 +16,7 @@ const Phase = {
 } as const;
 
 export function LoginForm() {
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -67,7 +67,11 @@ export function LoginForm() {
         const userEmail = userData.user.email;
 
         if (!userEmail) {
-          setError("Google no entrego un correo valido para continuar.");
+          setError(
+            language === "en"
+              ? "Google did not provide a valid email to continue."
+              : "Google no entrego un correo valido para continuar.",
+          );
           return;
         }
 
@@ -98,7 +102,9 @@ export function LoginForm() {
           setError(
             challengeError instanceof Error
               ? handleError(challengeError.message)
-              : "Ocurrió un error.",
+              : language === "en"
+                ? "An error occurred."
+                : "Ocurrio un error.",
           );
         }
         return;
@@ -119,7 +125,9 @@ export function LoginForm() {
         setError(
           challengeError instanceof Error
             ? handleError(challengeError.message)
-            : "Ocurrió un error.",
+            : language === "en"
+              ? "An error occurred."
+              : "Ocurrio un error.",
         );
       }
     };
@@ -135,17 +143,29 @@ export function LoginForm() {
     const reason = location.state?.reason;
 
     if (reason === "missing_mfa") {
-      setError("Debes completar el doble factor de autenticación para entrar al dashboard.");
+      setError(
+        language === "en"
+          ? "You must complete two-factor authentication to enter the dashboard."
+          : "Debes completar el doble factor de autenticacion para entrar al dashboard.",
+      );
       return;
     }
 
     if (reason === "missing_session") {
-      setError("Debes iniciar sesión para continuar.");
+      setError(
+        language === "en"
+          ? "You must log in to continue."
+          : "Debes iniciar sesion para continuar.",
+      );
       return;
     }
 
     if (reason === "session_check_failed") {
-      setError("No se pudo verificar la sesión. Intenta iniciar sesión nuevamente.");
+      setError(
+        language === "en"
+          ? "Could not verify the session. Try logging in again."
+          : "No se pudo verificar la sesion. Intenta iniciar sesion nuevamente.",
+      );
     }
   }, [location.state]);
 
@@ -190,7 +210,11 @@ export function LoginForm() {
       }
     } catch (caughtError: unknown) {
       setError(
-        caughtError instanceof Error ? handleError(caughtError.message) : "Ocurrió un error.",
+        caughtError instanceof Error
+          ? handleError(caughtError.message)
+          : language === "en"
+            ? "An error occurred."
+            : "Ocurrio un error.",
       );
     } finally {
       setIsLoading(false);
@@ -220,7 +244,11 @@ export function LoginForm() {
       if (oauthError) throw oauthError;
     } catch (caughtError: unknown) {
       setError(
-        caughtError instanceof Error ? handleError(caughtError.message) : "Ocurrió un error.",
+        caughtError instanceof Error
+          ? handleError(caughtError.message)
+          : language === "en"
+            ? "An error occurred."
+            : "Ocurrio un error.",
       );
       setIsLoading(false);
     }
@@ -246,21 +274,31 @@ export function LoginForm() {
   function handleError(message: string) {
     switch (message) {
       case "Invalid login credentials":
-        return "Error: correo o contraseña inválidos.";
+        return language === "en"
+          ? "Error: invalid email or password."
+          : "Error: correo o contrasena invalidos.";
       case "Code needs to be non-empty":
-        return "Error: ingresa el código de verificación.";
+        return language === "en"
+          ? "Error: enter the verification code."
+          : "Error: ingresa el codigo de verificacion.";
       case "Invalid TOTP code entered":
-        return "Error: el código del autenticador no es válido.";
+        return language === "en"
+          ? "Error: the authenticator code is invalid."
+          : "Error: el codigo del autenticador no es valido.";
       case "Auth session missing!":
-        return "Error: la sesión ha expirado.";
+        return language === "en"
+          ? "Error: the session has expired."
+          : "Error: la sesion ha expirado.";
       case "AAL2 session is required to update email or password when MFA is enabled.":
-        return "Error: debes verificar el código del autenticador antes de actualizar la contraseña.";
+        return language === "en"
+          ? "Error: verify the authenticator code before updating the password."
+          : "Error: debes verificar el codigo del autenticador antes de actualizar la contrasena.";
       default:
         break;
     }
 
     if (message.startsWith("Email address ")) {
-      return "Error: correo inválido.";
+      return language === "en" ? "Error: invalid email." : "Error: correo invalido.";
     }
 
     return message;

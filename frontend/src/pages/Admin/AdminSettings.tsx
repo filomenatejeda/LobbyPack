@@ -13,6 +13,7 @@ import {
   verifyConciergeMfa,
 } from "../../services/settingsApi";
 import { supabase } from "../../lib/client";
+import { useI18n } from "../../lib/i18n";
 import type {
   ConciergeAccountCreationResponse,
   GeneralSettings,
@@ -33,9 +34,9 @@ import SettingsStructureCard from "../Settings/components/SettingsStructureCard"
 import SettingsTeamCard from "../Settings/components/SettingsTeamCard";
 import { useApartmentResidents } from "../Settings/hooks/useApartmentResidents";
 import {
-  communityTypeOptions,
   emptyGeneralSettings,
   emptyPreferenceSettings,
+  getCommunityTypeOptions,
   getStructureLabels,
 } from "../Settings/settingsConfig";
 import "../Settings/Settings.css";
@@ -45,25 +46,8 @@ type AdminSettingsProps = {
   section?: "general" | "structure" | "team";
 };
 
-const sectionContent = {
-  general: {
-    eyebrow: "Informacion",
-    title: "Informacion del lobby",
-    lead: "Edita los datos principales, el horario y las preferencias operativas de LobbyPack.",
-  },
-  structure: {
-    eyebrow: "Comunidad",
-    title: "Departamentos y residentes",
-    lead: "Organiza torres, pisos y departamentos. Entra a un departamento para gestionar sus residentes.",
-  },
-  team: {
-    eyebrow: "Equipo",
-    title: "Conserjes y permisos",
-    lead: "Revisa los accesos del equipo e invita nuevas cuentas de conserjeria.",
-  },
-} as const;
-
 export default function AdminSettings({ currentUser, section = "general" }: AdminSettingsProps) {
+  const { language, t } = useI18n();
   const [generalSettings, setGeneralSettings] =
     useState<GeneralSettings>(emptyGeneralSettings);
   const [preferenceSettings, setPreferenceSettings] =
@@ -104,7 +88,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
       setIsEditingGeneralSettings(false);
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo cargar la configuracion.",
+        error instanceof Error ? error.message : t("settings.generalLoadError"),
       );
     } finally {
       setIsLoading(false);
@@ -121,8 +105,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
       sum + tower.floors.reduce((floorSum, floor) => floorSum + floor.apartments.length, 0),
     0,
   );
-  const structureLabels = getStructureLabels(generalSettings.community_type);
-  const currentSectionContent = sectionContent[section];
+  const structureLabels = getStructureLabels(generalSettings.community_type, language);
 
   const updateGeneralSettings = <K extends keyof GeneralSettings>(
     field: K,
@@ -149,12 +132,12 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
 
     try {
       await savePreferenceSettings(nextPreferences, adminEmail);
-      setStatusMessage("Preferencias de automatizacion guardadas.");
+      setStatusMessage(t("settings.automationSaved"));
     } catch (error) {
       setStatusMessage(
         error instanceof Error
           ? error.message
-          : "No se pudieron guardar las preferencias.",
+          : t("settings.generalSaveError"),
       );
       await loadSettings();
     } finally {
@@ -176,12 +159,14 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
 
       setStatusMessage(
         sentCount > 0
-          ? `Resumen diario enviado a ${sentCount} de ${recipientCount} destinatarios.`
-          : response.results[0]?.reason ?? "No se envio el resumen diario.",
+          ? t("settings.dailySummarySent")
+              .replace("{sent}", String(sentCount))
+              .replace("{total}", String(recipientCount))
+          : response.results[0]?.reason ?? t("settings.dailySummaryNoSend"),
       );
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo enviar el resumen diario.",
+        error instanceof Error ? error.message : t("settings.reportSendError"),
       );
     } finally {
       setIsSendingDailySummary(false);
@@ -202,10 +187,10 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      setStatusMessage("PDF del resumen diario descargado.");
+      setStatusMessage(t("settings.dailySummaryDownloaded"));
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo descargar el PDF.",
+        error instanceof Error ? error.message : t("settings.reportDownloadError"),
       );
     } finally {
       setIsDownloadingDailySummary(false);
@@ -380,14 +365,14 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
 
     try {
       await saveGeneralSettings(generalSettings, adminEmail);
-      setStatusMessage("Informacion del lobby guardada correctamente.");
+      setStatusMessage(t("settings.generalSaved"));
       setIsEditingGeneralSettings(false);
       await loadSettings();
     } catch (error) {
       setStatusMessage(
         error instanceof Error
           ? error.message
-          : "No se pudo guardar la informacion del lobby.",
+          : t("settings.generalSaveError"),
       );
     } finally {
       setIsSaving(false);
@@ -405,11 +390,11 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
 
     try {
       await saveTowers(towers, adminEmail);
-      setStatusMessage("Estructura guardada correctamente.");
+      setStatusMessage(t("settings.structureSaved"));
       await loadSettings();
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo guardar la estructura.",
+        error instanceof Error ? error.message : t("settings.structureSaveError"),
       );
     } finally {
       setIsSaving(false);
@@ -431,12 +416,20 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
 
     try {
       const createdConcierge = await inviteConcierge(values);
-      setStatusMessage("Cuenta conserje creada. Verifica el codigo para activar MFA.");
+      setStatusMessage(
+        language === "en"
+          ? "Concierge account created. Verify the code to activate MFA."
+          : "Cuenta conserje creada. Verifica el codigo para activar MFA.",
+      );
       await loadSettings();
       return createdConcierge;
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo invitar al conserje.",
+        error instanceof Error
+          ? error.message
+          : language === "en"
+            ? "Could not invite the concierge."
+            : "No se pudo invitar al conserje.",
       );
       throw error;
     } finally {
@@ -453,7 +446,11 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
       await loadSettings();
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo verificar el codigo.",
+        error instanceof Error
+          ? error.message
+          : language === "en"
+            ? "Could not verify the code."
+            : "No se pudo verificar el codigo.",
       );
       throw error;
     } finally {
@@ -467,11 +464,19 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
 
     try {
       await verifyConciergeMfa(conciergeId, mfaCode);
-      setStatusMessage("Cuenta conserje verificada correctamente.");
+      setStatusMessage(
+        language === "en"
+          ? "Concierge account verified successfully."
+          : "Cuenta conserje verificada correctamente.",
+      );
       await loadSettings();
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo verificar el autenticador.",
+        error instanceof Error
+          ? error.message
+          : language === "en"
+            ? "Could not verify the authenticator."
+            : "No se pudo verificar el autenticador.",
       );
       throw error;
     } finally {
@@ -482,19 +487,37 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
   return (
     <main className="settingsPage">
       <section className="settingsHero">
-        <p className="settingsEyebrow">{currentSectionContent.eyebrow}</p>
-        <h1>{currentSectionContent.title}</h1>
-        <p className="settingsLead">{currentSectionContent.lead}</p>
+        <p className="settingsEyebrow">
+          {section === "general"
+            ? t("settings.info")
+            : section === "team"
+              ? t("settings.team")
+              : t("nav.community")}
+        </p>
+        <h1>
+          {section === "general"
+            ? t("settings.lobbyInfo")
+            : section === "team"
+              ? t("settings.teamTitle")
+              : t("settings.unitManagementTitle")}
+        </h1>
+        <p className="settingsLead">
+          {section === "general"
+            ? t("settings.lobbyLead")
+            : section === "team"
+              ? t("settings.teamLead")
+              : t("settings.unitManagementLead")}
+        </p>
       </section>
 
       {statusMessage ? <p className="settingsLead">{statusMessage}</p> : null}
-      {isLoading ? <p className="settingsLead">Cargando configuracion desde MySQL...</p> : null}
+      {isLoading ? <p className="settingsLead">{t("settings.loadingMysql")}</p> : null}
 
       <section className="settingsGrid">
         {section === "general" ? (
           <>
             <SettingsGeneralCard
-              communityTypeOptions={communityTypeOptions}
+              communityTypeOptions={getCommunityTypeOptions(language)}
               generalSettings={generalSettings}
               isEditing={isEditingGeneralSettings}
               isSaving={isSaving}
@@ -575,24 +598,24 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
           >
             <div className="settingsCardHeader">
               <div>
-                <p className="settingsLabel">Reporte</p>
-                <h2 id="dailySummaryTitle">Resumen diario</h2>
+                <p className="settingsLabel">{t("settings.report")}</p>
+                <h2 id="dailySummaryTitle">{t("settings.dailySummary")}</h2>
               </div>
               <button
                 type="button"
                 className="secondaryButton"
                 onClick={() => setIsDailySummaryModalOpen(false)}
               >
-                Cerrar
+                {t("settings.close")}
               </button>
             </div>
 
             <p className="settingsSectionLead">
-              Elige una fecha para descargar el PDF o enviarlo por correo al equipo.
+              {t("settings.dailySummaryLead")}
             </p>
 
             <label className="settingsField">
-              <span>Fecha del reporte</span>
+              <span>{t("settings.reportDate")}</span>
               <input
                 type="date"
                 value={dailySummaryDate}
@@ -607,7 +630,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
                 disabled={isDownloadingDailySummary || !dailySummaryDate}
                 onClick={() => void handleDownloadDailySummaryPdf()}
               >
-                {isDownloadingDailySummary ? "Descargando..." : "Descargar PDF"}
+                {isDownloadingDailySummary ? t("settings.downloading") : t("settings.downloadPdf")}
               </button>
               <button
                 type="button"
@@ -615,7 +638,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
                 disabled={isSendingDailySummary || !dailySummaryDate}
                 onClick={() => void handleSendDailySummaryNow()}
               >
-                {isSendingDailySummary ? "Enviando..." : "Enviar por correo"}
+                {isSendingDailySummary ? t("admin.sending") : t("settings.sendByEmail")}
               </button>
             </div>
           </section>
