@@ -3,12 +3,40 @@ import { createSequentialCode } from "../utils/ids";
 import { buildParcelQrValue, createParcelQrToken } from "../utils/parcels";
 import { repairPotentialMojibake } from "../utils/textEncoding";
 
+function parseMysqlUrl(connectionUrl: string | undefined) {
+  if (!connectionUrl) {
+    return {};
+  }
+
+  const parsedUrl = new URL(connectionUrl);
+
+  return {
+    host: parsedUrl.hostname,
+    port: parsedUrl.port,
+    user: decodeURIComponent(parsedUrl.username),
+    password: decodeURIComponent(parsedUrl.password),
+    database: parsedUrl.pathname.replace(/^\//, ""),
+  };
+}
+
+const mysqlUrlConfig = parseMysqlUrl(process.env.MYSQL_URL);
+
 const mysqlConfig = {
-  host: process.env.MYSQL_HOST ?? process.env.DB_HOST,
-  port: process.env.MYSQL_PORT ?? process.env.MYSQL_DOCKER_PORT ?? process.env.MYSQL_LOCAL_PORT,
-  user: process.env.MYSQL_USER ?? process.env.DB_USER,
-  password: process.env.MYSQL_PASSWORD ?? process.env.DB_PASSWORD,
-  database: process.env.MYSQL_DB ?? process.env.DB_NAME,
+  host: process.env.MYSQL_HOST ?? process.env.MYSQLHOST ?? mysqlUrlConfig.host ?? process.env.DB_HOST,
+  port:
+    process.env.MYSQL_PORT ??
+    process.env.MYSQLPORT ??
+    mysqlUrlConfig.port ??
+    process.env.MYSQL_DOCKER_PORT ??
+    process.env.MYSQL_LOCAL_PORT,
+  user: process.env.MYSQL_USER ?? process.env.MYSQLUSER ?? mysqlUrlConfig.user ?? process.env.DB_USER,
+  password:
+    process.env.MYSQL_PASSWORD ??
+    process.env.MYSQLPASSWORD ??
+    mysqlUrlConfig.password ??
+    process.env.DB_PASSWORD,
+  database:
+    process.env.MYSQL_DB ?? process.env.MYSQLDATABASE ?? mysqlUrlConfig.database ?? process.env.DB_NAME,
 };
 
 for (const [configName, configValue] of Object.entries(mysqlConfig)) {
