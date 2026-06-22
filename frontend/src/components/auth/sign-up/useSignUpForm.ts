@@ -255,6 +255,27 @@ export function useSignUpForm(): UseSignUpFormResult {
     setPhase(Phase.MFA);
   };
 
+  const ensurePasswordSession = async () => {
+    const currentSession = await supabase.auth.getSession();
+
+    if (currentSession.data.session) {
+      return;
+    }
+
+    const signedIn = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signedIn.error || !signedIn.data.session) {
+      throw new Error(
+        language === "en"
+          ? "Supabase is requiring email confirmation before MFA. Disable email confirmation in Supabase Auth to continue directly to the QR."
+          : "Supabase esta exigiendo confirmar el correo antes del MFA. Desactiva la confirmacion por correo en Supabase Auth para pasar directo al QR.",
+      );
+    }
+  };
+
   const finishCommunityRegistration = async () => {
     const updatedUser = await supabase.auth.updateUser({
       data: getCommunityMetadata(),
@@ -619,7 +640,8 @@ export function useSignUpForm(): UseSignUpFormResult {
         throw signedUp.error;
       }
 
-      setPhase(Phase.OTP);
+      await ensurePasswordSession();
+      await beginMfaEnrollment(email);
     } catch (caughtError: unknown) {
       setError(
         caughtError instanceof Error
@@ -696,7 +718,7 @@ export function useSignUpForm(): UseSignUpFormResult {
 
     if (phase === Phase.MFA) {
       setMfaCode("");
-      setPhase(Phase.OTP);
+      setPhase(Phase.Password);
     }
   };
 

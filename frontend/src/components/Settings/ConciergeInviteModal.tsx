@@ -22,7 +22,6 @@ const QRCodeComponent =
 
 const ConciergeAccountPhase = {
   Form: "form",
-  Code: "code",
   Mfa: "mfa",
   Done: "done",
 } as const;
@@ -35,7 +34,6 @@ type ConciergeInviteModalProps = {
     concierge_name: string;
     concierge_password: string;
   }) => Promise<ConciergeAccountCreationResponse>;
-  onVerifyEmail: (conciergeId: string, verificationCode: string) => Promise<void>;
   onVerifyMfa: (conciergeId: string, mfaCode: string) => Promise<void>;
   onDone: () => Promise<void>;
 };
@@ -44,7 +42,6 @@ export default function ConciergeInviteModal({
   isSaving,
   onClose,
   onInviteConcierge,
-  onVerifyEmail,
   onVerifyMfa,
   onDone,
 }: ConciergeInviteModalProps) {
@@ -57,7 +54,6 @@ export default function ConciergeInviteModal({
   const [conciergeEmail, setConciergeEmail] = useState("");
   const [conciergeName, setConciergeName] = useState("");
   const [conciergePassword, setConciergePassword] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [formError, setFormError] = useState("");
   const conciergeSupabase = useMemo(
@@ -83,53 +79,33 @@ export default function ConciergeInviteModal({
         throw signedUp.error;
       }
 
+      if (!signedUp.data.session) {
+        const signedIn = await conciergeSupabase.auth.signInWithPassword({
+          email: conciergeEmail,
+          password: conciergePassword,
+        });
+
+        if (signedIn.error || !signedIn.data.session) {
+          throw new Error(t("resident.supabaseNeedsEmailConfirm"));
+        }
+      }
+
       const concierge = await onInviteConcierge({
         concierge_email: conciergeEmail,
         concierge_name: conciergeName,
         concierge_password: conciergePassword,
       });
-      setCreatedConcierge(concierge);
-      setVerificationCode("");
-      setAccountPhase(ConciergeAccountPhase.Code);
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : t("resident.createError"));
-    }
-  };
-
-  const handleVerifyEmail = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!createdConcierge) {
-      return;
-    }
-
-    setFormError("");
-
-    try {
-      if (!conciergeSupabase) {
-        throw new Error(supabaseConfigError ?? t("resident.supabasePrepareError"));
-      }
-
-      const verifiedOtp = await conciergeSupabase.auth.verifyOtp({
-        email: createdConcierge.email,
-        token: verificationCode,
-        type: "signup",
-      });
-
-      if (verifiedOtp.error) {
-        throw verifiedOtp.error;
-      }
 
       const enrolledFactor = await conciergeSupabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: `LobbyPack ${createdConcierge.email}`,
+        friendlyName: `LobbyPack ${concierge.email}`,
       });
 
       if (enrolledFactor.error) {
         throw enrolledFactor.error;
       }
 
-      await onVerifyEmail(createdConcierge.user_id, verificationCode);
+      setCreatedConcierge(concierge);
       setMfaFactorId(enrolledFactor.data.id);
       setTotpSetup({
         totp_secret: enrolledFactor.data.totp.secret,
@@ -138,7 +114,7 @@ export default function ConciergeInviteModal({
       setMfaCode("");
       setAccountPhase(ConciergeAccountPhase.Mfa);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : t("settings.codeInvalid"));
+      setFormError(error instanceof Error ? error.message : t("resident.createError"));
     }
   };
 
@@ -188,7 +164,6 @@ export default function ConciergeInviteModal({
     setConciergeEmail("");
     setConciergeName("");
     setConciergePassword("");
-    setVerificationCode("");
     setMfaCode("");
     setCreatedConcierge(null);
     setTotpSetup(null);
@@ -267,35 +242,6 @@ export default function ConciergeInviteModal({
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
                   {isSaving ? t("resident.creating") : t("auth.createAccount")}
-                </button>
-              </div>
-              {formError ? <p className="residentError">{formError}</p> : null}
-            </form>
-          ) : null}
-
-          {accountPhase === ConciergeAccountPhase.Code && createdConcierge ? (
-            <form className="residentForm" onSubmit={handleVerifyEmail}>
-              <div className="residentVerificationBox">
-                <strong>{t("auth.emailCodeTitle")}</strong>
-                <p>{t("auth.emailCodeHelp").replace("{email}", createdConcierge.email)}</p>
-              </div>
-              <label className="settingsField">
-                <span>{t("settings.code")}</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={8}
-                  value={verificationCode}
-                  onChange={(event) => setVerificationCode(event.target.value)}
-                  required
-                />
-              </label>
-              <div className="residentActions">
-                <button type="button" className="secondaryButton" onClick={resetCreateFlow}>
-                  {t("admin.cancel")}
-                </button>
-                <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? t("settings.verifying") : t("settings.verifyCode")}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}

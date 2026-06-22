@@ -118,7 +118,7 @@ export function getPhaseDescription(
   if (phase === Phase.Admin) {
     return isCompletingGoogleRegistration
       ? "Completa los datos de la persona administradora para crear la cuenta con Google."
-      : "Ingresa los datos de la persona administradora y el correo para recibir el código OTP.";
+      : "Ingresa los datos de la persona administradora y el correo para continuar a la contraseña.";
   }
 
   if (phase === Phase.OTP) {

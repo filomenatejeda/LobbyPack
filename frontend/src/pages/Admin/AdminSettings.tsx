@@ -9,7 +9,6 @@ import {
   savePreferenceSettings,
   sendDailySummaryNow,
   saveTowers,
-  verifyConciergeEmail,
   verifyConciergeMfa,
 } from "../../services/settingsApi";
 import { supabase } from "../../lib/client";
@@ -418,8 +417,8 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
       const createdConcierge = await inviteConcierge(values);
       setStatusMessage(
         language === "en"
-          ? "Concierge account created. Verify the code to activate MFA."
-          : "Cuenta conserje creada. Verifica el código para activar MFA.",
+          ? "Concierge account created. Scan the QR to activate MFA."
+          : "Cuenta conserje creada. Escanea el QR para activar MFA.",
       );
       await loadSettings();
       return createdConcierge;
@@ -430,27 +429,6 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
           : language === "en"
             ? "Could not invite the concierge."
             : "No se pudo invitar al conserje.",
-      );
-      throw error;
-    } finally {
-      setIsSavingConcierge(false);
-    }
-  };
-
-  const handleVerifyConciergeEmail = async (conciergeId: string, verificationCode: string) => {
-    setIsSavingConcierge(true);
-    setStatusMessage("");
-
-    try {
-      await verifyConciergeEmail(conciergeId, verificationCode);
-      await loadSettings();
-    } catch (error) {
-      setStatusMessage(
-        error instanceof Error
-          ? error.message
-          : language === "en"
-            ? "Could not verify the code."
-            : "No se pudo verificar el código.",
       );
       throw error;
     } finally {
@@ -581,7 +559,6 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
           isSaving={isSavingConcierge}
           onClose={() => setIsInvitingConcierge(false)}
           onInviteConcierge={handleInviteConcierge}
-          onVerifyEmail={handleVerifyConciergeEmail}
           onVerifyMfa={handleVerifyConciergeMfa}
           onDone={loadSettings}
         />

@@ -26,8 +26,8 @@ export default function SignUpFormHeader({
             ? "Complete the administrator details to create the account with Google."
             : "Completa los datos de la persona administradora para crear la cuenta con Google."
           : language === "en"
-            ? "Enter the administrator details and email to receive the OTP code."
-            : "Ingresa los datos de la persona administradora y el correo para recibir el código OTP."
+            ? "Enter the administrator details and email to continue to password setup."
+            : "Ingresa los datos de la persona administradora y el correo para continuar a la contraseña."
         : phase === Phase.OTP
           ? language === "en"
             ? "Enter the code that arrived by email to verify the account."
