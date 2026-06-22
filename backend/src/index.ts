@@ -6,8 +6,8 @@ const port = Number(process.env.PORT ?? 3000);
 const hostname = "0.0.0.0";
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const frontendDistPaths = [
-  resolve(currentDir, "../public"),
   resolve(currentDir, "../../frontend/dist"),
+  resolve(currentDir, "../public"),
 ];
 
 let databaseStatus: "starting" | "ready" | "error" = "starting";
