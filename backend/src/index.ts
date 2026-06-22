@@ -13,6 +13,19 @@ const server = Bun.serve({
   async fetch(request) {
     const url = new URL(request.url);
 
+    if (url.pathname === "/") {
+      return Response.json({
+        name: "LobbyPack API",
+        status: "ok",
+        health: "/health",
+        ready: "/ready",
+      });
+    }
+
+    if (url.pathname === "/favicon.ico") {
+      return new Response(null, { status: 204 });
+    }
+
     if (url.pathname === "/health") {
       return Response.json({ status: "ok", database: databaseStatus });
     }
