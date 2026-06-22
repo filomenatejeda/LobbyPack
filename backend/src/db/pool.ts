@@ -1,27 +1,28 @@
 import mysql, { type RowDataPacket } from "mysql2/promise";
 import { createSequentialCode } from "../utils/ids";
+import { buildParcelQrValue, createParcelQrToken } from "../utils/parcels";
 import { repairPotentialMojibake } from "../utils/textEncoding";
 
-const requiredEnv = [
-  "MYSQL_HOST",
-  "MYSQL_PORT",
-  "MYSQL_USER",
-  "MYSQL_PASSWORD",
-  "MYSQL_DB",
-] as const;
+const mysqlConfig = {
+  host: process.env.MYSQL_HOST ?? process.env.DB_HOST,
+  port: process.env.MYSQL_PORT ?? process.env.MYSQL_DOCKER_PORT ?? process.env.MYSQL_LOCAL_PORT,
+  user: process.env.MYSQL_USER ?? process.env.DB_USER,
+  password: process.env.MYSQL_PASSWORD ?? process.env.DB_PASSWORD,
+  database: process.env.MYSQL_DB ?? process.env.DB_NAME,
+};
 
-for (const envName of requiredEnv) {
-  if (!process.env[envName]) {
-    throw new Error(`Missing required environment variable: ${envName}`);
+for (const [configName, configValue] of Object.entries(mysqlConfig)) {
+  if (!configValue) {
+    throw new Error(`Missing required MySQL configuration: ${configName}`);
   }
 }
 
 export const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,
-  port: Number(process.env.MYSQL_PORT),
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DB,
+  host: mysqlConfig.host,
+  port: Number(mysqlConfig.port),
+  user: mysqlConfig.user,
+  password: mysqlConfig.password,
+  database: mysqlConfig.database,
   charset: "utf8mb4",
   waitForConnections: true,
   connectionLimit: 10,
@@ -29,7 +30,7 @@ export const pool = mysql.createPool({
 });
 
 export async function ensureUtf8mb4() {
-  const databaseName = process.env.MYSQL_DB;
+  const databaseName = mysqlConfig.database;
 
   if (!databaseName) {
     throw new Error("Missing required environment variable: MYSQL_DB");
@@ -273,5 +274,236 @@ export async function repairParcelWithdrawalCodes() {
     throw error;
   } finally {
     connection.release();
+  }
+}
+
+async function columnExists(tableName: string, columnName: string) {
+  const databaseName = mysqlConfig.database;
+
+  if (!databaseName) {
+    throw new Error("Missing required environment variable: MYSQL_DB");
+  }
+
+  const [rows] = await pool.query<Array<RowDataPacket & { count: number }>>(
+    `
+      SELECT COUNT(*) AS count
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ?
+        AND TABLE_NAME = ?
+        AND COLUMN_NAME = ?
+    `,
+    [databaseName, tableName, columnName],
+  );
+
+  return Number(rows[0]?.count ?? 0) > 0;
+}
+
+async function columnIsNullable(tableName: string, columnName: string) {
+  const databaseName = mysqlConfig.database;
+
+  if (!databaseName) {
+    throw new Error("Missing required environment variable: MYSQL_DB");
+  }
+
+  const [rows] = await pool.query<Array<RowDataPacket & { IS_NULLABLE: string }>>(
+    `
+      SELECT IS_NULLABLE
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ?
+        AND TABLE_NAME = ?
+        AND COLUMN_NAME = ?
+      LIMIT 1
+    `,
+    [databaseName, tableName, columnName],
+  );
+
+  return rows[0]?.IS_NULLABLE === "YES";
+}
+
+export async function ensureBuildingCommunityColumns() {
+  if (!(await columnExists("Buildings", "community_type"))) {
+    await pool.query(`
+      ALTER TABLE Buildings
+      ADD COLUMN community_type VARCHAR(100) NOT NULL DEFAULT 'Edificio'
+        AFTER building_name
+    `);
+  }
+}
+
+export async function ensureResidentCommunityColumns() {
+  if (!(await columnExists("Residents", "building_id"))) {
+    await pool.query(`
+      ALTER TABLE Residents
+      ADD COLUMN building_id VARCHAR(64) NULL
+        AFTER department_address
+    `);
+  }
+}
+
+export async function ensureConciergeCommunityColumns() {
+  if (!(await columnExists("Concierges", "building_id"))) {
+    await pool.query(`
+      ALTER TABLE Concierges
+      ADD COLUMN building_id VARCHAR(64) NULL
+        AFTER concierge_password_hash
+    `);
+  }
+}
+
+export async function ensureParcelQrSecurityColumns() {
+  if (!(await columnExists("Parcels", "building_id"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN building_id VARCHAR(64) NULL
+        AFTER id_business
+    `);
+  }
+
+  if (!(await columnExists("Parcels", "delivery_department_address"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN delivery_department_address VARCHAR(100) NULL
+        AFTER building_id
+    `);
+  }
+
+  if (!(await columnExists("Parcels", "parcel_recipient_name"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN parcel_recipient_name VARCHAR(100) NULL
+        AFTER delivery_department_address
+    `);
+  }
+
+  if (!(await columnExists("Parcels", "parcel_recipient_phone"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN parcel_recipient_phone VARCHAR(12) NULL
+        AFTER parcel_recipient_name
+    `);
+  }
+
+  if (!(await columnExists("Parcels", "qr_token"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN qr_token VARCHAR(64) NULL
+        AFTER qr_code_url
+    `);
+  }
+
+  if (!(await columnExists("Parcels", "claimed_by_user_id"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN claimed_by_user_id VARCHAR(64) NULL
+        AFTER claimed_date
+    `);
+  }
+
+  if (!(await columnExists("Parcels", "resident_claim_confirmed_at"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN resident_claim_confirmed_at TIMESTAMP NULL
+        AFTER pending_date
+    `);
+  }
+
+  if (!(await columnExists("Parcels", "resident_claimed_by_user_id"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      ADD COLUMN resident_claimed_by_user_id VARCHAR(64) NULL
+        AFTER resident_claim_confirmed_at
+    `);
+  }
+
+  if (!(await columnIsNullable("Parcels", "id_resident"))) {
+    await pool.query(`
+      ALTER TABLE Parcels
+      MODIFY id_resident VARCHAR(64) NULL
+    `);
+  }
+
+  await pool.query(
+    `
+      UPDATE Parcels p
+      INNER JOIN Residents r ON r.user_id = p.id_resident
+      SET p.building_id = r.building_id
+      WHERE (p.building_id IS NULL OR p.building_id = '')
+        AND r.building_id IS NOT NULL
+    `,
+  );
+
+  await pool.query(
+    `
+      UPDATE Parcels
+      SET building_id = 'building-main'
+      WHERE building_id IS NULL
+         OR building_id = ''
+    `,
+  );
+
+  await pool.query(
+    `
+      UPDATE Parcels p
+      INNER JOIN Residents r ON r.user_id = p.id_resident
+      SET p.delivery_department_address = r.department_address
+      WHERE p.delivery_department_address IS NULL
+         OR p.delivery_department_address = ''
+    `,
+  );
+
+  await pool.query(
+    `
+      UPDATE Parcels p
+      INNER JOIN Residents r ON r.user_id = p.id_resident
+      SET p.parcel_recipient_name = r.resident_name
+      WHERE p.parcel_recipient_name IS NULL
+         OR p.parcel_recipient_name = ''
+    `,
+  );
+
+  await pool.query(
+    `
+      UPDATE Parcels p
+      INNER JOIN Residents r ON r.user_id = p.id_resident
+      SET p.parcel_recipient_phone = r.user_phone_number
+      WHERE p.parcel_recipient_phone IS NULL
+         OR p.parcel_recipient_phone = ''
+    `,
+  );
+
+  const [parcels] = await pool.query<
+    Array<RowDataPacket & { id: string; qr_token: string | null }>
+  >(
+    `
+      SELECT id, qr_token
+      FROM Parcels
+      WHERE qr_token IS NULL
+         OR qr_token = ''
+         OR qr_code_url IS NULL
+         OR qr_code_url NOT LIKE 'LobbyPack:claim:%'
+    `,
+  );
+
+  for (const parcel of parcels) {
+    const qrToken = parcel.qr_token?.trim() || createParcelQrToken();
+
+    await pool.query(
+      `
+        UPDATE Parcels
+        SET qr_token = ?, qr_code_url = ?
+        WHERE id = ?
+      `,
+      [qrToken, buildParcelQrValue(parcel.id, qrToken), parcel.id],
+    );
+  }
+}
+
+export async function ensureIssueCreatorColumn() {
+  if (!(await columnExists("Issues", "created_by_user_id"))) {
+    await pool.query(`
+      ALTER TABLE Issues
+      ADD COLUMN created_by_user_id VARCHAR(64) NULL
+        AFTER id_parcel
+    `);
   }
 }

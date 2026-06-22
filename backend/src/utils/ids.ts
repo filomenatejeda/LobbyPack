@@ -60,7 +60,8 @@ export function createResidentEmail(resident_name: string) {
     .normalize("NFD")
     .replaceAll(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replaceAll(/[^a-z0-9]+/g, ".");
+    .replaceAll(/[^a-z0-9]+/g, ".")
+    .replaceAll(/^\.+|\.+$/g, "");
 
   return `${normalizedName || "resident"}.${Date.now()}@lobbypack.demo`;
 }
