@@ -11,7 +11,7 @@ const isPlaceholderValue = (value?: string) =>
 
 export const supabaseConfigError =
   isPlaceholderValue(supabaseUrl) || isPlaceholderValue(supabasePublishableKey)
-    ? "Configura VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY en .env para usar autenticacion."
+    ? "Configura las variables publicas de Supabase para usar autenticacion."
     : null;
 
 export const supabase = createClient(

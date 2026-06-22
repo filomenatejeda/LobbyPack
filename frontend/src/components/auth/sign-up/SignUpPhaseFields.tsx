@@ -113,7 +113,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               <div className="authSuggestions">
                 {!geoapifyApiKey && (
                   <div className="authSuggestionStatus">
-                    Falta configurar VITE_GEOAPIFY_API_KEY para buscar ciudades.
+                    Falta configurar la clave de Geoapify para buscar ciudades.
                   </div>
                 )}
                 {form.isLoadingLocations && (
@@ -183,7 +183,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               <div className="authSuggestions">
                 {!geoapifyApiKey && (
                   <div className="authSuggestionStatus">
-                    Falta configurar VITE_GEOAPIFY_API_KEY para buscar direcciones.
+                    Falta configurar la clave de Geoapify para buscar direcciones.
                   </div>
                 )}
                 {form.isLoadingAddresses && (
