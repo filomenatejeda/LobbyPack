@@ -5,7 +5,10 @@ import { dirname, normalize, resolve, sep } from "node:path";
 const port = Number(process.env.PORT ?? 3000);
 const hostname = "0.0.0.0";
 const currentDir = dirname(fileURLToPath(import.meta.url));
-const frontendDistPath = resolve(currentDir, "../../frontend/dist");
+const frontendDistPaths = [
+  resolve(currentDir, "../public"),
+  resolve(currentDir, "../../frontend/dist"),
+];
 
 let databaseStatus: "starting" | "ready" | "error" = "starting";
 let databaseError: string | null = null;
@@ -54,18 +57,19 @@ const server = Bun.serve({
 console.log(`LobbyPack backend listening on ${hostname}:${server.port}`);
 
 async function serveFrontend(pathname: string) {
-  const indexFile = Bun.file(resolve(frontendDistPath, "index.html"));
+  const frontendDistPath = await findFrontendDistPath();
 
-  if (!(await indexFile.exists())) {
+  if (!frontendDistPath) {
     return Response.json(
       {
         error: "Frontend build not found",
-        expectedPath: frontendDistPath,
+        expectedPaths: frontendDistPaths,
       },
       { status: 503 },
     );
   }
 
+  const indexFile = Bun.file(resolve(frontendDistPath, "index.html"));
   const decodedPath = decodeURIComponent(pathname);
   const relativePath = normalize(decodedPath).replace(/^[/\\]+/, "");
 
@@ -86,6 +90,16 @@ async function serveFrontend(pathname: string) {
       "Content-Type": "text/html; charset=utf-8",
     },
   });
+}
+
+async function findFrontendDistPath() {
+  for (const frontendDistPath of frontendDistPaths) {
+    if (await Bun.file(resolve(frontendDistPath, "index.html")).exists()) {
+      return frontendDistPath;
+    }
+  }
+
+  return null;
 }
 
 async function initializeDatabase() {
