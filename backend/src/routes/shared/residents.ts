@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash } from "node:crypto";
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
 import { createClient } from "@supabase/supabase-js";
 import { pool } from "../../db/pool";
@@ -13,14 +13,6 @@ import type { AccountSecurityRow, ResidentRow } from "./types";
 
 function hashPassword(password: string) {
   return createHash("sha256").update(password).digest("hex");
-}
-
-function createVerificationCode() {
-  return String(randomBytes(4).readUInt32BE(0) % 1_000_000).padStart(6, "0");
-}
-
-function hashVerificationCode(code: string) {
-  return createHash("sha256").update(code).digest("hex");
 }
 
 function hashWithdrawalPin(pin: string) {
@@ -195,7 +187,6 @@ export async function createResidentAccount(
     throw new Error("Este correo ya tiene una cuenta registrada.");
   }
 
-  const verificationCode = createVerificationCode();
   const residentId = await createSequentialId(connection, {
     tableName: "Users",
     columnName: "id",
@@ -242,12 +233,12 @@ export async function createResidentAccount(
         email_verified,
         totp_verified
       )
-      VALUES (?, ?, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 15 MINUTE), FALSE, FALSE)
+      VALUES (?, NULL, NULL, TRUE, FALSE)
     `,
-    [residentId, hashVerificationCode(verificationCode)],
+    [residentId],
   );
 
-  return { residentId, verificationCode };
+  return { residentId, verificationCode: "" };
 }
 
 function mapResidentRow(resident: ResidentRow) {

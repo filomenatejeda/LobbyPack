@@ -63,7 +63,7 @@ export function useApartmentResidents({
       });
       const residents = await fetchResidentsByDepartment(selectedApartment);
       setApartmentResidents(residents);
-      onStatusMessage("Cuenta residente creada. Verifica el codigo para activar MFA.");
+      onStatusMessage("Cuenta residente creada. Configura el autenticador para terminar.");
       return createdResident;
     } catch (error) {
       onStatusMessage(

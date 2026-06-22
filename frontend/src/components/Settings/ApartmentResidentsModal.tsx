@@ -26,7 +26,6 @@ const QRCodeComponent =
 
 const ResidentAccountPhase = {
   Form: "form",
-  Code: "code",
   Mfa: "mfa",
   Done: "done",
 } as const;
@@ -60,7 +59,6 @@ export default function ApartmentResidentsModal({
   onClose,
   onAddResident,
   onDeleteResident,
-  onVerifyEmail,
   onVerifyMfa,
 }: ApartmentResidentsModalProps) {
   const [isAdding, setIsAdding] = useState(false);
@@ -73,7 +71,6 @@ export default function ApartmentResidentsModal({
   const [residentName, setResidentName] = useState("");
   const [residentPassword, setResidentPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [formError, setFormError] = useState("");
   const [residentToDelete, setResidentToDelete] = useState<ResidentItem | null>(null);
@@ -110,54 +107,36 @@ export default function ApartmentResidentsModal({
         throw signedUp.error;
       }
 
+      if (!signedUp.data.session) {
+        const signedIn = await residentSupabase.auth.signInWithPassword({
+          email: residentEmail,
+          password: residentPassword,
+        });
+
+        if (signedIn.error || !signedIn.data.session) {
+          throw new Error(
+            "Supabase esta pidiendo confirmar el correo antes de configurar MFA. Desactiva Confirm email en Authentication > Sign In / Providers > Email.",
+          );
+        }
+      }
+
       const resident = await onAddResident({
         resident_email: residentEmail,
         resident_name: residentName,
         resident_password: residentPassword,
         user_phone_number: normalizedPhoneNumber,
       });
-      setCreatedResident(resident);
-      setVerificationCode("");
-      setAccountPhase(ResidentAccountPhase.Code);
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : "No se pudo crear la cuenta.");
-    }
-  };
-
-  const handleVerifyEmail = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!createdResident) {
-      return;
-    }
-
-    setFormError("");
-
-    try {
-      if (!residentSupabase) {
-        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
-      }
-
-      const verifiedOtp = await residentSupabase.auth.verifyOtp({
-        email: createdResident.email,
-        token: verificationCode,
-        type: "signup",
-      });
-
-      if (verifiedOtp.error) {
-        throw verifiedOtp.error;
-      }
 
       const enrolledFactor = await residentSupabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: `LobbyPack ${createdResident.email}`,
+        friendlyName: `LobbyPack ${resident.email}`,
       });
 
       if (enrolledFactor.error) {
         throw enrolledFactor.error;
       }
 
-      await onVerifyEmail(createdResident.user_id, verificationCode);
+      setCreatedResident(resident);
       setMfaFactorId(enrolledFactor.data.id);
       setTotpSetup({
         totp_secret: enrolledFactor.data.totp.secret,
@@ -166,7 +145,7 @@ export default function ApartmentResidentsModal({
       setMfaCode("");
       setAccountPhase(ResidentAccountPhase.Mfa);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Codigo invalido.");
+      setFormError(error instanceof Error ? error.message : "No se pudo crear la cuenta.");
     }
   };
 
@@ -217,7 +196,6 @@ export default function ApartmentResidentsModal({
     setResidentName("");
     setResidentPassword("");
     setPhoneNumber("");
-    setVerificationCode("");
     setMfaCode("");
     setCreatedResident(null);
     setTotpSetup(null);
@@ -358,37 +336,6 @@ export default function ApartmentResidentsModal({
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
                   {isSaving ? "Creando..." : "Crear cuenta"}
-                </button>
-              </div>
-              {formError ? <p className="residentError">{formError}</p> : null}
-            </form>
-          ) : null}
-
-          {isAdding && accountPhase === ResidentAccountPhase.Code && createdResident ? (
-            <form className="residentForm" onSubmit={handleVerifyEmail}>
-              <div className="residentVerificationBox">
-                <strong>Codigo de verificacion</strong>
-                <p>
-                  Ingresa el codigo enviado al correo {createdResident.email}.
-                </p>
-              </div>
-              <label className="settingsField">
-                <span>Codigo</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={8}
-                  value={verificationCode}
-                  onChange={(event) => setVerificationCode(event.target.value)}
-                  required
-                />
-              </label>
-              <div className="residentActions">
-                <button type="button" className="secondaryButton" onClick={resetCreateFlow}>
-                  Cancelar
-                </button>
-                <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? "Verificando..." : "Verificar codigo"}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}
