@@ -51,6 +51,12 @@ export default function useCheckIfAuth() {
             });
             return;
           }
+
+          if (isActive) {
+            setIsCheckingAuth(false);
+          }
+
+          return;
         }
 
         if (!hasVerifiedSession) {
