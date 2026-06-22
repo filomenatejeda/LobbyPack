@@ -101,6 +101,28 @@ cd frontend
 bun run preview
 ```
 
+## Despliegue en Railway
+
+Este repositorio es un monorepo. Railway no debe usar la raiz del repositorio como
+directorio raiz del servicio, porque los archivos de cada aplicacion estan dentro
+de carpetas separadas.
+
+Configura dos servicios:
+
+- Backend: root directory `backend`.
+- Frontend: root directory `frontend`.
+
+Variables importantes para el backend en Railway:
+
+- `PORT`: Railway la define automaticamente.
+- `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DB`: datos de la base de datos MySQL.
+- `CORS_ORIGIN`: URL publica del frontend.
+
+Variables importantes para el frontend en Railway:
+
+- `VITE_API_BASE_URL`: URL publica del backend.
+- `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`, `VITE_GEOAPIFY_API_KEY`: variables usadas por Vite.
+
 ## Estado actual
 
 Actualmente el proyecto funciona como una demo funcional con datos mock. Esto significa que la informacion se maneja en memoria y no esta conectada todavia a una base de datos ni a un backend real.
