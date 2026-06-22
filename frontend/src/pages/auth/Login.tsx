@@ -1,9 +1,12 @@
 import { LoginForm } from "@/components/auth";
+import LanguageToggleButton from "@/components/Navbar/LanguageToggleButton";
+import { useI18n } from "@/lib/i18n";
 import { Link } from "react-router-dom";
 import "./Auth.css";
 
-
 export default function Login() {
+  const { t } = useI18n();
+
   return (
     <main className="authPage">
       <div className="authTopbar">
@@ -13,10 +16,11 @@ export default function Login() {
             <span className="authBrandPack">Pack</span>
           </Link>
           <div className="authTopLinks">
-            <a href="/#inicio" className="authHomeLink">Inicio</a>
-            <a href="/#funciones" className="authHomeLink">Funciones</a>
-            <a href="/#como-funciona" className="authHomeLink">Cómo funciona</a>
-            <a href="/#acceso" className="authHomeLink">Acceso</a>
+            <a href="/#inicio" className="authHomeLink">{t("nav.home")}</a>
+            <a href="/#funciones" className="authHomeLink">{t("landing.features")}</a>
+            <a href="/#como-funciona" className="authHomeLink">{t("landing.flow")}</a>
+            <a href="/#acceso" className="authHomeLink">{t("landing.access")}</a>
+            <LanguageToggleButton />
           </div>
         </div>
       </div>
@@ -24,28 +28,26 @@ export default function Login() {
         <div className="authMain">
           <div className="authLayout">
             <div className="authShowcase">
-              <p className="eyebrow">Gestión de paquetes</p>
+              <p className="eyebrow">{t("auth.packageManagement")}</p>
               <h1>
                 <span className="titlePrimary">Lobby</span>
                 <span className="titleAccent">Pack</span>
               </h1>
-              <p className="authLead">
-                La misma experiencia visual del dashboard, ahora también en el acceso al sistema.
-              </p>
+              <p className="authLead">{t("auth.showcaseLead")}</p>
 
               <div className="authHighlights">
                 <div className="authHighlight">
                   <span className="authHighlightIndex">1</span>
                   <div>
-                    <strong>Recepción centralizada</strong>
-                    <p>Consulta paquetes pendientes, retirados y reclamos desde un solo lugar.</p>
+                    <strong>{t("auth.centralizedReception")}</strong>
+                    <p>{t("auth.centralizedReceptionText")}</p>
                   </div>
                 </div>
                 <div className="authHighlight">
                   <span className="authHighlightIndex">2</span>
                   <div>
-                    <strong>Ingreso seguro</strong>
-                    <p>Accede con tu cuenta y valida el segundo factor cuando corresponda.</p>
+                    <strong>{t("auth.secureLogin")}</strong>
+                    <p>{t("auth.secureLoginText")}</p>
                   </div>
                 </div>
               </div>

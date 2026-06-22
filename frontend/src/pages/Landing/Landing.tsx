@@ -1,30 +1,30 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import logo from "../../assets/Logo1.png";
 import LanguageToggleButton from "../../components/Navbar/LanguageToggleButton";
+import { useI18n } from "../../lib/i18n";
 import "./Landing.css";
 
-const features = [
+const featureKeys = [
   {
-    title: "Recepción ordenada",
-    description:
-      "Registra cada paquete con los datos del residente, la empresa y la persona que recibe.",
+    title: "landing.orderlyReception",
+    description: "landing.orderlyReceptionText",
   },
   {
-    title: "Retiros claros",
-    description:
-      "Distingue rápidamente entre paquetes pendientes y retirados para evitar confusiones.",
+    title: "landing.clearWithdrawals",
+    description: "landing.clearWithdrawalsText",
   },
   {
-    title: "Reclamos y seguimiento",
-    description:
-      "Consulta incidencias y mantén la operación diaria centralizada desde un solo panel.",
+    title: "landing.claims",
+    description: "landing.claimsText",
   },
-];
+] as const;
 
 export default function Landing() {
+  const { t } = useI18n();
+
   return (
     <main className="landingPage">
-      <nav className="landingTopNav" aria-label="Navegación de la portada">
+      <nav className="landingTopNav" aria-label={t("nav.home")}>
         <div className="landingContainer landingTopNavInner">
           <a href="#inicio" className="landingBrand">
             <span className="landingBrandLobby">Lobby</span>
@@ -32,16 +32,16 @@ export default function Landing() {
           </a>
           <div className="landingTopNavLinks">
             <a href="#inicio" className="landingQuickNavLink">
-              Inicio
+              {t("nav.home")}
             </a>
             <a href="#funciones" className="landingQuickNavLink">
-              Funciones
+              {t("landing.features")}
             </a>
             <a href="#como-funciona" className="landingQuickNavLink">
-              Cómo funciona
+              {t("landing.flow")}
             </a>
             <a href="#acceso" className="landingQuickNavLink">
-              Acceso
+              {t("landing.access")}
             </a>
             <LanguageToggleButton className="landingLanguageButton" />
           </div>
@@ -51,39 +51,27 @@ export default function Landing() {
       <section className="landingHero" id="inicio">
         <div className="landingContainer landingHeroContent">
           <img src={logo} alt="LobbyPack" className="landingLogoHero" />
-          <p className="landingEyebrow">Gestión de paquetería para edificios</p>
-          <p className="landingLead landingLeadStrong">
-            Controla la recepción y el retiro de paquetes sin perder el orden del día.
-          </p>
-
+          <p className="landingEyebrow">{t("landing.buildingPackageManagement")}</p>
+          <p className="landingLead landingLeadStrong">{t("landing.lead")}</p>
 
           <div className="landingActions">
             <Link to="/auth/login" className="landingPrimaryButton">
-              Iniciar sesión
+              {t("auth.login")}
             </Link>
             <Link to="/auth/sign-up" className="landingSecondaryButton">
-              Crear cuenta
+              {t("auth.createAccount")}
             </Link>
-
           </div>
-                    <p className="landingLead landingLeadSecondary">
-            Una plataforma simple para conserjería y recepción, pensada para registrar entregas,
-            validar retiros y revisar incidencias desde un mismo lugar.
-          </p>
+          <p className="landingLead landingLeadSecondary">{t("landing.secondaryLead")}</p>
         </div>
       </section>
 
       <section className="landingSection landingShowcaseSection">
         <div className="landingContainer landingShowcaseGrid">
           <div>
-            <p className="landingEyebrow">Vista del sistema</p>
-            <h2 className="landingShowcaseTitle">
-              Una vista simple para saber qué llegó, qué sigue pendiente y qué ya fue retirado.
-            </h2>
-            <p className="landingShowcaseText">
-              LobbyPack ordena la operación diaria con una vista rápida de paquetes, estados y
-              acciones frecuentes, para que el equipo responda mejor sin perder tiempo.
-            </p>
+            <p className="landingEyebrow">{t("landing.showcaseEyebrow")}</p>
+            <h2 className="landingShowcaseTitle">{t("landing.showcaseTitle")}</h2>
+            <p className="landingShowcaseText">{t("landing.showcaseText")}</p>
           </div>
 
           <div className="landingMockup" aria-hidden="true">
@@ -95,39 +83,45 @@ export default function Landing() {
             <div className="landingMockupBody">
               <aside className="landingMockupSidebar">
                 <span className="landingMockupSidebarItem landingMockupSidebarItemActive">
-                  Paquetes
+                  {t("landing.packages")}
                 </span>
-                <span className="landingMockupSidebarItem">Pendientes</span>
-                <span className="landingMockupSidebarItem">Retirados</span>
-                <span className="landingMockupSidebarItem">Incidencias</span>
+                <span className="landingMockupSidebarItem">{t("landing.pendingLower")}</span>
+                <span className="landingMockupSidebarItem">{t("landing.withdrawnLower")}</span>
+                <span className="landingMockupSidebarItem">{t("landing.claims")}</span>
               </aside>
               <div className="landingMockupContent">
                 <div className="landingMockupStats">
                   <div className="landingMockupStatCard">
                     <strong>18</strong>
-                    <span>recibidos hoy</span>
+                    <span>{t("landing.receivedToday")}</span>
                   </div>
                   <div className="landingMockupStatCard">
                     <strong>6</strong>
-                    <span>pendientes</span>
+                    <span>{t("landing.pendingLower")}</span>
                   </div>
                   <div className="landingMockupStatCard">
                     <strong>12</strong>
-                    <span>retirados</span>
+                    <span>{t("landing.withdrawnLower")}</span>
                   </div>
                 </div>
                 <div className="landingMockupList">
                   <div className="landingMockupRow">
                     <span>Torre B · 1204</span>
-                    <span className="landingMockupBadge landingMockupBadgePending">Pendiente</span>
+                    <span className="landingMockupBadge landingMockupBadgePending">
+                      {t("landing.pending")}
+                    </span>
                   </div>
                   <div className="landingMockupRow">
                     <span>Condominio Norte · 302</span>
-                    <span className="landingMockupBadge landingMockupBadgeDone">Retirado</span>
+                    <span className="landingMockupBadge landingMockupBadgeDone">
+                      {t("landing.done")}
+                    </span>
                   </div>
                   <div className="landingMockupRow">
                     <span>Edificio Central · 908</span>
-                    <span className="landingMockupBadge landingMockupBadgePending">Pendiente</span>
+                    <span className="landingMockupBadge landingMockupBadgePending">
+                      {t("landing.pending")}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -140,25 +134,22 @@ export default function Landing() {
         <div className="landingContainer">
           <div className="landingSectionHeader landingSectionHeaderWide">
             <div>
-              <p className="landingEyebrow">Qué hace LobbyPack</p>
-              <h2>Una herramienta para trabajar con menos desorden</h2>
+              <p className="landingEyebrow">{t("landing.systemDoes")}</p>
+              <h2>{t("landing.systemDoesTitle")}</h2>
             </div>
-            <p>
-              Pensada para equipos que necesitan registrar entregas, validar retiros y tener una
-              vista clara de lo que está pasando.
-            </p>
+            <p>{t("landing.systemDoesText")}</p>
           </div>
 
           <div className="landingFeatureFlow">
-            {features.map((feature, index) => (
+            {featureKeys.map((feature, index) => (
               <article
                 key={feature.title}
                 className={`landingFeatureBand landingFeatureBand${index + 1}`}
               >
                 <span className="landingFeatureIndex">0{index + 1}</span>
                 <div>
-                  <h3>{feature.title}</h3>
-                  <p>{feature.description}</p>
+                  <h3>{t(feature.title)}</h3>
+                  <p>{t(feature.description)}</p>
                 </div>
               </article>
             ))}
@@ -169,29 +160,26 @@ export default function Landing() {
       <section className="landingSection landingSectionMuted">
         <div className="landingContainer landingStoryGrid">
           <article className="landingStoryBlock landingStoryPrimary" id="como-funciona">
-            <p className="landingEyebrow">Cómo funciona</p>
-            <h2>Un flujo simple desde que el paquete llega hasta que se retira.</h2>
+            <p className="landingEyebrow">{t("landing.flow")}</p>
+            <h2>{t("landing.howTitle")}</h2>
             <ol className="landingSteps">
-              <li>Registras un paquete cuando llega.</li>
-              <li>Queda listado como pendiente.</li>
-              <li>Cuando se retira, actualizas su estado.</li>
-              <li>Si hay problemas, revisas el reclamo en el dashboard.</li>
+              <li>{t("landing.step1")}</li>
+              <li>{t("landing.step2")}</li>
+              <li>{t("landing.step3")}</li>
+              <li>{t("landing.step4")}</li>
             </ol>
           </article>
 
           <article className="landingStoryBlock landingStorySecondary" id="acceso">
-            <p className="landingEyebrow">Acceso</p>
-            <h2>La portada explica el sistema y el dashboard se mantiene protegido.</h2>
-            <p>
-              Muestras la propuesta de valor sin exponer la operación interna del edificio o la
-              comunidad.
-            </p>
+            <p className="landingEyebrow">{t("landing.access")}</p>
+            <h2>{t("landing.accessTitle")}</h2>
+            <p>{t("landing.accessText")}</p>
             <div className="landingMiniActions">
               <Link to="/auth/login" className="landingTextLink">
-                Ir a iniciar sesión
+                {t("landing.goLogin")}
               </Link>
               <Link to="/auth/sign-up" className="landingTextLink">
-                Ir a crear cuenta
+                {t("landing.goSignup")}
               </Link>
             </div>
           </article>
@@ -200,8 +188,8 @@ export default function Landing() {
 
       <footer className="landingFooter">
         <div className="landingContainer">
-          <p>&copy; 2026 LobbyPack. Todos los derechos reservados.</p>
-          <span>Gestión de recepción y retiro de paquetes.</span>
+          <p>&copy; 2026 LobbyPack. {t("footer.rights")}</p>
+          <span>{t("footer.copy")}</span>
         </div>
       </footer>
     </main>

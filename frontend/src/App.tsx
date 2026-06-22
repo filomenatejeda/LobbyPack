@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom
 import "./App.css";
 import Header from "./components/Header/Header";
 import checkIfAuth from "./lib/checkAuth";
+import { useI18n } from "./lib/i18n";
 import Home from "./pages/Home/Home";
 import Landing from "./pages/Landing/Landing";
 import ResidentDeliverySuccess from "./pages/Resident/ResidentDeliverySuccess";
@@ -13,12 +14,13 @@ import SignUp from "./pages/auth/Sign-Up";
 import UpdatePassword from "./pages/auth/Update-Password";
 
 function ProtectedLayout() {
+  const { t } = useI18n();
   const isCheckingAuth = checkIfAuth();
 
   if (isCheckingAuth) {
     return (
       <main className="authLoadingState">
-        <p>Verificando sesion...</p>
+        <p>{t("common.loading")}</p>
       </main>
     );
   }
@@ -28,8 +30,8 @@ function ProtectedLayout() {
       <Header />
       <Outlet />
       <footer className="siteFooter">
-        <p>&copy; 2026 LobbyPack. Todos los derechos reservados.</p>
-        <span>Gestion de recepcion y retiro de paquetes.</span>
+        <p>&copy; 2026 LobbyPack. {t("footer.rights")}</p>
+        <span>{t("footer.copy")}</span>
       </footer>
     </div>
   );

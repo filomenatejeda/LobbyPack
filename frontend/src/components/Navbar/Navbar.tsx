@@ -4,33 +4,35 @@ import "./Navbar.css";
 import LanguageToggleButton from "./LanguageToggleButton";
 import logo from "../../assets/Logo.png";
 import { supabase } from "../../lib/client";
+import { useI18n } from "../../lib/i18n";
 import { fetchDashboard } from "../../services/homeApi";
 import type { AppRole } from "../../types/home";
 
 const navItems = [
-  { label: "Cuenta", to: "/dashboard", exact: true },
-  { label: "Configuracion", to: "/configuracion", exact: false },
+  { labelKey: "nav.account", to: "/dashboard", exact: true },
+  { labelKey: "nav.config", to: "/configuracion", exact: false },
 ] as const;
 
 const adminNavItems = [
-  { label: "Cuenta", to: "/dashboard", exact: true },
-  { label: "Informacion", to: "/configuracion", exact: false },
-  { label: "Comunidad", to: "/comunidad", exact: false },
-  { label: "Equipo", to: "/equipo", exact: false },
+  { labelKey: "nav.account", to: "/dashboard", exact: true },
+  { labelKey: "nav.info", to: "/configuracion", exact: false },
+  { labelKey: "nav.community", to: "/comunidad", exact: false },
+  { labelKey: "nav.team", to: "/equipo", exact: false },
 ] as const;
 
 export default function Navbar() {
+  const { t } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentRole, setCurrentRole] = useState<AppRole | null>(null);
   const navigate = useNavigate();
-  const settingsLabel = currentRole === "resident" ? "Informacion" : "Configuracion";
+  const settingsLabelKey = currentRole === "resident" ? "nav.info" : "nav.config";
   const isResident = currentRole === "resident";
   const visibleNavItems =
     currentRole === "admin" || currentRole === "concierge"
       ? adminNavItems
       : navItems.map((item) =>
-          item.to === "/configuracion" ? { ...item, label: settingsLabel } : item,
+          item.to === "/configuracion" ? { ...item, labelKey: settingsLabelKey } : item,
         );
 
   useEffect(() => {
@@ -99,7 +101,7 @@ export default function Navbar() {
           <button
             type="button"
             className="menuToggle"
-            aria-label={isMenuOpen ? "Cerrar menu" : "Abrir menu"}
+            aria-label={isMenuOpen ? t("nav.closeMenu") : t("nav.openMenu")}
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen((current) => !current)}
           >
@@ -108,26 +110,26 @@ export default function Navbar() {
             <span />
           </button>
 
-          <Link to="/dashboard" className="logoLink mobileLogoLink" aria-label="Ir al inicio">
+          <Link to="/dashboard" className="logoLink mobileLogoLink" aria-label={t("nav.home")}>
             <img src={logo} alt="LobbyPack" className="navLogo" />
           </Link>
         </div>
 
         <ul className="navList">
           <li className="navLogoItem">
-            <Link to="/dashboard" className="logoLink" aria-label="Ir al inicio">
+            <Link to="/dashboard" className="logoLink" aria-label={t("nav.home")}>
               <img src={logo} alt="LobbyPack" className="navLogo" />
             </Link>
           </li>
           {visibleNavItems.map((item) => (
-            <li key={item.label}>
+            <li key={item.labelKey}>
               <NavLink
                 to={item.to}
                 className={({ isActive }) => (isActive ? "link linkActive" : "link")}
                 end={item.exact}
                 onClick={() => setIsMenuOpen(false)}
               >
-                {item.label}
+                {t(item.labelKey)}
               </NavLink>
             </li>
           ))}
@@ -139,11 +141,11 @@ export default function Navbar() {
                   className={({ isActive }) => (isActive ? "link linkActive" : "link")}
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Ayuda
+                  {t("nav.help")}
                 </NavLink>
               ) : (
                 <Link to="/dashboard#inicio" className="link" onClick={() => setIsMenuOpen(false)}>
-                  Contacto
+                  {t("nav.contact")}
                 </Link>
               )}
             </li>
@@ -153,7 +155,7 @@ export default function Navbar() {
           </li>
           <li>
             <button type="button" className="authButton" onClick={() => void handleAuthAction()}>
-              {isAuthenticated ? "Cerrar sesión" : "Iniciar sesión"}
+              {isAuthenticated ? t("nav.logout") : t("nav.login")}
             </button>
           </li>
         </ul>
@@ -171,21 +173,21 @@ export default function Navbar() {
             <button
               type="button"
               className="menuToggle"
-              aria-label="Cerrar menu"
+              aria-label={t("nav.closeMenu")}
               onClick={() => setIsMenuOpen(false)}
             >
               <span />
               <span />
               <span />
             </button>
-            <Link to="/dashboard" className="logoLink mobileDrawerLogoLink" aria-label="Ir al inicio">
+            <Link to="/dashboard" className="logoLink mobileDrawerLogoLink" aria-label={t("nav.home")}>
               <img src={logo} alt="LobbyPack" className="navLogo" />
             </Link>
           </div>
 
           <ul className="mobileNavList">
             {visibleNavItems.map((item) => (
-              <li key={item.label}>
+              <li key={item.labelKey}>
                 <NavLink
                   to={item.to}
                   className={({ isActive }) =>
@@ -194,7 +196,7 @@ export default function Navbar() {
                   end={item.exact}
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </NavLink>
               </li>
             ))}
@@ -208,7 +210,7 @@ export default function Navbar() {
                     }
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Ayuda
+                    {t("nav.help")}
                   </NavLink>
                 ) : (
                   <Link
@@ -216,7 +218,7 @@ export default function Navbar() {
                     className="mobileLink"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Contacto
+                    {t("nav.contact")}
                   </Link>
                 )}
               </li>
@@ -230,7 +232,7 @@ export default function Navbar() {
                 className="mobileAuthButton"
                 onClick={() => void handleAuthAction()}
               >
-                {isAuthenticated ? "Cerrar sesión" : "Iniciar sesión"}
+                {isAuthenticated ? t("nav.logout") : t("nav.login")}
               </button>
             </li>
           </ul>

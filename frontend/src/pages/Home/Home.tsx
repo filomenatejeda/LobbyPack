@@ -1,9 +1,11 @@
 import AdminDashboard from "../Admin/AdminDashboard";
 import ResidentDashboard from "../Resident/ResidentDashboard";
+import { useI18n } from "../../lib/i18n";
 import { useHomeDashboard } from "./hooks/useHomeDashboard";
 import "./Home.css";
 
 export default function Home() {
+  const { t } = useI18n();
   const dashboard = useHomeDashboard();
 
   if (dashboard.isLoading && !dashboard.currentUser) {
@@ -15,7 +17,7 @@ export default function Home() {
       <section className="hero" id="inicio">
         <div className={dashboard.isResident ? "main residentMain" : "main"}>
           <p className="eyebrow">
-            {dashboard.isResident ? "Retiro de paquetes" : "Gestion de paquetes"}
+            {dashboard.isResident ? t("home.withdrawal") : t("home.management")}
           </p>
           <h1>
             <span className="titlePrimary">Lobby</span>
@@ -24,14 +26,14 @@ export default function Home() {
           <p className="lead">
             {dashboard.isResident
               ? dashboard.preferenceSettings.qr_access
-                ? "Valida tu departamento, escanea el QR y confirma la entrega sin depender de un boton interno."
-                : "Revisa tus paquetes pendientes, entregados y reclamos asociados a tu departamento."
-              : "Administra paquetes recepcionados y retirados desde una sola vista."}
+                ? t("home.residentLeadQr")
+                : t("home.residentLeadNoQr")
+              : t("home.adminLead")}
           </p>
 
           {dashboard.errorMessage ? <p className="emptyState">{dashboard.errorMessage}</p> : null}
           {dashboard.isLoading ? (
-            <p className="resultsText">Cargando datos desde la base de datos...</p>
+            <p className="resultsText">{t("home.loadingData")}</p>
           ) : null}
 
           {!dashboard.isLoading && dashboard.isResident && dashboard.currentUser ? (
