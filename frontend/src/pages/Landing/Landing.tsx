@@ -1,8 +1,6 @@
-﻿import { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import logo from "../../assets/Logo1.png";
 import LanguageToggleButton from "../../components/Navbar/LanguageToggleButton";
-import { supabase, supabaseConfigError } from "../../lib/client";
 import "./Landing.css";
 
 const features = [
@@ -24,39 +22,6 @@ const features = [
 ];
 
 export default function Landing() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (supabaseConfigError) {
-      return;
-    }
-
-    let isActive = true;
-
-    const redirectAuthenticatedUser = async () => {
-      const { data } = await supabase.auth.getSession();
-
-      if (isActive && data.session) {
-        navigate("/auth/login", { replace: true });
-      }
-    };
-
-    void redirectAuthenticatedUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        navigate("/auth/login", { replace: true });
-      }
-    });
-
-    return () => {
-      isActive = false;
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
-
   return (
     <main className="landingPage">
       <nav className="landingTopNav" aria-label="Navegación de la portada">
