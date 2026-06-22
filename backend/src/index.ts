@@ -19,11 +19,13 @@ import {
   ensureDailySummaryReportTable,
   startDailySummaryScheduler,
 } from "./utils/dailySummary";
+import { ensureDatabaseSchema } from "./db/schema";
 
 const port = Number(process.env.PORT ?? 3000);
 const hostname = "0.0.0.0";
 
 await pool.query("SELECT 1");
+await ensureDatabaseSchema();
 await ensureUtf8mb4();
 await ensureBuildingCommunityColumns();
 await ensureResidentCommunityColumns();
