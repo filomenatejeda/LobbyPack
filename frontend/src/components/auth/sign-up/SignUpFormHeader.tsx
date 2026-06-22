@@ -1,4 +1,4 @@
-import { useI18n } from "@/lib/i18n";
+﻿import { useI18n } from "@/lib/i18n";
 import { Phase, type SignUpPhase } from "./constants";
 
 type SignUpFormHeaderProps = {
@@ -27,22 +27,22 @@ export default function SignUpFormHeader({
             : "Completa los datos de la persona administradora para crear la cuenta con Google."
           : language === "en"
             ? "Enter the administrator details and email to receive the OTP code."
-            : "Ingresa los datos de la persona administradora y el correo para recibir el codigo OTP."
+            : "Ingresa los datos de la persona administradora y el correo para recibir el código OTP."
         : phase === Phase.OTP
           ? language === "en"
             ? "Enter the code that arrived by email to verify the account."
-            : "Escribe el codigo que llego a tu correo para verificar la cuenta."
+            : "Escribe el código que llego a tu correo para verificar la cuenta."
           : phase === Phase.MFA
             ? mfaSecret
               ? language === "en"
                 ? "Scan the TOTP QR and enter the 6-digit authenticator code."
-                : "Escanea el QR del TOTP y escribe el codigo de 6 digitos del autenticador."
+                : "Escanea el QR del TOTP y escribe el código de 6 dígitos del autenticador."
               : language === "en"
                 ? "Enter the 6-digit code from your authenticator to continue."
-                : "Ingresa el codigo de 6 digitos de tu autenticador para continuar."
+                : "Ingresa el código de 6 dígitos de tu autenticador para continuar."
             : language === "en"
               ? "Set your password and confirmation to update it in Supabase."
-              : "Define tu contrasena y su confirmacion para actualizarla en Supabase.";
+              : "Define tu contraseña y su confirmacion para actualizarla en Supabase.";
 
   return (
     <div className="authCardHeader">

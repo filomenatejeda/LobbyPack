@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 
 import { cn } from "@/lib/utils";
@@ -56,7 +56,7 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
           throw new Error(
             language === "en"
               ? "No authenticator configured for this account was found."
-              : "No se encontro un autenticador configurado para esta cuenta.",
+              : "No se encontró un autenticador configurado para esta cuenta.",
           );
         }
 
@@ -147,25 +147,25 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
       case "Code needs to be non-empty":
         return language === "en"
           ? "Error: enter the authenticator code."
-          : "Error: ingresa el codigo del autenticador.";
+          : "Error: ingresa el código del autenticador.";
       case "Invalid TOTP code entered":
         return language === "en"
           ? "Error: the authenticator code is invalid."
-          : "Error: el codigo del autenticador no es valido.";
+          : "Error: el código del autenticador no es valido.";
       case "Auth session missing!":
         return language === "en"
           ? "Error: the recovery session expired. Request a new link."
-          : "Error: la sesion de recuperacion expiro. Solicita un nuevo enlace.";
+          : "Error: la sesión de recuperacion expiró. Solicita un nuevo enlace.";
       case "AAL2 session is required to update email or password when MFA is enabled.":
         return language === "en"
           ? "Error: verify the authenticator code before updating the password."
-          : "Error: debes verificar el codigo del autenticador antes de actualizar la contrasena.";
+          : "Error: debes verificar el código del autenticador antes de actualizar la contraseña.";
       default:
         break;
     }
 
     if (message.startsWith("Email address ")) {
-      return language === "en" ? "Error: invalid email." : "Error: correo invalido.";
+      return language === "en" ? "Error: invalid email." : "Error: correo inválido.";
     }
 
     return message;

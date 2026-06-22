@@ -503,9 +503,9 @@
   }
 
   .landingTopNav {
-    background: rgba(255, 255, 255, 0.96);
-    border-bottom-color: rgba(96, 62, 33, 0.1);
-    box-shadow: 0 8px 22px rgba(60, 52, 45, 0.08);
+    background: rgba(111, 134, 74, 0.96);
+    border-bottom-color: rgba(96, 62, 33, 0.18);
+    box-shadow: 0 8px 22px rgba(76, 92, 44, 0.16);
   }
 
   .landingTopNav .landingContainer {
@@ -527,11 +527,11 @@
   }
 
   .landingBrandLobby {
-    color: #603e21;
+    color: #f4ead8;
   }
 
   .landingBrandPack {
-    color: #5f7a53;
+    color: #2f3d18;
   }
 
   .landingQuickNavLink {
@@ -550,16 +550,16 @@
     min-width: 46px;
     min-height: 36px;
     padding: 0 10px;
-    border-color: rgba(95, 86, 74, 0.16);
-    background: #ffffff;
-    color: var(--text);
+    border-color: rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
   }
 
   .landingLanguageButton:hover,
   .landingLanguageButton:focus-visible {
-    border-color: var(--accent);
-    background: rgba(194, 148, 87, 0.08);
-    color: var(--accent-strong);
+    border-color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
   }
 
   .landingLeadStrong {

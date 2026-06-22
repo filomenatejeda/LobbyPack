@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import ConciergeInviteModal from "../../components/Settings/ConciergeInviteModal";
 import ApartmentResidentsModal from "../../components/Settings/ApartmentResidentsModal";
 import {
@@ -419,7 +419,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
       setStatusMessage(
         language === "en"
           ? "Concierge account created. Verify the code to activate MFA."
-          : "Cuenta conserje creada. Verifica el codigo para activar MFA.",
+          : "Cuenta conserje creada. Verifica el código para activar MFA.",
       );
       await loadSettings();
       return createdConcierge;
@@ -450,7 +450,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
           ? error.message
           : language === "en"
             ? "Could not verify the code."
-            : "No se pudo verificar el codigo.",
+            : "No se pudo verificar el código.",
       );
       throw error;
     } finally {

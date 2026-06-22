@@ -1,4 +1,4 @@
-import jsQR from "jsqr";
+﻿import jsQR from "jsqr";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useI18n } from "../../lib/i18n";
@@ -194,7 +194,7 @@ export default function ResidentDashboard({
 
     const startScanner = async () => {
       if (!navigator.mediaDevices?.getUserMedia) {
-        setCameraMessage("Tu navegador no permite abrir la camara. Usa el ingreso manual.");
+        setCameraMessage("Tu navegador no permite abrir la cámara. Usa el ingreso manual.");
         setIsCameraOpen(false);
         return;
       }
@@ -224,7 +224,7 @@ export default function ResidentDashboard({
 
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
-        setCameraMessage("Apunta la camara al QR del paquete.");
+        setCameraMessage("Apunta la cámara al QR del paquete.");
 
         const scanFrame = async () => {
           if (!isActive || !videoRef.current || !canvasRef.current) {
@@ -266,7 +266,7 @@ export default function ResidentDashboard({
             const context = canvas.getContext("2d", { willReadFrequently: true });
 
             if (!context) {
-              setCameraMessage("No se pudo preparar el lector de la camara.");
+              setCameraMessage("No se pudo preparar el lector de la cámara.");
               setIsCameraOpen(false);
               return;
             }
@@ -286,7 +286,7 @@ export default function ResidentDashboard({
               return;
             }
           } catch {
-            setCameraMessage("No se pudo leer el QR. Intenta acercar la camara un poco mas.");
+            setCameraMessage("No se pudo leer el QR. Intenta acercar la cámara un poco mas.");
           } finally {
             isDetectingRef.current = false;
           }
@@ -300,7 +300,7 @@ export default function ResidentDashboard({
           void scanFrame();
         });
       } catch {
-        setCameraMessage("No se pudo acceder a la camara. Revisa permisos o usa el ingreso manual.");
+        setCameraMessage("No se pudo acceder a la cámara. Revisa permisos o usa el ingreso manual.");
         setIsCameraOpen(false);
       }
     };

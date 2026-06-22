@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 
 import { getSupabaseRedirectUrl } from "@/lib/authRedirect";
 import { supabase, supabaseConfigError } from "@/lib/client";
@@ -52,7 +52,7 @@ export function ForgotPasswordForm() {
     }
 
     if (message.startsWith("Email address ")) {
-      return language === "en" ? "Error: invalid email." : "Error: correo invalido.";
+      return language === "en" ? "Error: invalid email." : "Error: correo inválido.";
     }
 
     return message;

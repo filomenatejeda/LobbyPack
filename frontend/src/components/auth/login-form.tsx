@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 
@@ -32,7 +32,7 @@ export function LoginForm() {
     const factorId = (await supabase.auth.mfa.listFactors()).data?.all[0]?.id;
 
     if (!factorId) {
-      throw new Error("No se encontro un segundo factor de autenticacion.");
+      throw new Error("No se encontró un segundo factor de autenticación.");
     }
 
     const challenge = await supabase.auth.mfa.challenge({ factorId });
@@ -146,7 +146,7 @@ export function LoginForm() {
       setError(
         language === "en"
           ? "You must complete two-factor authentication to enter the dashboard."
-          : "Debes completar el doble factor de autenticacion para entrar al dashboard.",
+          : "Debes completar el doble factor de autenticación para entrar al dashboard.",
       );
       return;
     }
@@ -155,7 +155,7 @@ export function LoginForm() {
       setError(
         language === "en"
           ? "You must log in to continue."
-          : "Debes iniciar sesion para continuar.",
+          : "Debes iniciar sesión para continuar.",
       );
       return;
     }
@@ -164,7 +164,7 @@ export function LoginForm() {
       setError(
         language === "en"
           ? "Could not verify the session. Try logging in again."
-          : "No se pudo verificar la sesion. Intenta iniciar sesion nuevamente.",
+          : "No se pudo verificar la sesión. Intenta iniciar sesión nuevamente.",
       );
     }
   }, [location.state]);
@@ -276,29 +276,29 @@ export function LoginForm() {
       case "Invalid login credentials":
         return language === "en"
           ? "Error: invalid email or password."
-          : "Error: correo o contrasena invalidos.";
+          : "Error: correo o contraseña inválidos.";
       case "Code needs to be non-empty":
         return language === "en"
           ? "Error: enter the verification code."
-          : "Error: ingresa el codigo de verificacion.";
+          : "Error: ingresa el código de verificación.";
       case "Invalid TOTP code entered":
         return language === "en"
           ? "Error: the authenticator code is invalid."
-          : "Error: el codigo del autenticador no es valido.";
+          : "Error: el código del autenticador no es valido.";
       case "Auth session missing!":
         return language === "en"
           ? "Error: the session has expired."
-          : "Error: la sesion ha expirado.";
+          : "Error: la sesión ha expirado.";
       case "AAL2 session is required to update email or password when MFA is enabled.":
         return language === "en"
           ? "Error: verify the authenticator code before updating the password."
-          : "Error: debes verificar el codigo del autenticador antes de actualizar la contrasena.";
+          : "Error: debes verificar el código del autenticador antes de actualizar la contraseña.";
       default:
         break;
     }
 
     if (message.startsWith("Email address ")) {
-      return language === "en" ? "Error: invalid email." : "Error: correo invalido.";
+      return language === "en" ? "Error: invalid email." : "Error: correo inválido.";
     }
 
     return message;

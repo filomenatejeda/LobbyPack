@@ -1,4 +1,4 @@
-import SignUpFormHeader from "./sign-up/SignUpFormHeader";
+﻿import SignUpFormHeader from "./sign-up/SignUpFormHeader";
 import SignUpPhaseFields from "./sign-up/SignUpPhaseFields";
 import { useSignUpForm } from "./sign-up/useSignUpForm";
 import "./login-form.css";
@@ -28,13 +28,13 @@ export function SignUpForm() {
       </div>
 
       <div className="authFooter">
-        <span>Ya tienes una cuenta?</span>
+        <span>¿Ya tienes una cuenta?</span>
         <button
           type="button"
           className="authTextButton"
           onClick={() => void form.goToLogin()}
         >
-          Inicia sesion
+          Inicia sesión
         </button>
       </div>
     </form>

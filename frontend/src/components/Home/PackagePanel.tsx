@@ -1,4 +1,4 @@
-import "./PackagePanel.css";
+﻿import "./PackagePanel.css";
 import PackageRow from "./PackageRow";
 import { useI18n } from "../../lib/i18n";
 import type { PackageServiceView, ParcelItem } from "../../types/home";
@@ -185,8 +185,8 @@ export default function PackagePanel(props: PackagePanelProps) {
 
       <p className="resultsText">
         {filteredCount}{" "}
-        {filteredCount === 1 ? t("admin.totalPackage") : t("admin.totalPackages")} ·{" "}
-        {t("admin.page")} {safePage} {t("admin.of")} {totalPages} · {selectedVisibleCount}{" "}
+        {filteredCount === 1 ? t("admin.totalPackage") : t("admin.totalPackages")} Â·{" "}
+        {t("admin.page")} {safePage} {t("admin.of")} {totalPages} Â· {selectedVisibleCount}{" "}
         {selectedVisibleCount === 1 ? t("admin.selected") : t("admin.selectedPlural")}
       </p>
 

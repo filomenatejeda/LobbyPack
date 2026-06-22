@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+﻿import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { isGoogleSSOUser } from "@/lib/auth-provider";
 import { supabase, supabaseConfigError } from "@/lib/client";
@@ -556,7 +556,7 @@ export function useSignUpForm(): UseSignUpFormResult {
 
       if (phase === Phase.MFA) {
         if (!mfaFactorId) {
-          throw new Error("No se encontro el autenticador pendiente de configuracion.");
+          throw new Error("No se encontró el autenticador pendiente de configuración.");
         }
 
         const challenge = await supabase.auth.mfa.challenge({ factorId: mfaFactorId });
@@ -581,7 +581,7 @@ export function useSignUpForm(): UseSignUpFormResult {
 
       if (password !== repeatPassword) {
         throw new Error(
-          language === "en" ? "Passwords do not match." : "Las contrasenas no coinciden.",
+          language === "en" ? "Passwords do not match." : "Las contraseñas no coinciden.",
         );
       }
 
@@ -589,7 +589,7 @@ export function useSignUpForm(): UseSignUpFormResult {
         throw new Error(
           language === "en"
             ? "The password does not meet the security requirements."
-            : "La contrasena no cumple los requisitos de seguridad.",
+            : "La contraseña no cumple los requisitos de seguridad.",
         );
       }
 

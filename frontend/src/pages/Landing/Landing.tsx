@@ -85,8 +85,8 @@ export default function Landing() {
                 <span className="landingMockupSidebarItem landingMockupSidebarItemActive">
                   {t("landing.packages")}
                 </span>
-                <span className="landingMockupSidebarItem">{t("landing.pendingLower")}</span>
-                <span className="landingMockupSidebarItem">{t("landing.withdrawnLower")}</span>
+                <span className="landingMockupSidebarItem">{t("landing.pendingTitle")}</span>
+                <span className="landingMockupSidebarItem">{t("landing.withdrawnTitle")}</span>
                 <span className="landingMockupSidebarItem">{t("landing.claims")}</span>
               </aside>
               <div className="landingMockupContent">

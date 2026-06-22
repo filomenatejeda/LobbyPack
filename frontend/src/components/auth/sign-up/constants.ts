@@ -1,4 +1,4 @@
-export type GeoapifyResult = {
+﻿export type GeoapifyResult = {
   formatted?: string;
   address_line1?: string;
   address_line2?: string;
@@ -118,20 +118,20 @@ export function getPhaseDescription(
   if (phase === Phase.Admin) {
     return isCompletingGoogleRegistration
       ? "Completa los datos de la persona administradora para crear la cuenta con Google."
-      : "Ingresa los datos de la persona administradora y el correo para recibir el codigo OTP.";
+      : "Ingresa los datos de la persona administradora y el correo para recibir el código OTP.";
   }
 
   if (phase === Phase.OTP) {
-    return "Escribe el codigo que llego a tu correo para verificar la cuenta.";
+    return "Escribe el código que llego a tu correo para verificar la cuenta.";
   }
 
   if (phase === Phase.MFA) {
     return mfaSecret
-      ? "Escanea el QR del TOTP y escribe el codigo de 6 digitos del autenticador."
-      : "Ingresa el codigo de 6 digitos de tu autenticador para continuar.";
+      ? "Escanea el QR del TOTP y escribe el código de 6 dígitos del autenticador."
+      : "Ingresa el código de 6 dígitos de tu autenticador para continuar.";
   }
 
-  return "Define tu contrasena y su confirmacion para actualizarla en Supabase.";
+  return "Define tu contraseña y su confirmacion para actualizarla en Supabase.";
 }
 
 export function getAuthErrorMessage(message: string, language: AppLanguage = "es") {
@@ -139,37 +139,37 @@ export function getAuthErrorMessage(message: string, language: AppLanguage = "es
     case "email rate limit exceeded":
       return language === "en"
         ? "Error: email rate limit reached, try again later."
-        : "Error: limite de correos enviados alcanzado, vuelve a intentarlo mas tarde.";
+        : "Error: límite de correos enviados alcanzado, vuelve a intentarlo más tarde.";
     case "Code needs to be non-empty":
       return language === "en"
         ? "Error: enter the verification code."
-        : "Error: ingresa el codigo de verificacion.";
+        : "Error: ingresa el código de verificación.";
     case "Invalid TOTP code entered":
       return language === "en"
         ? "Error: the authenticator code is invalid."
-        : "Error: el codigo del autenticador no es valido.";
+        : "Error: el código del autenticador no es valido.";
     case "Token has expired or is invalid":
       return language === "en"
         ? "Error: the code expired or is invalid."
-        : "Error: el codigo expiro o no es valido.";
+        : "Error: el código expiró o no es valido.";
     case "User already registered":
       return language === "en"
         ? "Error: this email already exists in Supabase Auth. Log in or delete that user from Authentication > Users."
-        : "Error: este correo ya existe en Supabase Auth. Inicia sesion o elimina ese usuario desde Authentication > Users.";
+        : "Error: este correo ya existe en Supabase Auth. Inicia sesión o elimina ese usuario desde Authentication > Users.";
     case "Auth session missing!":
       return language === "en"
         ? "Error: the session has expired."
-        : "Error: la sesion ha expirado.";
+        : "Error: la sesión ha expirado.";
     case "AAL2 session is required to update email or password when MFA is enabled.":
       return language === "en"
         ? "Error: verify the authenticator code before updating the password."
-        : "Error: debes verificar el codigo del autenticador antes de actualizar la contrasena.";
+        : "Error: debes verificar el código del autenticador antes de actualizar la contraseña.";
     default:
       break;
   }
 
   if (message.startsWith("Email address ")) {
-    return language === "en" ? "Error: invalid email." : "Error: correo invalido.";
+    return language === "en" ? "Error: invalid email." : "Error: correo inválido.";
   }
 
   return message;
@@ -190,11 +190,11 @@ export function getSubmitLabel(
   }
 
   if (phase === Phase.Admin) {
-    return language === "en" ? "Continue to password" : "Continuar a contrasena";
+    return language === "en" ? "Continue to password" : "Continuar a contraseña";
   }
 
   if (phase === Phase.OTP) {
-    return language === "en" ? "Verify code" : "Verificar codigo";
+    return language === "en" ? "Verify code" : "Verificar código";
   }
 
   if (phase === Phase.MFA) {
@@ -202,7 +202,7 @@ export function getSubmitLabel(
   }
 
   if (isCompletingGoogleRegistration) {
-    return language === "en" ? "Save password" : "Guardar contrasena";
+    return language === "en" ? "Save password" : "Guardar contraseña";
   }
 
   return language === "en" ? "Create account" : "Crear cuenta";

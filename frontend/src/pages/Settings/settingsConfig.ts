@@ -1,4 +1,4 @@
-import type { GeneralSettings, PreferenceSettings } from "../../types/settings";
+﻿import type { GeneralSettings, PreferenceSettings } from "../../types/settings";
 import type { AppLanguage } from "../../lib/i18n";
 
 export type StructureLabels = {
@@ -94,8 +94,8 @@ export const getStructureLabels = (
       ? {
           title: "Areas, levels, and units",
           addGroup: "Add area",
-          groupSingular: "Area",
-          groupPlural: "Areas",
+          groupSingular: "Área",
+          groupPlural: "Áreas",
           groupName: "Area name",
           levelSingular: "Level",
           levelPlural: "Levels",
@@ -110,11 +110,11 @@ export const getStructureLabels = (
           addUnit: "Add unit",
         }
       : {
-          title: "Areas, niveles y unidades",
-          addGroup: "Agregar area",
-          groupSingular: "Area",
-          groupPlural: "Areas",
-          groupName: "Nombre del area",
+          title: "Áreas, niveles y unidades",
+          addGroup: "Agregar área",
+          groupSingular: "Área",
+          groupPlural: "Áreas",
+          groupName: "Nombre del área",
           levelSingular: "Nivel",
           levelPlural: "Niveles",
           levelCount: "Cantidad de niveles",
@@ -123,7 +123,7 @@ export const getStructureLabels = (
           totalUnits: "Unidades registradas",
           unitsByLevel: "Unidades por nivel",
           sectionLead:
-            "Cada area queda visible como ficha fija. Si necesitas cambiar nombre, niveles o unidades, entra a editar esa area.",
+            "Cada área queda visible como ficha fija. Si necesitas cambiar nombre, niveles o unidades, entra a editar esa área.",
           previewText: "Selecciona un nivel para ver solo sus unidades.",
           addUnit: "Agregar unidad",
         };
