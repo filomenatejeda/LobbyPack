@@ -59,7 +59,7 @@ export const COMMUNITY_TYPE_OPTIONS = [
 ];
 
 export const geoapifyApiKey =
-  import.meta.env.VITE_GEOAPIFY_API_KEY ?? window.__LOBBYPACK_CONFIG__?.VITE_GEOAPIFY_API_KEY;
+  window.__LOBBYPACK_CONFIG__?.VITE_GEOAPIFY_API_KEY ?? import.meta.env.VITE_GEOAPIFY_API_KEY;
 export const ADMIN_ROLE = "admin";
 
 export const PASSWORD_REQUIREMENTS = [

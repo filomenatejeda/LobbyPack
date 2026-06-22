@@ -1,8 +1,22 @@
 import { supabase, supabaseConfigError } from "./client";
 import { ApiError, type ApiErrorCode } from "./apiError";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? window.__LOBBYPACK_CONFIG__?.VITE_API_BASE_URL ?? "";
+function getApiBaseUrl() {
+  const configuredBaseUrl =
+    window.__LOBBYPACK_CONFIG__?.VITE_API_BASE_URL ?? import.meta.env.VITE_API_BASE_URL ?? "";
+
+  if (
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1" &&
+    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(configuredBaseUrl)
+  ) {
+    return "";
+  }
+
+  return configuredBaseUrl.replace(/\/+$/, "");
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export async function apiRequest<T>(path: string, init?: RequestInit) {
   const session = supabaseConfigError ? null : await supabase.auth.getSession();

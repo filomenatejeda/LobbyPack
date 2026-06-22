@@ -15,7 +15,7 @@ const Phase = {
 
 function getAuthRedirectUrl() {
   const configuredRedirectUrl =
-    import.meta.env.VITE_AUTH_REDIRECT_URL ?? window.__LOBBYPACK_CONFIG__?.VITE_AUTH_REDIRECT_URL;
+    window.__LOBBYPACK_CONFIG__?.VITE_AUTH_REDIRECT_URL ?? import.meta.env.VITE_AUTH_REDIRECT_URL;
 
   return configuredRedirectUrl || `${window.location.origin}/auth/login`;
 }
