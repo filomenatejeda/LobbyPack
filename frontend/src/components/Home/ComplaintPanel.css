@@ -1,0 +1,378 @@
+.complaintPanel {
+  width: 100%;
+  margin: 32px auto 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+
+.complaintHeader h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.complaintTools {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.complaintSearchField {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.complaintSearchField span,
+.complaintPageSizeField span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.complaintSearchInputWrap {
+  position: relative;
+}
+
+.complaintSearchIcon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  width: 16px;
+  height: 16px;
+  color: var(--text-soft);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.complaintSearchField input,
+.complaintPageSizeSelect {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfbf9;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.complaintSearchField input {
+  width: 100%;
+  padding-left: 34px;
+}
+
+.complaintResultsText {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.complaintBulkBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  border: 1px solid #d8e4cc;
+  border-radius: 8px;
+  background: #f4f8ef;
+  padding: 8px 10px;
+}
+
+.complaintBulkBar strong {
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.complaintBulkBar span {
+  flex: 1;
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.complaintBulkActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.complaintBulkActions button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 7px 10px;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.complaintBulkActions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.complaintBulkActions .complaintBulkDanger:not(:disabled) {
+  border-color: rgba(164, 49, 49, 0.24);
+  color: #a43131;
+}
+
+.complaintTableWrap {
+  margin-top: 14px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.complaintTable {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.complaintTable th {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+  color: #111;
+  font-size: 0.78rem;
+  text-align: left;
+}
+
+.complaintTable th:first-child,
+.complaintTable td:first-child {
+  width: 34px;
+  text-align: center;
+}
+
+.complaintTable td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #f0eee9;
+  vertical-align: top;
+  font-size: 0.86rem;
+}
+
+.complaintTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.complaintMessageCell {
+  max-width: 520px;
+}
+
+.complaintResidentLink {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #0b63ce;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.complaintMessageCell p {
+  margin: 8px 0 0;
+  color: #111;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.complaintMessageCell span {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-soft);
+  font-size: 0.78rem;
+}
+
+.complaintDateCell {
+  color: #111;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.complaintBadge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin: 0 4px 4px 0;
+  border: 1px solid rgba(17, 37, 48, 0.12);
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: #fff;
+  color: #111;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.complaintBadgeIngresado {
+  background: #fff8ec;
+  color: #8a5a12;
+}
+
+.complaintBadgeEnrevision {
+  background: #eef5ff;
+  color: #315c8b;
+}
+
+.complaintBadgeResuelto {
+  background: #e8f3df;
+  color: #4f6840;
+}
+
+.complaintActionCell {
+  position: relative;
+  width: 90px;
+  text-align: center;
+}
+
+.complaintMenuButton {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #88b8f8;
+  border-radius: 999px;
+  background: #f4f9ff;
+  color: #0b63ce;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.complaintMenu {
+  position: absolute;
+  top: 44px;
+  right: 8px;
+  z-index: 10;
+  display: grid;
+  min-width: 220px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 14px 36px rgba(17, 37, 48, 0.14);
+  text-align: left;
+}
+
+.complaintMenu button,
+.complaintMenu a,
+.complaintMenu span {
+  border: none;
+  background: transparent;
+  padding: 8px 10px;
+  color: #111;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: none;
+}
+
+.complaintMenu button:not(:disabled),
+.complaintMenu a {
+  cursor: pointer;
+}
+
+.complaintMenu button:hover:not(:disabled),
+.complaintMenu a:hover {
+  border-radius: 6px;
+  background: #f5f5f2;
+}
+
+.complaintMenu .complaintMenuDanger:not(:disabled) {
+  color: #a43131;
+}
+
+.complaintMenu button:disabled,
+.complaintMenu span {
+  color: var(--text-soft);
+  cursor: not-allowed;
+}
+
+.complaintEmptyState {
+  margin-top: 14px;
+  font-size: 0.88rem;
+  color: var(--text-soft);
+}
+
+.complaintFooter {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+  padding-top: 10px;
+}
+
+.complaintPageSizeField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.complaintPagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex: 1;
+}
+
+.complaintPaginationButton {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfbf9;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.complaintPaginationButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.complaintPaginationInfo {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+@media (max-width: 768px) {
+  .complaintTools {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .complaintFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .complaintBulkBar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .complaintBulkActions {
+    justify-content: flex-start;
+  }
+
+  .complaintPagination {
+    justify-content: space-between;
+  }
+}
