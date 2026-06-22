@@ -112,6 +112,13 @@ Configura dos servicios:
 - Backend: root directory `backend`.
 - Frontend: root directory `frontend`.
 
+Si Railway sigue intentando construir desde la raiz, revisa en el servicio:
+
+- Settings > Source > Root Directory: `backend` para el backend.
+- Settings > Build > Railway Config File: `/backend/railway.toml` para el backend.
+- Settings > Source > Root Directory: `frontend` para el frontend.
+- Settings > Build > Railway Config File: `/frontend/railway.toml` para el frontend.
+
 Variables importantes para el backend en Railway:
 
 - `PORT`: Railway la define automaticamente.

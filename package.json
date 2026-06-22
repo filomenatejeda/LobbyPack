@@ -1,0 +1,18 @@
+{
+  "name": "lobbypack-monorepo",
+  "private": true,
+  "packageManager": "bun@1.3.12",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "start": "bun --cwd backend run start",
+    "start:backend": "bun --cwd backend run start",
+    "start:frontend": "bun --cwd frontend run preview",
+    "build": "bun --cwd frontend run build",
+    "build:frontend": "bun --cwd frontend run build",
+    "test:backend": "bun --cwd backend test",
+    "test:frontend": "bun --cwd frontend test"
+  }
+}
