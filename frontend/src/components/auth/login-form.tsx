@@ -85,7 +85,20 @@ export function LoginForm() {
           return;
         }
 
-        navigate("/dashboard", { replace: true });
+        if (assuranceResponse.data?.currentLevel === "aal2") {
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+
+        try {
+          await beginMfaChallenge();
+        } catch (challengeError) {
+          setError(
+            challengeError instanceof Error
+              ? handleError(challengeError.message)
+              : "Ocurrió un error.",
+          );
+        }
         return;
       }
 
