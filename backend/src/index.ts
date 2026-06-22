@@ -21,6 +21,7 @@ import {
 } from "./utils/dailySummary";
 
 const port = Number(process.env.PORT ?? 3000);
+const hostname = "0.0.0.0";
 
 await pool.query("SELECT 1");
 await ensureUtf8mb4();
@@ -44,8 +45,8 @@ const app = new Elysia()
   )
   .get("/health", () => ({ status: "ok" }))
   .use(api)
-  .listen(port);
+  .listen({ port, hostname });
 
 startDailySummaryScheduler();
 
-console.log(`LobbyPack backend listening on port ${app.server?.port ?? port}`);
+console.log(`LobbyPack backend listening on ${hostname}:${app.server?.port ?? port}`);
