@@ -7,12 +7,12 @@
     "frontend"
   ],
   "scripts": {
-    "start": "bun --cwd backend run start",
-    "start:backend": "bun --cwd backend run start",
-    "start:frontend": "bun --cwd frontend run preview",
-    "build": "bun --cwd frontend run build",
-    "build:frontend": "bun --cwd frontend run build",
-    "test:backend": "bun --cwd backend test",
-    "test:frontend": "bun --cwd frontend test"
+    "start": "cd backend && bun run start",
+    "start:backend": "cd backend && bun run start",
+    "start:frontend": "cd frontend && bun run preview",
+    "build": "cd frontend && bun run build",
+    "build:frontend": "cd frontend && bun run build",
+    "test:backend": "cd backend && bun test",
+    "test:frontend": "cd frontend && bun test"
   }
 }
