@@ -1,35 +1,49 @@
 import "./env";
-import { cors } from "@elysiajs/cors";
-import { Elysia } from "elysia";
 
 const port = Number(process.env.PORT ?? 3000);
 const hostname = "0.0.0.0";
 
 let databaseStatus: "starting" | "ready" | "error" = "starting";
 let databaseError: string | null = null;
+let apiApp: { handle(request: Request): Response | Promise<Response> } | null = null;
 
-const app = new Elysia()
-  .use(
-    cors({
-      origin: process.env.CORS_ORIGIN?.split(",").map((item) => item.trim()) ?? true,
-      credentials: true,
-    }),
-  )
-  .get("/health", () => ({ status: "ok", database: databaseStatus }))
-  .get("/ready", ({ set }) => {
-    if (databaseStatus !== "ready") {
-      set.status = 503;
+const server = Bun.serve({
+  port,
+  hostname,
+  async fetch(request) {
+    const url = new URL(request.url);
+
+    if (url.pathname === "/health") {
+      return Response.json({ status: "ok", database: databaseStatus });
     }
 
-    return {
-      status: databaseStatus === "ready" ? "ready" : "not_ready",
-      database: databaseStatus,
-      error: databaseError,
-    };
-  })
-  .listen({ port, hostname });
+    if (url.pathname === "/ready") {
+      return Response.json(
+        {
+          status: databaseStatus === "ready" ? "ready" : "not_ready",
+          database: databaseStatus,
+          error: databaseError,
+        },
+        { status: databaseStatus === "ready" ? 200 : 503 },
+      );
+    }
 
-console.log(`LobbyPack backend listening on ${hostname}:${app.server?.port ?? port}`);
+    if (apiApp) {
+      return apiApp.handle(request);
+    }
+
+    return Response.json(
+      {
+        error: "API is starting",
+        database: databaseStatus,
+        details: databaseError,
+      },
+      { status: 503 },
+    );
+  },
+});
+
+console.log(`LobbyPack backend listening on ${hostname}:${server.port}`);
 
 async function initializeDatabase() {
   try {
@@ -48,6 +62,8 @@ async function initializeDatabase() {
     const { ensureDatabaseSchema } = await import("./db/schema");
     const { ensureResidentAccountSecurityTable } = await import("./routes/shared/residents");
     const { api } = await import("./routes/api");
+    const { cors } = await import("@elysiajs/cors");
+    const { Elysia } = await import("elysia");
     const { ensureDailySummaryReportTable, startDailySummaryScheduler } = await import(
       "./utils/dailySummary"
     );
@@ -66,7 +82,14 @@ async function initializeDatabase() {
     await repairParcelEncoding();
     await repairParcelWithdrawalCodes();
 
-    app.use(api);
+    apiApp = new Elysia()
+      .use(
+        cors({
+          origin: process.env.CORS_ORIGIN?.split(",").map((item) => item.trim()) ?? true,
+          credentials: true,
+        }),
+      )
+      .use(api);
     startDailySummaryScheduler();
 
     databaseStatus = "ready";
