@@ -396,10 +396,66 @@
 }
 
 @media (max-width: 640px) {
+  .packageItem {
+    padding: 10px;
+  }
+
+  .packageTop {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .packageTopLeft {
+    align-items: flex-start;
+  }
+
+  .packageTopActions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .statusField {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .statusValue {
+    width: fit-content;
+    min-width: 0;
+    max-width: 100%;
+    padding: 5px 10px;
+    font-size: 0.72rem;
+  }
+
+  .packageDetails {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 8px;
+  }
+
+  .packageDetails dt {
+    font-size: 0.62rem;
+  }
+
+  .packageDetails dd {
+    font-size: 0.78rem;
+  }
+
+  .packageActions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
   .departmentContactsHeader,
   .departmentContactItem {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .emailFormRow {
+    grid-template-columns: 1fr;
   }
 }
 

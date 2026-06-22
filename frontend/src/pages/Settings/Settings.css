@@ -875,11 +875,17 @@
 @media (max-width: 768px) {
   .settingsPage {
     padding: 24px 10px 24px;
+    overflow-x: clip;
+  }
+
+  .settingsHero h1 {
+    font-size: clamp(2rem, 12vw, 3rem);
+    letter-spacing: -0.035em;
   }
 
   .settingsCard {
-    padding: 18px;
-    border-radius: 20px;
+    padding: 14px;
+    border-radius: 14px;
   }
 
   .settingsCardHeader,
@@ -895,6 +901,45 @@
   .apartmentEditorItem {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .settingsReadOnlyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .settingsReadOnlyItemWide {
+    grid-column: auto;
+  }
+
+  .settingsOption {
+    gap: 12px;
+  }
+
+  .settingsActions,
+  .residentActions {
+    gap: 8px;
+  }
+
+  .primaryButton,
+  .secondaryButton,
+  .residentDangerButton {
+    width: 100%;
+  }
+
+  .residentModalOverlay,
+  .residentConfirmOverlay {
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .residentModal {
+    max-height: calc(100svh - 20px);
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .residentQrBox {
+    width: min(208px, 100%);
   }
 
   .towerFloorSelectField span {

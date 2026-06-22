@@ -201,14 +201,15 @@
     gap: 10px;
     margin-top: 18px;
     overflow-x: auto;
-    padding: 0 2px 6px;
+    padding: 0 2px 8px;
     scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
   }
 
   .adminOverviewCard {
-    flex: 0 0 148px;
+    flex: 0 0 min(43vw, 156px);
     min-height: 92px;
-    padding: 14px;
+    padding: 12px;
     scroll-snap-align: start;
   }
 
@@ -238,8 +239,9 @@
   .toggleButton {
     min-height: 44px;
     gap: 7px;
-    padding: 10px 8px;
-    font-size: 0.9rem;
+    padding: 9px 6px;
+    font-size: 0.78rem;
+    line-height: 1.2;
   }
 
   .toggleCount {

@@ -353,6 +353,16 @@
 }
 
 @media (max-width: 768px) {
+  .complaintPanel {
+    margin-top: 20px;
+    padding: 12px;
+    overflow: hidden;
+  }
+
+  .complaintHeader h2 {
+    font-size: clamp(1.35rem, 8vw, 1.9rem);
+  }
+
   .complaintTools {
     flex-direction: column;
     align-items: stretch;
@@ -373,6 +383,17 @@
   }
 
   .complaintPagination {
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+    gap: 10px;
+  }
+
+  .complaintPaginationInfo {
+    text-align: center;
+  }
+
+  .complaintPaginationButton {
+    width: 100%;
   }
 }
