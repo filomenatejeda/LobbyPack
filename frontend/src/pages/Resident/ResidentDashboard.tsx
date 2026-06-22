@@ -1,6 +1,7 @@
 import jsQR from "jsqr";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useI18n } from "../../lib/i18n";
 import type {
   DashboardCurrentUser,
   DashboardPreferenceSettings,
@@ -9,7 +10,6 @@ import type {
 } from "../../types/home";
 import {
   formatIssueStatus,
-  formatParcelDate,
   formatParcelStatus,
   formatParcelTime,
   getIssueStatusClassName,
@@ -39,6 +39,7 @@ type ResidentDashboardProps = {
 type ResidentView = "scanner" | "pending" | "claimed" | "issues";
 
 function ParcelSummaryCard({ item }: { item: ParcelItem }) {
+  const { t, language } = useI18n();
   const parcelDate = getParcelDate(item);
 
   return (
@@ -46,34 +47,46 @@ function ParcelSummaryCard({ item }: { item: ParcelItem }) {
       <div className="residentParcelTop">
         <strong>{item.id}</strong>
         <span className={item.parcel_status === "pending" ? "residentPending" : "residentClaimed"}>
-          {item.parcel_status === "pending" ? "Pendiente" : "Entregado"}
+          {item.parcel_status === "pending" ? t("resident.pending") : t("resident.delivered")}
         </span>
       </div>
       <p>{item.business_name}</p>
-      <p>{item.parcel_description || "Sin descripcion"}</p>
+      <p>{item.parcel_description || t("resident.emptyDescription")}</p>
       <p>
         {item.parcel_status === "pending"
           ? item.resident_claim_confirmed_at
-            ? "Confirmacion enviada. Pendiente de entrega por conserjeria"
-            : `Recibido por ${item.concierge_name}`
-          : `Retirado por ${item.claimed_by_name || item.resident_name}`}
+            ? t("resident.confirmationSent")
+            : `${t("resident.receivedBy")} ${item.concierge_name}`
+          : `${t("resident.withdrawBy")} ${item.claimed_by_name || item.resident_name}`}
       </p>
       <p>
-        {formatParcelDate(parcelDate)} a las {formatParcelTime(parcelDate)}
+        {new Date(parcelDate).toLocaleDateString(language === "es" ? "es-CL" : "en-US", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })}{" "}
+        {language === "es" ? "a las" : "at"} {formatParcelTime(parcelDate)}
       </p>
     </article>
   );
 }
 
 function ResidentIssueCard({ item }: { item: IssueItem }) {
+  const { language } = useI18n();
   return (
     <article className="residentIssueCard">
       <div className="residentIssueMeta">
         <strong>{item.id_parcel}</strong>
         <span>{item.business_name}</span>
-        <span>{formatParcelStatus(item.parcel_status)}</span>
         <span>
-          {new Date(item.created_at).toLocaleDateString("es-CL", {
+          {language === "es"
+            ? formatParcelStatus(item.parcel_status)
+            : item.parcel_status === "pending"
+              ? "Reception"
+              : "Pickup"}
+        </span>
+        <span>
+          {new Date(item.created_at).toLocaleDateString(language === "es" ? "es-CL" : "en-US", {
             day: "2-digit",
             month: "short",
             year: "numeric",
@@ -84,7 +97,13 @@ function ResidentIssueCard({ item }: { item: IssueItem }) {
             item.issue_status,
           )}`}
         >
-          {formatIssueStatus(item.issue_status)}
+          {language === "es"
+            ? formatIssueStatus(item.issue_status)
+            : item.issue_status === "open"
+              ? "Submitted"
+              : item.issue_status === "under_review"
+                ? "Under review"
+                : "Resolved"}
         </span>
       </div>
       <p>{item.issue_description}</p>
@@ -110,6 +129,7 @@ export default function ResidentDashboard({
   issueTone,
   isCreatingIssue,
 }: ResidentDashboardProps) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -136,10 +156,10 @@ export default function ResidentDashboard({
     label: string;
     count?: number;
   }> = [
-    { value: "scanner", label: "Retirar paquete" },
-    { value: "pending", label: "Paquetes pendientes", count: pendingParcels.length },
-    { value: "claimed", label: "Paquetes entregados", count: claimedParcels.length },
-    { value: "issues", label: "Reclamos", count: issues.length },
+    { value: "scanner", label: t("resident.withdrawMenu") },
+    { value: "pending", label: t("resident.pendingPackages"), count: pendingParcels.length },
+    { value: "claimed", label: t("resident.claimed"), count: claimedParcels.length },
+    { value: "issues", label: t("resident.claims"), count: issues.length },
   ];
   const residentMenuItems = qrAccessEnabled
     ? allResidentMenuItems
@@ -315,18 +335,18 @@ export default function ResidentDashboard({
       <div className="residentHero">
         <div>
           <p className="residentEyebrow">
-            {qrAccessEnabled ? "Retiro seguro por QR" : "Gestion de paquetes"}
+            {qrAccessEnabled ? t("resident.qrSecure") : t("home.management")}
           </p>
           <h2>{currentUser.display_name}</h2>
           <p className="residentLead">
             {qrAccessEnabled
-              ? "Escanea el QR mostrado en conserjeria y confirma el retiro si el paquete pertenece a tu departamento."
-              : "Revisa tus paquetes pendientes, entregados y reclamos asociados a tu departamento."}
+              ? t("resident.qrLead")
+              : t("resident.settingsLeadNoQr")}
           </p>
         </div>
         <div className="residentDepartmentCard">
-          <span>Tu hogar</span>
-          <strong>{currentUser.department_address ?? "Sin departamento asignado"}</strong>
+          <span>{t("resident.home")}</span>
+          <strong>{currentUser.department_address ?? t("resident.emptyDepartment")}</strong>
         </div>
       </div>
 
@@ -352,22 +372,19 @@ export default function ResidentDashboard({
         <div className="residentScannerPanel">
         {!qrAccessEnabled ? (
           <div className="residentQrDisabled">
-            <h3>Retiro por QR desactivado</h3>
-            <p>
-              La administracion desactivo el acceso con QR para esta comunidad. Puedes revisar tus
-              paquetes pendientes o contactar a conserjeria.
-            </p>
+            <h3>{t("resident.qrDisabled")}</h3>
+            <p>{t("resident.qrDisabledText")}</p>
           </div>
         ) : (
         <>
         <div className="residentScannerHeader">
-          <h3>Escanear QR</h3>
+          <h3>{t("resident.scanQr")}</h3>
           <button
             type="button"
             className="residentScannerButton"
             onClick={() => setIsCameraOpen((current) => !current)}
           >
-            {isCameraOpen ? "Cerrar camara" : "Abrir camara"}
+            {isCameraOpen ? t("resident.cameraClose") : t("resident.cameraOpen")}
           </button>
         </div>
 
@@ -387,7 +404,7 @@ export default function ResidentDashboard({
           }}
         >
           <label className="residentManualField">
-            <span>Ingreso manual del QR</span>
+            <span>{t("resident.enterManualQr")}</span>
             <input
               type="text"
               value={manualQrValue}
@@ -400,7 +417,7 @@ export default function ResidentDashboard({
             className="residentScannerButton secondary"
             disabled={!manualQrValue.trim() || isProcessing}
           >
-            Validar codigo
+            {t("resident.manualValidate")}
           </button>
         </form>
 
@@ -420,7 +437,7 @@ export default function ResidentDashboard({
 
         {scannedParcel ? (
           <div className="residentConfirmationCard">
-            <h3>Confirma el retiro</h3>
+            <h3>{t("resident.confirmClaim")}</h3>
             <ParcelSummaryCard item={scannedParcel} />
             <div className="residentConfirmationActions">
               <button
@@ -440,7 +457,7 @@ export default function ResidentDashboard({
                   }
                 }}
               >
-                {isProcessing ? "Confirmando..." : "Confirmar retiro"}
+                {isProcessing ? t("resident.confirming") : t("resident.confirmClaim")}
               </button>
               <button
                 type="button"
@@ -448,7 +465,7 @@ export default function ResidentDashboard({
                 disabled={isProcessing}
                 onClick={onResetScan}
               >
-                Cancelar
+                {t("resident.cancel")}
               </button>
             </div>
           </div>
@@ -462,15 +479,15 @@ export default function ResidentDashboard({
         <div className="residentIssuePanel">
         <div className="residentIssueHeader">
           <div>
-            <h3>Reclamos</h3>
-            <p>Revisa el estado de tus reclamos o reporta un problema asociado a un paquete.</p>
+            <h3>{t("resident.claims")}</h3>
+            <p>{t("resident.claimsLead")}</p>
           </div>
           <button
             type="button"
             className="residentScannerButton"
             onClick={() => setIsIssueFormOpen((current) => !current)}
           >
-            {isIssueFormOpen ? "Cerrar formulario" : "Crear reclamo"}
+            {isIssueFormOpen ? t("resident.closeForm") : t("resident.createClaim")}
           </button>
         </div>
 
@@ -488,7 +505,7 @@ export default function ResidentDashboard({
           }}
         >
           <label className="residentManualField">
-            <span>Paquete</span>
+            <span>{t("resident.package")}</span>
             <select
               value={issueParcelId}
               onChange={(event) => setIssueParcelId(event.target.value)}
@@ -501,19 +518,19 @@ export default function ResidentDashboard({
                   </option>
                 ))
               ) : (
-                <option value="">Sin paquetes disponibles</option>
+                <option value="">{t("resident.noPackages")}</option>
               )}
             </select>
           </label>
 
           <label className="residentManualField">
-            <span>Descripcion del problema</span>
+            <span>{t("resident.issueDescription")}</span>
             <textarea
               value={issueDescription}
               onChange={(event) => setIssueDescription(event.target.value)}
               maxLength={300}
               rows={4}
-              placeholder="Ej: el paquete figura como entregado, pero no lo recibi."
+              placeholder={t("resident.issuePlaceholder")}
               disabled={isCreatingIssue}
             />
           </label>
@@ -529,7 +546,7 @@ export default function ResidentDashboard({
                 !issueDescription.trim()
               }
             >
-              {isCreatingIssue ? "Enviando..." : "Enviar reclamo"}
+              {isCreatingIssue ? t("resident.reportSending") : t("resident.reportIssue")}
             </button>
           </div>
         </form>
@@ -553,7 +570,7 @@ export default function ResidentDashboard({
           {issues.length > 0 ? (
             issues.map((item) => <ResidentIssueCard key={item.id} item={item} />)
           ) : (
-            <p className="residentEmptyState">Todavia no tienes reclamos registrados.</p>
+            <p className="residentEmptyState">{t("resident.claimsEmpty")}</p>
           )}
         </div>
       </div>
@@ -563,14 +580,14 @@ export default function ResidentDashboard({
         <div className="residentParcelSections">
         <div className="residentParcelSection">
           <div className="residentSectionHeader">
-            <h3>Paquetes pendientes</h3>
+            <h3>{t("resident.pendingPackages")}</h3>
             <span>{pendingParcels.length}</span>
           </div>
           <div className="residentParcelGrid">
             {pendingParcels.length > 0 ? (
               pendingParcels.map((item) => <ParcelSummaryCard key={item.id} item={item} />)
             ) : (
-              <p className="residentEmptyState">No hay paquetes pendientes para este departamento.</p>
+              <p className="residentEmptyState">{t("resident.pendingEmpty")}</p>
             )}
           </div>
         </div>
@@ -581,14 +598,14 @@ export default function ResidentDashboard({
         <div className="residentParcelSections">
         <div className="residentParcelSection">
           <div className="residentSectionHeader">
-            <h3>Paquetes entregados</h3>
+            <h3>{t("resident.claimed")}</h3>
             <span>{claimedParcels.length}</span>
           </div>
           <div className="residentParcelGrid">
             {claimedParcels.length > 0 ? (
               claimedParcels.map((item) => <ParcelSummaryCard key={item.id} item={item} />)
             ) : (
-              <p className="residentEmptyState">Todavia no hay paquetes entregados para este departamento.</p>
+              <p className="residentEmptyState">{t("resident.claimedEmpty")}</p>
             )}
           </div>
         </div>

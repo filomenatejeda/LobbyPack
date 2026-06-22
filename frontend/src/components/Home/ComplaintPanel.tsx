@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./ComplaintPanel.css";
+import { useI18n } from "../../lib/i18n";
 import { sendContactEmail } from "../../services/homeApi";
 import type { IssueItem, IssueStatus } from "../../types/home";
 import {
@@ -91,6 +92,7 @@ export default function ComplaintPanel({
   onDeleteSelectedIssues,
   startIndex,
 }: ComplaintPanelProps) {
+  const { t, language } = useI18n();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [emailTarget, setEmailTarget] = useState<IssueItem | null>(null);
   const [emailSubject, setEmailSubject] = useState("");
@@ -139,11 +141,11 @@ export default function ComplaintPanel({
         message: emailMessage,
         bcc_sender: sendBlindCopy,
       });
-      setEmailStatusMessage("Correo enviado correctamente.");
+      setEmailStatusMessage(t("admin.emailSent"));
       window.setTimeout(closeEmailModal, 900);
     } catch (error) {
       setEmailStatusMessage(
-        error instanceof Error ? error.message : "No se pudo enviar el correo.",
+        error instanceof Error ? error.message : t("admin.emailError"),
       );
     } finally {
       setIsSendingEmail(false);
@@ -158,7 +160,7 @@ export default function ComplaintPanel({
 
       <div className="complaintTools">
         <label className="complaintSearchField">
-          <span>Buscar reclamo</span>
+          <span>{t("admin.searchClaim")}</span>
           <div className="complaintSearchInputWrap">
             <svg viewBox="0 0 24 24" aria-hidden="true" className="complaintSearchIcon">
               <path
@@ -182,7 +184,7 @@ export default function ComplaintPanel({
               value={searchTerm}
               maxLength={SEARCH_MAX_LENGTH}
               onChange={(event) => onSearchChange(event.target.value.slice(0, SEARCH_MAX_LENGTH))}
-              placeholder="Busca por nombre, paquete, depto. o reclamo"
+              placeholder={t("admin.searchClaimPlaceholder")}
             />
           </div>
         </label>
@@ -201,14 +203,14 @@ export default function ComplaintPanel({
               onClick={() => onBulkIssueStatusChange(selectedIssueIds, "resolved")}
               disabled={!canManageStatus || isUpdatingIssues}
             >
-              Marcar respondido
+              {t("admin.markAnswered")}
             </button>
             <button
               type="button"
               onClick={() => onBulkIssueStatusChange(selectedIssueIds, "under_review")}
               disabled={!canManageStatus || isUpdatingIssues}
             >
-              En revision
+              {t("admin.markReview")}
             </button>
             <button
               type="button"
@@ -216,15 +218,16 @@ export default function ComplaintPanel({
               onClick={() => onDeleteSelectedIssues(selectedIssueIds)}
               disabled={!canManageStatus || isUpdatingIssues}
             >
-              Eliminar
+              {t("admin.delete")}
             </button>
           </div>
         </div>
       ) : null}
 
       <p className="complaintResultsText">
-        {filteredCount} reclamo{filteredCount === 1 ? "" : "s"} en total · página {safePage} de{" "}
-        {totalPages}
+        {filteredCount}{" "}
+        {filteredCount === 1 ? t("admin.openClaimSingular") : t("admin.openClaimPlural")} ·{" "}
+        {t("admin.page")} {safePage} {t("admin.of")} {totalPages}
       </p>
 
       <div className="complaintTableWrap">
@@ -240,10 +243,10 @@ export default function ComplaintPanel({
                   onChange={(event) => onSelectAllVisible(event.target.checked)}
                 />
               </th>
-              <th>Mensajes</th>
-              <th>Fecha</th>
-              <th>Estado</th>
-              <th>Acciones</th>
+              <th>{t("admin.messages")}</th>
+              <th>{t("admin.date")}</th>
+              <th>{t("admin.status")}</th>
+              <th>{t("admin.actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -278,14 +281,20 @@ export default function ComplaintPanel({
                         item.issue_status,
                       )}`}
                     >
-                      Mensaje
+                      {t("admin.message")}
                     </span>
                     <span
                       className={`complaintBadge complaintBadge${getIssueStatusClassName(
                         item.issue_status,
                       )}`}
                     >
-                      {formatIssueStatus(item.issue_status)}
+                      {language === "es"
+                        ? formatIssueStatus(item.issue_status)
+                        : item.issue_status === "open"
+                          ? "Submitted"
+                          : item.issue_status === "under_review"
+                            ? "Under review"
+                            : "Resolved"}
                     </span>
                   </td>
                   <td className="complaintActionCell">
@@ -306,28 +315,28 @@ export default function ComplaintPanel({
                           onClick={() => handleStatusChange(item.id, "resolved")}
                           disabled={!canManageStatus || isUpdating}
                         >
-                          Marcar como respondido
+                          {t("admin.markAnswered")}
                         </button>
                         {item.resident_email ? (
                           <button type="button" onClick={() => openEmailModal(item)}>
-                            Contactar por e-mail
+                            {t("admin.contactEmail")}
                           </button>
                         ) : (
-                          <span>Sin e-mail registrado</span>
+                          <span>{t("admin.noEmail")}</span>
                         )}
                         {whatsappUrl ? (
                           <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                            Contactar por WhatsApp
+                            {t("admin.contactWhatsapp")}
                           </a>
                         ) : (
-                          <span>Sin WhatsApp registrado</span>
+                          <span>{t("admin.noWhatsapp")}</span>
                         )}
                         <button
                           type="button"
                           onClick={() => handleStatusChange(item.id, "under_review")}
                           disabled={!canManageStatus || isUpdating}
                         >
-                          Marcar como en revisión
+                          {t("admin.markReview")}
                         </button>
                         <button
                           type="button"
@@ -338,7 +347,7 @@ export default function ComplaintPanel({
                           }}
                           disabled={!canManageStatus || isUpdating}
                         >
-                          Eliminar
+                          {t("admin.delete")}
                         </button>
                       </div>
                     ) : null}
@@ -351,11 +360,11 @@ export default function ComplaintPanel({
       </div>
 
       {filteredCount === 0 ? (
-        <p className="complaintEmptyState">No hay reclamos que coincidan con la búsqueda.</p>
+        <p className="complaintEmptyState">{t("admin.noClaimResults")}</p>
       ) : (
         <div className="complaintFooter">
           <label className="complaintPageSizeField">
-            <span>Mostrar</span>
+            <span>{t("admin.show")}</span>
             <select
               className="complaintPageSizeSelect"
               value={pageSize}
@@ -376,11 +385,11 @@ export default function ComplaintPanel({
               onClick={onPrevPage}
               disabled={safePage === 1}
             >
-              Anterior
+              {t("admin.previous")}
             </button>
             <span className="complaintPaginationInfo">
-              Mostrando {startIndex + 1}-{Math.min(startIndex + pageSize, filteredCount)} de{" "}
-              {filteredCount}
+              {t("admin.showing")} {startIndex + 1}-
+              {Math.min(startIndex + pageSize, filteredCount)} {t("admin.of")} {filteredCount}
             </span>
             <button
               type="button"
@@ -388,7 +397,7 @@ export default function ComplaintPanel({
               onClick={onNextPage}
               disabled={safePage === totalPages}
             >
-              Siguiente
+              {t("admin.next")}
             </button>
           </div>
         </div>
@@ -404,7 +413,7 @@ export default function ComplaintPanel({
             aria-labelledby="complaintEmailModalTitle"
           >
             <div className="emailModalHeader">
-              <h3 id="complaintEmailModalTitle">Enviar un email</h3>
+              <h3 id="complaintEmailModalTitle">{t("admin.sendEmail")}</h3>
               <button
                 type="button"
                 className="emailModalClose"
@@ -424,17 +433,17 @@ export default function ComplaintPanel({
             >
               <div className="emailFormRow">
                 <label className="emailField">
-                  <span>Para</span>
+                  <span>{t("admin.to")}</span>
                   <input type="email" value={emailTarget.resident_email} readOnly />
                 </label>
                 <label className="emailField">
-                  <span>De</span>
+                  <span>{t("admin.from")}</span>
                   <input type="text" value={senderEmail || "LobbyPack"} readOnly />
                 </label>
               </div>
 
               <label className="emailField">
-                <span>Asunto</span>
+                <span>{t("admin.subject")}</span>
                 <input
                   type="text"
                   value={emailSubject}
@@ -444,7 +453,7 @@ export default function ComplaintPanel({
               </label>
 
               <label className="emailField">
-                <span>Mensaje</span>
+                <span>{t("admin.message")}</span>
                 <textarea
                   value={emailMessage}
                   onChange={(event) => setEmailMessage(event.target.value)}
@@ -474,10 +483,10 @@ export default function ComplaintPanel({
                   onClick={closeEmailModal}
                   disabled={isSendingEmail}
                 >
-                  Cancelar
+                  {t("admin.cancel")}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSendingEmail}>
-                  {isSendingEmail ? "Enviando..." : "Enviar"}
+                  {isSendingEmail ? t("admin.sending") : t("admin.send")}
                 </button>
               </div>
             </form>

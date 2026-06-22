@@ -1,5 +1,6 @@
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo1.png";
+import { useI18n } from "../../lib/i18n";
 import type { ParcelItem } from "../../types/home";
 import "./ResidentDeliverySuccess.css";
 
@@ -8,6 +9,7 @@ type DeliverySuccessState = {
 };
 
 export default function ResidentDeliverySuccess() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const parcel = (location.state as DeliverySuccessState | null)?.parcel;
@@ -28,18 +30,16 @@ export default function ResidentDeliverySuccess() {
           </div>
         </div>
         <div className="deliverySuccessContent">
-          <p className="deliverySuccessEyebrow">Retiro confirmado</p>
-          <h1>Paquete entregado con exito</h1>
-          <p className="deliverySuccessText">
-            El paquete quedo registrado como retirado correctamente.
-          </p>
+          <p className="deliverySuccessEyebrow">{t("resident.successEyebrow")}</p>
+          <h1>{t("resident.successTitle")}</h1>
+          <p className="deliverySuccessText">{t("resident.successText")}</p>
           <strong className="deliverySuccessParcel">{parcel.id}</strong>
           <button
             type="button"
             className="deliverySuccessButton"
             onClick={() => navigate("/dashboard?view=claimed", { replace: true })}
           >
-            Ver detalles
+            {t("resident.successDetails")}
           </button>
         </div>
       </section>

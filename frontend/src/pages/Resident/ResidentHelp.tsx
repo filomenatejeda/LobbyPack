@@ -1,45 +1,43 @@
 import { ArrowRight, Camera, Home, MessageCircle, PackageSearch } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { useI18n } from "../../lib/i18n";
 import { fetchDashboard } from "../../services/homeApi";
 import type { DashboardCurrentUser } from "../../types/home";
 import "../Settings/Settings.css";
 import "./ResidentHelp.css";
 
 type HelpItem = {
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: typeof Camera;
 };
 
 const helpItems: HelpItem[] = [
   {
-    title: "No puedo escanear el QR",
-    description:
-      "Abre la camara desde Cuenta, acerca el codigo y revisa que haya buena luz. Si no funciona, usa el ingreso manual del QR.",
+    titleKey: "resident.helpQrTitle",
+    descriptionKey: "resident.helpQrDesc",
     icon: Camera,
   },
   {
-    title: "Mi paquete no aparece",
-    description:
-      "Revisa Paquetes pendientes en Cuenta. Si crees que falta un registro, avisa a conserjeria con los datos del envio.",
+    titleKey: "resident.helpMissingTitle",
+    descriptionKey: "resident.helpMissingDesc",
     icon: PackageSearch,
   },
   {
-    title: "Mis datos estan incorrectos",
-    description:
-      "Tu informacion es solo de lectura. Para cambiar correo, nombre o departamento, contacta a administracion.",
+    titleKey: "resident.helpDataTitle",
+    descriptionKey: "resident.helpDataDesc",
     icon: Home,
   },
   {
-    title: "Necesito reportar un problema",
-    description:
-      "En Cuenta puedes entrar a Reclamos y dejar el detalle asociado al paquete correspondiente.",
+    titleKey: "resident.helpClaimTitle",
+    descriptionKey: "resident.helpClaimDesc",
     icon: MessageCircle,
   },
 ];
 
 export default function ResidentHelp() {
+  const { t } = useI18n();
   const [currentUser, setCurrentUser] = useState<DashboardCurrentUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState("");
@@ -73,39 +71,36 @@ export default function ResidentHelp() {
   return (
     <main className="settingsPage residentHelpPage">
       <section className="settingsHero residentHelpHero">
-        <p className="settingsEyebrow">Ayuda residente</p>
-        <h1>Como podemos ayudarte</h1>
-        <p className="settingsLead">
-          Encuentra respuestas rapidas para retirar paquetes, revisar tu cuenta y resolver problemas
-          comunes.
-        </p>
+        <p className="settingsEyebrow">{t("resident.help")}</p>
+        <h1>{t("resident.helpTitle")}</h1>
+        <p className="settingsLead">{t("resident.helpLead")}</p>
       </section>
 
       {statusMessage ? <p className="settingsLead">{statusMessage}</p> : null}
 
-      <section className="residentHelpActions" aria-label="Accesos rapidos">
+      <section className="residentHelpActions" aria-label={t("resident.help")}>
         <Link to="/dashboard" className="residentHelpAction">
-          <span>Ir a Cuenta</span>
+          <span>{t("resident.helpActionAccount")}</span>
           <ArrowRight size={18} aria-hidden="true" />
         </Link>
         <Link to="/configuracion" className="residentHelpAction secondary">
-          <span>Ver Informacion</span>
+          <span>{t("resident.helpActionInfo")}</span>
           <ArrowRight size={18} aria-hidden="true" />
         </Link>
       </section>
 
-      <section className="residentHelpGrid" aria-label="Temas de ayuda">
+      <section className="residentHelpGrid" aria-label={t("resident.help")}>
         {helpItems.map((item) => {
           const Icon = item.icon;
 
           return (
-            <article key={item.title} className="residentHelpCard">
+            <article key={item.titleKey} className="residentHelpCard">
               <div className="residentHelpIcon">
                 <Icon size={22} aria-hidden="true" />
               </div>
               <div>
-                <h2>{item.title}</h2>
-                <p>{item.description}</p>
+                <h2>{t(item.titleKey)}</h2>
+                <p>{t(item.descriptionKey)}</p>
               </div>
             </article>
           );
@@ -113,12 +108,9 @@ export default function ResidentHelp() {
       </section>
 
       <section className="residentHelpNote">
-        <p className="settingsLabel">Conserjeria</p>
-        <h2>Para casos urgentes, habla directamente con conserjeria</h2>
-        <p>
-          Si el paquete ya esta en recepcion o necesitas retirar con prioridad, conserjeria puede
-          validar el estado del envio y ayudarte con el retiro.
-        </p>
+        <p className="settingsLabel">{t("resident.concierge")}</p>
+        <h2>{t("resident.urgentHelpTitle")}</h2>
+        <p>{t("resident.urgentHelpText")}</p>
       </section>
     </main>
   );

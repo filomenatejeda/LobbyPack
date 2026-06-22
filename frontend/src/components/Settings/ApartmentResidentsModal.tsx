@@ -2,6 +2,7 @@ import { useMemo, useState, type ComponentType, type FormEvent } from "react";
 import { Trash2, X } from "lucide-react";
 import QRCodeImport from "react-qr-code";
 import { createIsolatedSupabaseClient, supabaseConfigError } from "../../lib/client";
+import { useI18n } from "../../lib/i18n";
 import {
   isValidInternationalPhone,
   normalizeInternationalPhone,
@@ -61,6 +62,7 @@ export default function ApartmentResidentsModal({
   onDeleteResident,
   onVerifyMfa,
 }: ApartmentResidentsModalProps) {
+  const { t } = useI18n();
   const [isAdding, setIsAdding] = useState(false);
   const [accountPhase, setAccountPhase] = useState<string>(ResidentAccountPhase.Form);
   const [createdResident, setCreatedResident] =
@@ -91,11 +93,11 @@ export default function ApartmentResidentsModal({
       const normalizedPhoneNumber = normalizeInternationalPhone(phoneNumber);
 
       if (!normalizedPhoneNumber) {
-        throw new Error("El telefono del residente es obligatorio.");
+        throw new Error(t("resident.phoneRequired"));
       }
 
       if (!isValidInternationalPhone(normalizedPhoneNumber)) {
-        throw new Error("El telefono debe usar codigo de pais, por ejemplo +56912345678.");
+        throw new Error(t("resident.phoneInvalid"));
       }
 
       const signedUp = await residentSupabase.auth.signUp({
@@ -254,7 +256,7 @@ export default function ApartmentResidentsModal({
                   <div>
                     <strong>{resident.resident_name}</strong>
                     <span>{resident.email}</span>
-                    <span>{resident.user_phone_number || "Sin telefono registrado"}</span>
+                    <span>{resident.user_phone_number || t("resident.phoneEmpty")}</span>
                     <span>
                       {resident.email_verified && resident.mfa_enabled
                         ? "Verificado con autenticador"
@@ -267,8 +269,8 @@ export default function ApartmentResidentsModal({
                       className="residentDeleteButton"
                       onClick={() => setResidentToDelete(resident)}
                       disabled={isSaving}
-                      aria-label={`Eliminar residente ${resident.resident_name}`}
-                      title="Eliminar residente"
+                      aria-label={`${t("resident.deleteResident")} ${resident.resident_name}`}
+                      title={t("resident.deleteResident")}
                     >
                       <Trash2 size={18} aria-hidden="true" />
                     </button>
@@ -305,7 +307,7 @@ export default function ApartmentResidentsModal({
                 />
               </label>
               <label className="settingsField">
-                <span>Contraseña</span>
+                <span>{t("resident.password")}</span>
                 <input
                   type="password"
                   value={residentPassword}
@@ -315,7 +317,7 @@ export default function ApartmentResidentsModal({
                 />
               </label>
               <label className="settingsField">
-                <span>Telefono</span>
+                <span>{t("resident.phone")}</span>
                 <input
                   type="tel"
                   value={phoneNumber}
@@ -332,7 +334,7 @@ export default function ApartmentResidentsModal({
                   onClick={resetCreateFlow}
                   disabled={isSaving}
                 >
-                  Cancelar
+                  {t("admin.cancel")}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
                   {isSaving ? "Creando..." : "Crear cuenta"}
@@ -372,7 +374,7 @@ export default function ApartmentResidentsModal({
               </label>
               <div className="residentActions">
                 <button type="button" className="secondaryButton" onClick={resetCreateFlow}>
-                  Cancelar
+                  {t("admin.cancel")}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
                   {isSaving ? "Activando..." : "Activar autenticador"}
@@ -397,7 +399,7 @@ export default function ApartmentResidentsModal({
           {!isAdding && canManageResidents ? (
             <div className="residentActions">
               <button type="button" className="primaryButton" onClick={() => setIsAdding(true)}>
-                Agregar cuenta residente
+                {t("resident.addAccount")}
               </button>
             </div>
           ) : null}

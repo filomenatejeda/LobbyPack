@@ -3,6 +3,7 @@ import AddPackageModal from "../../components/Home/AddPackageModal";
 import ComplaintPanel from "../../components/Home/ComplaintPanel";
 import PackagePanel from "../../components/Home/PackagePanel";
 import QrModal from "../../components/Home/QrModal";
+import { useI18n } from "../../lib/i18n";
 import { pageSizeOptions } from "../../utils/packageUtils";
 import type { useHomeDashboard } from "../Home/hooks/useHomeDashboard";
 import "./AdminDashboard.css";
@@ -12,6 +13,7 @@ type AdminDashboardProps = {
 };
 
 export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
+  const { t } = useI18n();
   const [withdrawalPin, setWithdrawalPin] = useState("");
   const canManageIssueStatus = dashboard.currentUser?.role === "admin";
   const openIssues = dashboard.issues.filter((issue) => issue.issue_status === "open");
@@ -24,7 +26,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
 
   return (
     <>
-      <section className="adminOverview" aria-label="Resumen operativo">
+      <section className="adminOverview" aria-label={t("admin.claims")}>
         <button
           type="button"
           className={
@@ -34,9 +36,9 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           }
           onClick={() => dashboard.activateView("received")}
         >
-          <span>En recepcion</span>
+          <span>{t("admin.inReception")}</span>
           <strong>{pendingPickupCount}</strong>
-          <small>Paquetes esperando retiro</small>
+          <small>{t("admin.packagesWaiting")}</small>
         </button>
 
         <button
@@ -48,9 +50,9 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           }
           onClick={() => dashboard.activateView("pickedUp")}
         >
-          <span>Retirados</span>
+          <span>{t("admin.withdrawn")}</span>
           <strong>{claimedCount}</strong>
-          <small>Entregas completadas</small>
+          <small>{t("admin.completedDeliveries")}</small>
         </button>
 
         <button
@@ -62,9 +64,9 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           }
           onClick={() => dashboard.activateView("complaints")}
         >
-          <span>Reclamos abiertos</span>
+          <span>{t("admin.claimsOpen")}</span>
           <strong>{openIssueCount}</strong>
-          <small>{underReviewIssues.length} en revision</small>
+          <small>{underReviewIssues.length} {t("admin.underReview")}</small>
         </button>
       </section>
 
@@ -75,20 +77,22 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           onClick={() => dashboard.activateView("complaints")}
         >
           <strong>
-            {openIssueCount} reclamo{openIssueCount === 1 ? "" : "s"} abierto
-            {openIssueCount === 1 ? "" : "s"}
+            {openIssueCount}{" "}
+            {openIssueCount === 1
+              ? t("admin.openClaimSingular")
+              : t("admin.openClaimPlural")}
           </strong>
-          <span>Revisa la bandeja de reclamos para responderlos.</span>
+          <span>{t("admin.reviewClaims")}</span>
         </button>
       ) : null}
 
-      <div className="serviceToggle" aria-label="Selecciona recepcion o retiro">
+      <div className="serviceToggle" aria-label={t("admin.receipt")}>
         <button
           type="button"
           className={dashboard.activeView === "received" ? "toggleButton active" : "toggleButton"}
           onClick={() => dashboard.activateView("received")}
         >
-          <span>Recepcion</span>
+          <span>{t("admin.receipt")}</span>
           <strong className="toggleCount">{pendingPickupCount}</strong>
         </button>
         <button
@@ -96,7 +100,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           className={dashboard.activeView === "pickedUp" ? "toggleButton active" : "toggleButton"}
           onClick={() => dashboard.activateView("pickedUp")}
         >
-          <span>Retiro</span>
+          <span>{t("admin.withdrawal")}</span>
           <strong className="toggleCount">{claimedCount}</strong>
         </button>
         <button
@@ -104,7 +108,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           className={dashboard.activeView === "complaints" ? "toggleButton active" : "toggleButton"}
           onClick={() => dashboard.activateView("complaints")}
         >
-          <span>Reclamos</span>
+          <span>{t("admin.claims")}</span>
           <strong className={openIssueCount > 0 ? "toggleCount alert" : "toggleCount"}>
             {openIssueCount}
           </strong>
@@ -113,7 +117,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
 
       {dashboard.activeView === "complaints" ? (
         <ComplaintPanel
-          title="Reclamos"
+          title={t("admin.claims")}
           searchTerm={dashboard.searchTerm}
           pageSize={dashboard.pageSize}
           pageSizeOptions={pageSizeOptions}
@@ -149,7 +153,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
 
           return (
             <PackagePanel
-              title={dashboard.currentPackageView?.title ?? "Paquetes"}
+              title={dashboard.currentPackageView?.title ?? t("admin.packages")}
               searchTerm={dashboard.searchTerm}
               pageSize={dashboard.pageSize}
               pageSizeOptions={pageSizeOptions}
@@ -189,7 +193,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           className="addPackageButton floatingAddButton"
           onClick={() => dashboard.setIsAddPackageOpen(true)}
         >
-          + Agregar paquete
+          {t("admin.addPackage")}
         </button>
       ) : null}
 
@@ -214,23 +218,22 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           >
             <div className="pinModalHeader">
               <div>
-                <p>Validacion por PIN</p>
-                <h3 id="pinModalTitle">Paquete {dashboard.pinPackage.id}</h3>
+                <p>{t("admin.pinTitle")}</p>
+                <h3 id="pinModalTitle">{t("resident.package")} {dashboard.pinPackage.id}</h3>
               </div>
               <button
                 type="button"
                 className="closeModalButton"
                 onClick={dashboard.closePinModal}
-                aria-label="Cerrar validacion por PIN"
+                aria-label={t("admin.pinClose")}
               >
                 x
               </button>
             </div>
 
             <p className="pinModalText">
-              Ingresa el PIN de un residente del departamento{" "}
-              <strong>{dashboard.pinPackage.department_address}</strong> para marcar el paquete
-              como retirado.
+              {t("admin.pinText")} <strong>{dashboard.pinPackage.department_address}</strong>{" "}
+              {t("admin.pinTextEnd")}
             </p>
 
             <form
@@ -242,7 +245,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
               }}
             >
               <label>
-                <span>PIN de retiro</span>
+                <span>{t("admin.pinLabel")}</span>
                 <input
                   type="text"
                   name="lobbypack-package-withdrawal-pin"
@@ -258,7 +261,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
                   onChange={(event) =>
                     setWithdrawalPin(event.target.value.replace(/\D/g, "").slice(0, 6))
                   }
-                  placeholder="4 a 6 digitos"
+                  placeholder={t("admin.pinDigits")}
                   autoFocus
                 />
               </label>
@@ -274,14 +277,14 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
                   onClick={dashboard.closePinModal}
                   disabled={dashboard.isPinClaimProcessing}
                 >
-                  Cancelar
+                  {t("admin.cancel")}
                 </button>
                 <button
                   type="submit"
                   className="primaryButton"
                   disabled={dashboard.isPinClaimProcessing || withdrawalPin.length < 4}
                 >
-                  {dashboard.isPinClaimProcessing ? "Validando..." : "Validar y retirar"}
+                  {dashboard.isPinClaimProcessing ? t("admin.validating") : t("admin.validate")}
                 </button>
               </div>
             </form>
@@ -302,7 +305,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
         <AddPackageModal
           conciergeName={dashboard.currentUser?.display_name ?? ""}
           communityStructure={dashboard.communityStructure}
-          title={`Editar paquete ${dashboard.editingParcel.id}`}
+          title={`${t("admin.editPackage")} ${dashboard.editingParcel.id}`}
           initialValues={{
             department_address: dashboard.editingParcel.department_address,
             resident_name: dashboard.editingParcel.resident_name,

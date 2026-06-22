@@ -2,6 +2,7 @@ import { useMemo, useState, type ComponentType, type FormEvent } from "react";
 import { X } from "lucide-react";
 import QRCodeImport from "react-qr-code";
 import { createIsolatedSupabaseClient, supabaseConfigError } from "../../lib/client";
+import { useI18n } from "../../lib/i18n";
 import type {
   ConciergeAccountCreationResponse,
   ResidentTotpSetup,
@@ -47,6 +48,7 @@ export default function ConciergeInviteModal({
   onVerifyMfa,
   onDone,
 }: ConciergeInviteModalProps) {
+  const { t } = useI18n();
   const [accountPhase, setAccountPhase] = useState<string>(ConciergeAccountPhase.Form);
   const [createdConcierge, setCreatedConcierge] =
     useState<ConciergeAccountCreationResponse | null>(null);
@@ -261,7 +263,7 @@ export default function ConciergeInviteModal({
                   onClick={onClose}
                   disabled={isSaving}
                 >
-                  Cancelar
+                  {t("admin.cancel")}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
                   {isSaving ? "Creando..." : "Crear cuenta"}
@@ -290,7 +292,7 @@ export default function ConciergeInviteModal({
               </label>
               <div className="residentActions">
                 <button type="button" className="secondaryButton" onClick={resetCreateFlow}>
-                  Cancelar
+                  {t("admin.cancel")}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
                   {isSaving ? "Verificando..." : "Verificar codigo"}
@@ -330,7 +332,7 @@ export default function ConciergeInviteModal({
               </label>
               <div className="residentActions">
                 <button type="button" className="secondaryButton" onClick={resetCreateFlow}>
-                  Cancelar
+                  {t("admin.cancel")}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
                   {isSaving ? "Activando..." : "Activar autenticador"}

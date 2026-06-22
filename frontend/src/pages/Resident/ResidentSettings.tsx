@@ -3,6 +3,7 @@ import {
   updateResidentPhoneNumber,
   updateResidentWithdrawalPin,
 } from "../../services/settingsApi";
+import { useI18n } from "../../lib/i18n";
 import type { DashboardCurrentUser } from "../../types/home";
 import {
   isValidInternationalPhone,
@@ -25,6 +26,7 @@ export default function ResidentSettings({
   packageCounts,
   statusMessage = "",
 }: ResidentSettingsProps) {
+  const { t } = useI18n();
   const [phoneNumber, setPhoneNumber] = useState(currentUser.user_phone_number);
   const [savedPhoneNumber, setSavedPhoneNumber] = useState(currentUser.user_phone_number);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
@@ -49,12 +51,12 @@ export default function ResidentSettings({
     const normalizedPhoneNumber = normalizeInternationalPhone(phoneNumber);
 
     if (!normalizedPhoneNumber) {
-      setPhoneMessage("El telefono es obligatorio.");
+      setPhoneMessage(t("resident.phoneRequired"));
       return;
     }
 
     if (!isValidInternationalPhone(normalizedPhoneNumber)) {
-      setPhoneMessage("El telefono debe usar codigo de pais, por ejemplo +56912345678.");
+      setPhoneMessage(t("resident.phoneInvalid"));
       return;
     }
 
@@ -69,7 +71,7 @@ export default function ResidentSettings({
       setPhoneMessage("Telefono actualizado correctamente.");
     } catch (error) {
       setPhoneMessage(
-        error instanceof Error ? error.message : "No se pudo actualizar el telefono.",
+        error instanceof Error ? error.message : t("resident.phoneUpdateError"),
       );
     } finally {
       setIsSavingPhone(false);
@@ -86,7 +88,7 @@ export default function ResidentSettings({
     event.preventDefault();
 
     if (!/^\d{4,6}$/.test(withdrawalPin)) {
-      setPinMessage("El PIN debe tener entre 4 y 6 digitos.");
+      setPinMessage(t("resident.pinInvalid"));
       return;
     }
 
@@ -114,11 +116,9 @@ export default function ResidentSettings({
   return (
     <main className="settingsPage residentSettingsPage">
       <section className="settingsHero residentSettingsHero">
-        <p className="settingsEyebrow">Cuenta personal</p>
-        <h1>Mi informacion</h1>
-        <p className="settingsLead">
-          Revisa los datos asociados a tu acceso de residente y el estado de tus retiros.
-        </p>
+        <p className="settingsEyebrow">{t("resident.personalAccount")}</p>
+        <h1>{t("resident.myInfo")}</h1>
+        <p className="settingsLead">{t("resident.personalLead")}</p>
       </section>
 
       {statusMessage ? <p className="settingsLead">{statusMessage}</p> : null}
@@ -127,23 +127,23 @@ export default function ResidentSettings({
         <article className="settingsCard residentProfileCard">
           <div className="settingsCardHeader">
             <div>
-              <p className="settingsLabel">Perfil</p>
+              <p className="settingsLabel">{t("resident.profile")}</p>
               <h2>{currentUser.display_name}</h2>
             </div>
-            <span className="settingsRole">Residente</span>
+            <span className="settingsRole">{t("resident.resident")}</span>
           </div>
 
           <dl className="settingsReadOnlyGrid residentSettingsDetails">
             <div className="settingsReadOnlyItem">
-              <dt>Correo</dt>
+              <dt>{t("resident.email")}</dt>
               <dd>{currentUser.email}</dd>
             </div>
             <div className="settingsReadOnlyItem">
-              <dt>Departamento</dt>
-              <dd>{currentUser.department_address ?? "Sin departamento asignado"}</dd>
+              <dt>{t("resident.department")}</dt>
+              <dd>{currentUser.department_address ?? t("resident.emptyDepartment")}</dd>
             </div>
             <div className="settingsReadOnlyItem">
-              <dt>Telefono</dt>
+              <dt>{t("resident.phone")}</dt>
               <dd>
                 {isEditingPhone ? (
                   <form className="residentPhoneForm" onSubmit={handlePhoneSubmit}>
@@ -157,7 +157,7 @@ export default function ResidentSettings({
                     />
                     <div className="residentPhoneActions">
                       <button type="submit" className="primaryButton" disabled={isSavingPhone}>
-                        {isSavingPhone ? "Guardando..." : "Guardar"}
+                        {isSavingPhone ? t("resident.saving") : t("resident.save")}
                       </button>
                       <button
                         type="button"
@@ -165,19 +165,19 @@ export default function ResidentSettings({
                         onClick={handleCancelPhoneEdit}
                         disabled={isSavingPhone}
                       >
-                        Cancelar
+                        {t("resident.cancel")}
                       </button>
                     </div>
                   </form>
                 ) : (
                   <div className="residentPhoneRead">
-                    <span>{savedPhoneNumber || "Sin telefono registrado"}</span>
+                    <span>{savedPhoneNumber || t("resident.phoneEmpty")}</span>
                     <button
                       type="button"
                       className="secondaryButton"
                       onClick={() => setIsEditingPhone(true)}
                     >
-                      Editar
+                      {t("resident.edit")}
                     </button>
                   </div>
                 )}
@@ -190,27 +190,27 @@ export default function ResidentSettings({
         <article className="settingsCard residentAccessCard">
           <div className="settingsCardHeader">
             <div>
-              <p className="settingsLabel">Seguridad</p>
-              <h2>Acceso de cuenta</h2>
+              <p className="settingsLabel">{t("resident.security")}</p>
+              <h2>{t("resident.accountAccess")}</h2>
             </div>
           </div>
           <div className="residentSettingsList">
             <div>
-              <strong>PIN de retiro</strong>
+              <strong>{t("admin.pinLabel")}</strong>
               <span>
                 {isPinConfigured
-                  ? "Configurado para validar entregas cuando QR esta apagado."
-                  : "Configura un PIN de 4 a 6 digitos para retirar sin QR."}
+                  ? t("resident.configuredPin")
+                  : t("resident.configurePin")}
               </span>
             </div>
             <div>
-              <strong>Sesion protegida</strong>
-              <span>Usa tus credenciales registradas para ingresar a LobbyPack.</span>
+              <strong>{t("resident.sessionProtected")}</strong>
+              <span>{t("resident.sessionProtectedText")}</span>
             </div>
           </div>
           <form className="residentPinForm" onSubmit={handlePinSubmit}>
             <label className="settingsField">
-              <span>Nuevo PIN</span>
+              <span>{t("resident.newPin")}</span>
               <input
                 type="text"
                 name="lobbypack-withdrawal-pin"
@@ -226,11 +226,11 @@ export default function ResidentSettings({
                 onChange={(event) =>
                   setWithdrawalPin(event.target.value.replace(/\D/g, "").slice(0, 6))
                 }
-                placeholder="4 a 6 digitos"
+                placeholder={t("admin.pinDigits")}
               />
             </label>
             <label className="settingsField">
-              <span>Confirmar PIN</span>
+              <span>{t("resident.confirmPin")}</span>
               <input
                 type="text"
                 name="lobbypack-withdrawal-pin-confirmation"
@@ -248,7 +248,7 @@ export default function ResidentSettings({
                     event.target.value.replace(/\D/g, "").slice(0, 6),
                   )
                 }
-                placeholder="Repite tu PIN"
+                placeholder={t("resident.confirmPin")}
               />
             </label>
             <button
@@ -256,7 +256,11 @@ export default function ResidentSettings({
               className="primaryButton"
               disabled={isSavingPin || !withdrawalPin || !withdrawalPinConfirmation}
             >
-              {isSavingPin ? "Guardando..." : isPinConfigured ? "Cambiar PIN" : "Guardar PIN"}
+              {isSavingPin
+                ? t("resident.saving")
+                : isPinConfigured
+                  ? t("resident.changePin")
+                  : t("resident.savePin")}
             </button>
             {pinMessage ? <p className="residentPhoneMessage">{pinMessage}</p> : null}
           </form>
@@ -265,18 +269,18 @@ export default function ResidentSettings({
         <article className="settingsCard settingsCardWide residentPackageStatusCard">
           <div className="settingsCardHeader">
             <div>
-              <p className="settingsLabel">Mis paquetes</p>
-              <h2>Estado de retiros</h2>
+              <p className="settingsLabel">{t("resident.myPackages")}</p>
+              <h2>{t("resident.withdrawStatus")}</h2>
             </div>
           </div>
           <div className="settingsStats residentSettingsStats">
             <div className="settingsStat">
               <strong>{packageCounts.pending}</strong>
-              <span>Pendientes para retirar</span>
+              <span>{t("resident.pendingPackages")}</span>
             </div>
             <div className="settingsStat">
               <strong>{packageCounts.claimed}</strong>
-              <span>Entregados a tu cuenta</span>
+              <span>{t("resident.claimed")}</span>
             </div>
           </div>
         </article>
