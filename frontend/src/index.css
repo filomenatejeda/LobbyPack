@@ -1,0 +1,73 @@
+:root {
+  --page-bg: #f7f8f4;
+  --surface: #f3f1e9;
+  --surface-strong: #ffffff;
+  --surface-muted: #edf2e5;
+  --text: #3c342d;
+  --text-soft: #6f655c;
+  --line: rgba(95, 86, 74, 0.12);
+  --accent: #8aa57a;
+  --accent-strong: #5f7a53;
+  --accent-soft: #e3edd8;
+  --brown-soft: #d9cab8;
+  --brown-strong: #74614e;
+  --shadow: 0 10px 30px rgba(60, 52, 45, 0.06);
+  --radius-xl: 28px;
+  --radius-lg: 20px;
+  --shell-width: 1200px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--page-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  background: var(--page-bg);
+}
+
+#root {
+  width: 100%;
+  min-height: 100svh;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --shell-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --radius-xl: 22px;
+    --radius-lg: 16px;
+  }
+}
