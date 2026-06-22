@@ -35,6 +35,10 @@ const server = Bun.serve({
       );
     }
 
+    if (url.pathname === "/config.js") {
+      return serveRuntimeConfig();
+    }
+
     if (url.pathname.startsWith("/api/") && apiApp) {
       return apiApp.handle(request);
     }
@@ -160,3 +164,19 @@ async function initializeDatabase() {
 }
 
 void initializeDatabase();
+
+function serveRuntimeConfig() {
+  const config = {
+    VITE_API_BASE_URL: process.env.VITE_API_BASE_URL,
+    VITE_GEOAPIFY_API_KEY: process.env.VITE_GEOAPIFY_API_KEY,
+    VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY: process.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
+    VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL,
+  };
+
+  return new Response(`window.__LOBBYPACK_CONFIG__ = ${JSON.stringify(config)};`, {
+    headers: {
+      "Cache-Control": "no-store",
+      "Content-Type": "application/javascript; charset=utf-8",
+    },
+  });
+}

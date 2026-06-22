@@ -1,7 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+const runtimeConfig = window.__LOBBYPACK_CONFIG__;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? runtimeConfig?.VITE_SUPABASE_URL;
+const supabasePublishableKey =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY ??
+  runtimeConfig?.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
 const isPlaceholderValue = (value?: string) =>
   !value || value.startsWith("tu_") || value.includes("example");

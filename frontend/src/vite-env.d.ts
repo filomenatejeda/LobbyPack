@@ -7,3 +7,12 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+interface Window {
+  __LOBBYPACK_CONFIG__?: {
+    VITE_API_BASE_URL?: string;
+    VITE_GEOAPIFY_API_KEY?: string;
+    VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY?: string;
+    VITE_SUPABASE_URL?: string;
+  };
+}
