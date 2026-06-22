@@ -13,6 +13,13 @@ const Phase = {
   MFA: 1,
 } as const;
 
+function getAuthRedirectUrl() {
+  const configuredRedirectUrl =
+    import.meta.env.VITE_AUTH_REDIRECT_URL ?? window.__LOBBYPACK_CONFIG__?.VITE_AUTH_REDIRECT_URL;
+
+  return configuredRedirectUrl || `${window.location.origin}/auth/login`;
+}
+
 export function LoginForm() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -138,6 +145,11 @@ export function LoginForm() {
 
     if (reason === "missing_session") {
       setError("Debes iniciar sesión para continuar.");
+      return;
+    }
+
+    if (reason === "session_check_failed") {
+      setError("No se pudo verificar la sesión. Intenta iniciar sesión nuevamente.");
     }
   }, [location.state]);
 
@@ -201,7 +213,7 @@ export function LoginForm() {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/login`,
+          redirectTo: getAuthRedirectUrl(),
           queryParams: {
             access_type: "offline",
             prompt: "consent",

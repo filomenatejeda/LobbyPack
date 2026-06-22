@@ -168,6 +168,7 @@ void initializeDatabase();
 function serveRuntimeConfig() {
   const config = {
     VITE_API_BASE_URL: process.env.VITE_API_BASE_URL,
+    VITE_AUTH_REDIRECT_URL: process.env.VITE_AUTH_REDIRECT_URL,
     VITE_GEOAPIFY_API_KEY: process.env.VITE_GEOAPIFY_API_KEY,
     VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY: process.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
     VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL,

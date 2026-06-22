@@ -13,58 +13,72 @@ export default function useCheckIfAuth() {
     let isActive = true;
 
     const validateSession = async () => {
-      const [userResponse, assuranceResponse] = await Promise.all([
-        supabase.auth.getUser(),
-        supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
-      ]);
+      try {
+        const [userResponse, assuranceResponse] = await Promise.all([
+          supabase.auth.getUser(),
+          supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+        ]);
 
-      const user = userResponse.data.user;
-      const hasUser = Boolean(user) && !userResponse.error;
-      const usedGoogleSSO = isGoogleSSOUser(user);
-      const hasVerifiedSession = assuranceResponse.data?.currentLevel === "aal2";
+        const user = userResponse.data.user;
+        const hasUser = Boolean(user) && !userResponse.error;
+        const usedGoogleSSO = isGoogleSSOUser(user);
+        const hasVerifiedSession = assuranceResponse.data?.currentLevel === "aal2";
 
-      if (!hasUser) {
-        navigate("/auth/login", {
-          replace: true,
-          state: {
-            from: location.pathname,
-            reason: "missing_session",
-          },
-        });
-        return;
-      }
-
-      if (usedGoogleSSO) {
-        const userEmail = user?.email;
-        const registration = userEmail
-          ? await checkAdminEmailRegistration(userEmail)
-          : { exists: false };
-
-        if (!registration.exists) {
-          navigate("/auth/sign-up", {
+        if (!hasUser) {
+          navigate("/auth/login", {
             replace: true,
             state: {
               from: location.pathname,
-              reason: "complete_google_registration",
+              reason: "missing_session",
             },
           });
           return;
         }
-      }
 
-      if (!hasVerifiedSession) {
-        navigate("/auth/login", {
-          replace: true,
-          state: {
-            from: location.pathname,
-            reason: "missing_mfa",
-          },
-        });
-        return;
-      }
+        if (usedGoogleSSO) {
+          const userEmail = user?.email;
+          const registration = userEmail
+            ? await checkAdminEmailRegistration(userEmail)
+            : { exists: false };
 
-      if (isActive) {
-        setIsCheckingAuth(false);
+          if (!registration.exists) {
+            navigate("/auth/sign-up", {
+              replace: true,
+              state: {
+                from: location.pathname,
+                reason: "complete_google_registration",
+              },
+            });
+            return;
+          }
+        }
+
+        if (!hasVerifiedSession) {
+          navigate("/auth/login", {
+            replace: true,
+            state: {
+              from: location.pathname,
+              reason: "missing_mfa",
+            },
+          });
+          return;
+        }
+
+        if (isActive) {
+          setIsCheckingAuth(false);
+        }
+      } catch (error) {
+        console.error("Session verification failed", error);
+
+        if (isActive) {
+          navigate("/auth/login", {
+            replace: true,
+            state: {
+              from: location.pathname,
+              reason: "session_check_failed",
+            },
+          });
+        }
       }
     };
 
