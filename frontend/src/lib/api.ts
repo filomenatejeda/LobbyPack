@@ -2,6 +2,10 @@ import { supabase, supabaseConfigError } from "./client";
 import { ApiError, type ApiErrorCode } from "./apiError";
 
 function getApiBaseUrl() {
+  if (typeof window === "undefined") {
+    return import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") ?? "";
+  }
+
   const configuredBaseUrl =
     window.__LOBBYPACK_CONFIG__?.VITE_API_BASE_URL ?? import.meta.env.VITE_API_BASE_URL ?? "";
 

@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
-const runtimeConfig = window.__LOBBYPACK_CONFIG__;
+const runtimeConfig =
+  typeof window === "undefined" ? undefined : window.__LOBBYPACK_CONFIG__;
 const supabaseUrl = runtimeConfig?.VITE_SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL;
 const supabasePublishableKey =
   runtimeConfig?.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY ??
