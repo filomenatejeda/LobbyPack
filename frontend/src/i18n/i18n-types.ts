@@ -127,7 +127,7 @@ type RootTranslation = {
 	 */
 	auth_guidedRecovery: string
 	/**
-	 * E​n​v​i​a​s​ ​e​l​ ​c​o​r​r​e​o​,​ ​r​e​c​i​b​e​s​ ​e​l​ ​e​n​l​a​c​e​ ​y​ ​v​u​e​l​v​e​s​ ​a​ ​e​n​t​r​a​r​ ​s​i​n​ ​p​e​r​d​e​r​ ​e​l​ ​f​l​u​j​o​.
+	 * E​n​v​í​a​s​ ​e​l​ ​c​o​r​r​e​o​,​ ​r​e​c​i​b​e​s​ ​e​l​ ​e​n​l​a​c​e​ ​y​ ​v​u​e​l​v​e​s​ ​a​ ​e​n​t​r​a​r​ ​s​i​n​ ​p​e​r​d​e​r​ ​e​l​ ​f​l​u​j​o​.
 	 */
 	auth_guidedRecoveryText: string
 	/**
@@ -264,7 +264,7 @@ type RootTranslation = {
 	auth_countryEnableCity: string
 	/**
 	 * I​n​g​r​e​s​a​ ​e​l​ ​c​ó​d​i​g​o​ ​e​n​v​i​a​d​o​ ​a​l​ ​c​o​r​r​e​o​ ​{​e​m​a​i​l​}​.
-	 * @param {unknown} email
+	 * @param {string} email
 	 */
 	auth_emailCodeHelp: RequiredParams<'email'>
 	/**
@@ -400,7 +400,7 @@ type RootTranslation = {
 	 */
 	settings_dailySummaryLead: string
 	/**
-	 * N​o​ ​s​e​ ​e​n​v​í​o​ ​e​l​ ​r​e​s​u​m​e​n​ ​d​i​a​r​i​o​.
+	 * N​o​ ​s​e​ ​e​n​v​i​ó​ ​e​l​ ​r​e​s​u​m​e​n​ ​d​i​a​r​i​o​.
 	 */
 	settings_dailySummaryNoSend: string
 	/**
@@ -1209,7 +1209,7 @@ type RootTranslation = {
 	 */
 	landing_claims: string
 	/**
-	 * C​o​n​s​u​l​t​a​ ​i​n​c​i​d​e​n​c​i​a​s​ ​y​ ​m​a​n​t​é​n​ ​l​a​ ​o​p​e​r​a​c​i​ó​n​ ​d​í​a​r​i​a​ ​c​e​n​t​r​a​l​i​z​a​d​a​ ​d​e​s​d​e​ ​u​n​ ​s​o​l​o​ ​p​a​n​e​l​.
+	 * C​o​n​s​u​l​t​a​ ​i​n​c​i​d​e​n​c​i​a​s​ ​y​ ​m​a​n​t​é​n​ ​l​a​ ​o​p​e​r​a​c​i​ó​n​ ​d​i​a​r​i​a​ ​c​e​n​t​r​a​l​i​z​a​d​a​ ​d​e​s​d​e​ ​u​n​ ​s​o​l​o​ ​p​a​n​e​l​.
 	 */
 	landing_claimsText: string
 	/**
@@ -1253,7 +1253,7 @@ type RootTranslation = {
 	 */
 	landing_showcaseText: string
 	/**
-	 * U​n​a​ ​v​i​s​t​a​ ​s​i​m​p​l​e​ ​p​a​r​a​ ​s​a​b​e​r​ ​q​u​e​ ​l​l​e​g​ó​,​ ​q​u​e​ ​s​i​g​u​e​ ​p​e​n​d​i​e​n​t​e​ ​y​ ​q​u​e​ ​y​a​ ​f​u​e​ ​r​e​t​i​r​a​d​o​.
+	 * U​n​a​ ​v​i​s​t​a​ ​s​i​m​p​l​e​ ​p​a​r​a​ ​s​a​b​e​r​ ​q​u​é​ ​l​l​e​g​ó​,​ ​q​u​é​ ​s​i​g​u​e​ ​p​e​n​d​i​e​n​t​e​ ​y​ ​q​u​é​ ​y​a​ ​f​u​e​ ​r​e​t​i​r​a​d​o​.
 	 */
 	landing_showcaseTitle: string
 	/**
@@ -1377,11 +1377,11 @@ type RootTranslation = {
 	 */
 	nav_logout: string
 	/**
-	 * A​b​r​i​r​ ​m​e​n​u
+	 * A​b​r​i​r​ ​m​e​n​ú
 	 */
 	nav_openMenu: string
 	/**
-	 * C​e​r​r​a​r​ ​m​e​n​u
+	 * C​e​r​r​a​r​ ​m​e​n​ú
 	 */
 	nav_closeMenu: string
 	/**
@@ -1509,7 +1509,7 @@ type RootTranslation = {
 	 */
 	resident_helpDataDesc: string
 	/**
-	 * M​i​s​ ​d​a​t​o​s​ ​e​s​t​a​n​ ​i​n​c​o​r​r​e​c​t​o​s
+	 * M​i​s​ ​d​a​t​o​s​ ​e​s​t​á​n​ ​i​n​c​o​r​r​e​c​t​o​s
 	 */
 	resident_helpDataTitle: string
 	/**
@@ -1537,7 +1537,7 @@ type RootTranslation = {
 	 */
 	resident_helpTitle: string
 	/**
-	 * C​o​n​s​e​r​j​e​r​i​a
+	 * C​o​n​s​e​r​j​e​r​í​a
 	 */
 	resident_concierge: string
 	/**
@@ -1557,7 +1557,7 @@ type RootTranslation = {
 	 */
 	resident_issueDescription: string
 	/**
-	 * E​j​:​ ​e​l​ ​p​a​q​u​e​t​e​ ​f​i​g​u​r​a​ ​c​o​m​o​ ​e​n​t​r​e​g​a​d​o​,​ ​p​e​r​o​ ​n​o​ ​l​o​ ​r​e​c​i​b​i​.
+	 * E​j​:​ ​e​l​ ​p​a​q​u​e​t​e​ ​f​i​g​u​r​a​ ​c​o​m​o​ ​e​n​t​r​e​g​a​d​o​,​ ​p​e​r​o​ ​n​o​ ​l​o​ ​r​e​c​i​b​í​.
 	 */
 	resident_issuePlaceholder: string
 	/**
@@ -1773,7 +1773,7 @@ type RootTranslation = {
 	 */
 	resident_authenticatorMissing: string
 	/**
-	 * C​o​n​f​i​r​m​a​r​ ​e​l​i​m​i​n​a​c​i​o​n
+	 * C​o​n​f​i​r​m​a​r​ ​e​l​i​m​i​n​a​c​i​ó​n
 	 */
 	resident_confirmDelete: string
 	/**
@@ -1790,7 +1790,7 @@ type RootTranslation = {
 	 */
 	resident_creating: string
 	/**
-	 * E​s​t​a​s​ ​s​e​g​u​r​o​ ​d​e​ ​q​u​e​r​e​r​ ​e​l​i​m​i​n​a​r​ ​a​l​ ​r​e​s​i​d​e​n​t​e​ ​{​n​a​m​e​}
+	 * E​s​t​á​s​ ​s​e​g​u​r​o​ ​d​e​ ​q​u​e​r​e​r​ ​e​l​i​m​i​n​a​r​ ​a​l​ ​r​e​s​i​d​e​n​t​e​ ​{​n​a​m​e​}
 	 * @param {unknown} name
 	 */
 	resident_deleteConfirm: RequiredParams<'name'>
@@ -2029,7 +2029,7 @@ export type TranslationFunctions = {
 	 */
 	auth_guidedRecovery: () => LocalizedString
 	/**
-	 * Envias el correo, recibes el enlace y vuelves a entrar sin perder el flujo.
+	 * Envías el correo, recibes el enlace y vuelves a entrar sin perder el flujo.
 	 */
 	auth_guidedRecoveryText: () => LocalizedString
 	/**
@@ -2167,7 +2167,7 @@ export type TranslationFunctions = {
 	/**
 	 * Ingresa el código enviado al correo {email}.
 	 */
-	auth_emailCodeHelp: (arg: { email: unknown }) => LocalizedString
+	auth_emailCodeHelp: (arg: { email: string }) => LocalizedString
 	/**
 	 * Código de verificación
 	 */
@@ -2301,7 +2301,7 @@ export type TranslationFunctions = {
 	 */
 	settings_dailySummaryLead: () => LocalizedString
 	/**
-	 * No se envío el resumen diario.
+	 * No se envió el resumen diario.
 	 */
 	settings_dailySummaryNoSend: () => LocalizedString
 	/**
@@ -3101,7 +3101,7 @@ export type TranslationFunctions = {
 	 */
 	landing_claims: () => LocalizedString
 	/**
-	 * Consulta incidencias y mantén la operación díaria centralizada desde un solo panel.
+	 * Consulta incidencias y mantén la operación diaria centralizada desde un solo panel.
 	 */
 	landing_claimsText: () => LocalizedString
 	/**
@@ -3145,7 +3145,7 @@ export type TranslationFunctions = {
 	 */
 	landing_showcaseText: () => LocalizedString
 	/**
-	 * Una vista simple para saber que llegó, que sigue pendiente y que ya fue retirado.
+	 * Una vista simple para saber qué llegó, qué sigue pendiente y qué ya fue retirado.
 	 */
 	landing_showcaseTitle: () => LocalizedString
 	/**
@@ -3269,11 +3269,11 @@ export type TranslationFunctions = {
 	 */
 	nav_logout: () => LocalizedString
 	/**
-	 * Abrir menu
+	 * Abrir menú
 	 */
 	nav_openMenu: () => LocalizedString
 	/**
-	 * Cerrar menu
+	 * Cerrar menú
 	 */
 	nav_closeMenu: () => LocalizedString
 	/**
@@ -3401,7 +3401,7 @@ export type TranslationFunctions = {
 	 */
 	resident_helpDataDesc: () => LocalizedString
 	/**
-	 * Mis datos estan incorrectos
+	 * Mis datos están incorrectos
 	 */
 	resident_helpDataTitle: () => LocalizedString
 	/**
@@ -3429,7 +3429,7 @@ export type TranslationFunctions = {
 	 */
 	resident_helpTitle: () => LocalizedString
 	/**
-	 * Conserjeria
+	 * Conserjería
 	 */
 	resident_concierge: () => LocalizedString
 	/**
@@ -3449,7 +3449,7 @@ export type TranslationFunctions = {
 	 */
 	resident_issueDescription: () => LocalizedString
 	/**
-	 * Ej: el paquete figura como entregado, pero no lo recibi.
+	 * Ej: el paquete figura como entregado, pero no lo recibí.
 	 */
 	resident_issuePlaceholder: () => LocalizedString
 	/**
@@ -3665,7 +3665,7 @@ export type TranslationFunctions = {
 	 */
 	resident_authenticatorMissing: () => LocalizedString
 	/**
-	 * Confirmar eliminacion
+	 * Confirmar eliminación
 	 */
 	resident_confirmDelete: () => LocalizedString
 	/**
@@ -3681,7 +3681,7 @@ export type TranslationFunctions = {
 	 */
 	resident_creating: () => LocalizedString
 	/**
-	 * Estas seguro de querer eliminar al residente {name}
+	 * Estás seguro de querer eliminar al residente {name}
 	 */
 	resident_deleteConfirm: (arg: { name: unknown }) => LocalizedString
 	/**
