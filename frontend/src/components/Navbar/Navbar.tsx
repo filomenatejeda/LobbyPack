@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import LanguageToggleButton from "./LanguageToggleButton";
-import { logoNavUrl } from "../../assets/externalImages";
+import logo from "../../assets/Logo.png";
 import { supabase } from "../../lib/client";
 import { useI18n } from "../../lib/i18n";
 import { fetchDashboard } from "../../services/homeApi";
@@ -111,14 +111,14 @@ export default function Navbar() {
           </button>
 
           <Link to="/dashboard" className="logoLink mobileLogoLink" aria-label={t("nav.home")}>
-            <img src={logoNavUrl} alt="LobbyPack" className="navLogo" />
+            <img src={logo} alt="LobbyPack" className="navLogo" />
           </Link>
         </div>
 
         <ul className="navList">
           <li className="navLogoItem">
             <Link to="/dashboard" className="logoLink" aria-label={t("nav.home")}>
-              <img src={logoNavUrl} alt="LobbyPack" className="navLogo" />
+              <img src={logo} alt="LobbyPack" className="navLogo" />
             </Link>
           </li>
           {visibleNavItems.map((item) => (
@@ -181,7 +181,7 @@ export default function Navbar() {
               <span />
             </button>
             <Link to="/dashboard" className="logoLink mobileDrawerLogoLink" aria-label={t("nav.home")}>
-              <img src={logoNavUrl} alt="LobbyPack" className="navLogo" />
+              <img src={logo} alt="LobbyPack" className="navLogo" />
             </Link>
           </div>
 

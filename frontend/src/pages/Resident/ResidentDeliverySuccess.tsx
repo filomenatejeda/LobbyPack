@@ -1,5 +1,5 @@
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { logoHeroUrl } from "../../assets/externalImages";
+import logo from "../../assets/Logo1.png";
 import { useI18n } from "../../lib/i18n";
 import type { ParcelItem } from "../../types/home";
 import "./ResidentDeliverySuccess.css";
@@ -22,7 +22,7 @@ export default function ResidentDeliverySuccess() {
     <main className="deliverySuccessPage">
       <section className="deliverySuccessCard" aria-live="polite">
         <div className="deliverySuccessVisual">
-          <img className="deliverySuccessLogo" src={logoHeroUrl} alt="LobbyPack" />
+          <img className="deliverySuccessLogo" src={logo} alt="LobbyPack" />
           <div className="deliverySuccessCheck" aria-hidden="true">
             <svg viewBox="0 0 24 24" role="img">
               <path d="M9.2 16.6 4.9 12.3l1.7-1.7 2.6 2.6 8.2-8.2 1.7 1.7z" />

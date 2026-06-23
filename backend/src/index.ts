@@ -85,9 +85,7 @@ async function serveFrontend(pathname: string) {
     const assetFile = Bun.file(resolve(frontendDistPath, relativePath));
 
     if (await assetFile.exists()) {
-      return new Response(assetFile, {
-        headers: getStaticHeaders(relativePath),
-      });
+      return new Response(assetFile);
     }
   }
 
@@ -96,41 +94,6 @@ async function serveFrontend(pathname: string) {
       "Content-Type": "text/html; charset=utf-8",
     },
   });
-}
-
-function getStaticHeaders(relativePath: string) {
-  const normalizedPath = relativePath.replaceAll("\\", "/");
-  const extension = normalizedPath.split(".").pop()?.toLowerCase();
-  const contentType = getContentType(extension);
-  const isFingerprintedAsset = normalizedPath.startsWith("assets/");
-
-  return {
-    ...(contentType ? { "Content-Type": contentType } : {}),
-    "Cache-Control": isFingerprintedAsset
-      ? "public, max-age=31536000, immutable"
-      : "public, max-age=3600",
-  };
-}
-
-function getContentType(extension?: string) {
-  switch (extension) {
-    case "css":
-      return "text/css; charset=utf-8";
-    case "js":
-      return "application/javascript; charset=utf-8";
-    case "png":
-      return "image/png";
-    case "svg":
-      return "image/svg+xml";
-    case "ico":
-      return "image/x-icon";
-    case "webp":
-      return "image/webp";
-    case "html":
-      return "text/html; charset=utf-8";
-    default:
-      return undefined;
-  }
 }
 
 async function findFrontendDistPath() {
