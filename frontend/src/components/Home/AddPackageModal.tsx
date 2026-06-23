@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import AddPackageFormSection from "./AddPackageFormSection";
 import type { AddPackageFormValues } from "./packageFormTypes";
+import { useI18n } from "../../lib/i18n";
 import type { CommunityStructureTower } from "../../types/home";
 import { validateParcelForm } from "../../utils/parcelValidation";
 import "./AddPackageModal.css";
@@ -80,10 +81,11 @@ export default function AddPackageModal({
   conciergeName = "",
   communityStructure = [],
   initialValues,
-  title = "Completa los datos del paquete",
+  title,
   onClose,
   onSubmit,
 }: AddPackageModalProps) {
+  const { t } = useI18n();
   const emptyValues: AddPackageFormValues = {
     ...defaultValues,
     concierge_name: conciergeName,
@@ -97,6 +99,8 @@ export default function AddPackageModal({
     () => savedDrafts?.queue ?? [],
   );
   const [errorMessage, setErrorMessage] = useState("");
+  const modalTitle = title ?? t("admin.completePackageData");
+  const eyebrowText = isEditing ? t("admin.editPackage") : t("admin.newPackage");
 
   useEffect(() => {
     if (isEditing || typeof window === "undefined") {
@@ -183,8 +187,8 @@ export default function AddPackageModal({
       <div className="addPackageModal" onClick={(event) => event.stopPropagation()}>
         <div className="addPackageHeader">
           <div>
-            <p className="addPackageEyebrow">Nuevo paquete</p>
-            <h3>{title}</h3>
+            <p className="addPackageEyebrow">{eyebrowText}</p>
+            <h3>{modalTitle}</h3>
           </div>
           <button
             type="button"

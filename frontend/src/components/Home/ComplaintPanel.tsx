@@ -226,7 +226,7 @@ export default function ComplaintPanel({
 
       <p className="complaintResultsText">
         {filteredCount}{" "}
-        {filteredCount === 1 ? t("admin.openClaimSingular") : t("admin.openClaimPlural")} Â·{" "}
+        {filteredCount === 1 ? t("admin.openClaimSingular") : t("admin.openClaimPlural")} -{" "}
         {t("admin.page")} {safePage} {t("admin.of")} {totalPages}
       </p>
 
@@ -271,7 +271,7 @@ export default function ComplaintPanel({
                     </button>
                     <p>{item.issue_description}</p>
                     <span>
-                      {item.id_parcel} Â· {item.department_address} Â· {item.business_name}
+                      {item.id_parcel} - {item.department_address} - {item.business_name}
                     </span>
                   </td>
                   <td className="complaintDateCell">{formatComplaintDate(item.created_at)}</td>
@@ -305,7 +305,7 @@ export default function ComplaintPanel({
                       aria-expanded={openMenuId === item.id}
                       aria-label={`Abrir acciones de reclamo ${item.id}`}
                     >
-                      â‹®
+                      ...
                     </button>
 
                     {openMenuId === item.id ? (
