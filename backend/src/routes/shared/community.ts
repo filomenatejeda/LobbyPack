@@ -274,11 +274,19 @@ export async function getBuildingPreferences(buildingId: string) {
     if (communityPreferences.length > 0) {
       preference = {
         package_notifications:
-          preference.package_notifications && communityPreferences.every((item) => item.package_notifications),
+          preference.package_notifications &&
+          communityPreferences.every((item) => Boolean(item.package_notifications))
+            ? 1
+            : 0,
         daily_summary:
-          preference.daily_summary && communityPreferences.every((item) => item.daily_summary),
+          preference.daily_summary &&
+          communityPreferences.every((item) => Boolean(item.daily_summary))
+            ? 1
+            : 0,
         qr_access:
-          preference.qr_access && communityPreferences.every((item) => item.qr_access),
+          preference.qr_access && communityPreferences.every((item) => Boolean(item.qr_access))
+            ? 1
+            : 0,
       };
     }
   }

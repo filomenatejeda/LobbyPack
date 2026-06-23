@@ -1,4 +1,5 @@
 import "../env";
+import type { RowDataPacket } from "mysql2/promise";
 import { pool } from "./pool";
 import { ensureDatabaseSchema } from "./schema";
 import { ensureDailySummaryReportTable } from "../utils/dailySummary";
@@ -44,7 +45,7 @@ await ensureParcelQrSecurityColumns();
 await ensureIssueCreatorColumn();
 await ensureDailySummaryReportTable();
 
-const [existingTables] = await pool.query<Array<{ TABLE_NAME: string }>>(
+const [existingTables] = await pool.query<Array<RowDataPacket & { TABLE_NAME: string }>>(
   `
     SELECT TABLE_NAME
     FROM information_schema.TABLES
