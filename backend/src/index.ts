@@ -85,11 +85,15 @@ async function serveFrontend(pathname: string) {
     const assetFile = Bun.file(resolve(frontendDistPath, relativePath));
 
     if (await assetFile.exists()) {
-      return serveStaticFile(assetFile, relativePath);
+      return new Response(assetFile);
     }
   }
 
-  return serveStaticFile(indexFile, "index.html");
+  return new Response(indexFile, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+    },
+  });
 }
 
 async function findFrontendDistPath() {
@@ -100,45 +104,6 @@ async function findFrontendDistPath() {
   }
 
   return null;
-}
-
-async function serveStaticFile(file: ReturnType<typeof Bun.file>, relativePath: string) {
-  const headers = new Headers();
-  const contentType = getContentType(relativePath);
-
-  if (contentType) {
-    headers.set("Content-Type", contentType);
-  }
-
-  if (relativePath === "index.html") {
-    headers.set("Cache-Control", "no-cache");
-  }
-
-  return new Response(await file.arrayBuffer(), { headers });
-}
-
-function getContentType(pathname: string) {
-  if (pathname.endsWith(".html")) {
-    return "text/html; charset=utf-8";
-  }
-
-  if (pathname.endsWith(".js")) {
-    return "application/javascript; charset=utf-8";
-  }
-
-  if (pathname.endsWith(".css")) {
-    return "text/css; charset=utf-8";
-  }
-
-  if (pathname.endsWith(".png")) {
-    return "image/png";
-  }
-
-  if (pathname.endsWith(".svg")) {
-    return "image/svg+xml";
-  }
-
-  return undefined;
 }
 
 async function initializeDatabase() {

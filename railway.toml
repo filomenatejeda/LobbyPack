@@ -1,6 +1,6 @@
 [build]
 builder = "RAILPACK"
-buildCommand = "cd frontend && npm ci --prefer-offline --no-audit --no-fund && npm run build && cd ../backend && bun install --frozen-lockfile"
+buildCommand = "cd frontend && npm ci && npm run build && cd ../backend && bun install --frozen-lockfile"
 
 [deploy]
 startCommand = "cd backend && bun run start"
