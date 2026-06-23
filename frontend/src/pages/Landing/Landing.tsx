@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logo from "../../assets/Logo1.png";
+import logo from "../../assets/Logo.png";
 import LanguageToggleButton from "../../components/Navbar/LanguageToggleButton";
 import { useI18n } from "../../lib/i18n";
 import "./Landing.css";

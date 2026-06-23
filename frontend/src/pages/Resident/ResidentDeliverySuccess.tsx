@@ -1,5 +1,5 @@
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import logo from "../../assets/Logo1.png";
+import logo from "../../assets/Logo.png";
 import { useI18n } from "../../lib/i18n";
 import type { ParcelItem } from "../../types/home";
 import "./ResidentDeliverySuccess.css";
