@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logo from "../../assets/Logo1.png";
+import { logoHeroUrl } from "../../assets/externalImages";
 import LanguageToggleButton from "../../components/Navbar/LanguageToggleButton";
 import { useI18n } from "../../lib/i18n";
 import "./Landing.css";
@@ -50,7 +50,7 @@ export default function Landing() {
 
       <section className="landingHero" id="inicio">
         <div className="landingContainer landingHeroContent">
-          <img src={logo} alt="LobbyPack" className="landingLogoHero" />
+          <img src={logoHeroUrl} alt="LobbyPack" className="landingLogoHero" />
           <p className="landingEyebrow">{t("landing.buildingPackageManagement")}</p>
           <p className="landingLead landingLeadStrong">{t("landing.lead")}</p>
 
