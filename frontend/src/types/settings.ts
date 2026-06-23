@@ -1,9 +1,3 @@
-export type PreferenceItem = {
-  title: string;
-  description: string;
-  preference_key: "package_notifications" | "daily_summary" | "qr_access";
-};
-
 export type TeamItem = {
   user_id: string;
   role: string;
