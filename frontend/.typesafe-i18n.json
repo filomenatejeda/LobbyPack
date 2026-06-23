@@ -1,0 +1,6 @@
+{   "$schema": "./node_modules/typesafe-i18n/schema/typesafe-i18n.json",
+  "baseLocale": "es",
+  "outputPath": "./src/i18n",
+  "esmImports": true,
+  "adapter": "react"
+}

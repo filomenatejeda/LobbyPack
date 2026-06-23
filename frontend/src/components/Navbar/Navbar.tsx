@@ -6,31 +6,35 @@ import logo from "../../assets/Logo.png";
 import { supabase } from "../../lib/client";
 import { fetchDashboard } from "../../services/homeApi";
 import type { AppRole } from "../../types/home";
+import { useI18nContext } from "../../i18n/i18n-react";
 
 const navItems = [
-  { label: "Cuenta", to: "/dashboard", exact: true },
-  { label: "Configuracion", to: "/configuracion", exact: false },
+  { label: "nav_account", to: "/dashboard", exact: true },
+  { label: "nav_config", to: "/configuracion", exact: false },
 ] as const;
 
 const adminNavItems = [
-  { label: "Cuenta", to: "/dashboard", exact: true },
-  { label: "Informacion", to: "/configuracion", exact: false },
-  { label: "Comunidad", to: "/comunidad", exact: false },
-  { label: "Equipo", to: "/equipo", exact: false },
+  { label: "nav_account", to: "/dashboard", exact: true },
+  { label: "nav_info", to: "/configuracion", exact: false },
+  { label: "nav_community", to: "/comunidad", exact: false },
+  { label: "nav_team", to: "/equipo", exact: false },
 ] as const;
 
 export default function Navbar() {
+  const { LL } = useI18nContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentRole, setCurrentRole] = useState<AppRole | null>(null);
   const navigate = useNavigate();
-  const settingsLabel = currentRole === "resident" ? "Informacion" : "Configuracion";
+  const settingsLabel = currentRole === "resident" ? LL.nav_info() : LL.nav_config();
   const isResident = currentRole === "resident";
   const visibleNavItems =
     currentRole === "admin" || currentRole === "concierge"
-      ? adminNavItems
+      ? adminNavItems.map((item) =>
+          ({ ...item, label: LL[item.label]() }
+        ))
       : navItems.map((item) =>
-          item.to === "/configuracion" ? { ...item, label: settingsLabel } : item,
+          item.to === "/configuracion" ? { ...item, label: settingsLabel } : { ...item, label: LL[item.label]() }
         );
 
   useEffect(() => {
@@ -99,7 +103,7 @@ export default function Navbar() {
           <button
             type="button"
             className="menuToggle"
-            aria-label={isMenuOpen ? "Cerrar menu" : "Abrir menu"}
+            aria-label={isMenuOpen ? LL.nav_closeMenu() : LL.nav_openMenu()}
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen((current) => !current)}
           >
@@ -108,14 +112,14 @@ export default function Navbar() {
             <span />
           </button>
 
-          <Link to="/dashboard" className="logoLink mobileLogoLink" aria-label="Ir al inicio">
+          <Link to="/dashboard" className="logoLink mobileLogoLink" aria-label={LL.nav_goHome()}>
             <img src={logo} alt="LobbyPack" className="navLogo" />
           </Link>
         </div>
 
         <ul className="navList">
           <li className="navLogoItem">
-            <Link to="/dashboard" className="logoLink" aria-label="Ir al inicio">
+            <Link to="/dashboard" className="logoLink" aria-label={LL.nav_goHome()}>
               <img src={logo} alt="LobbyPack" className="navLogo" />
             </Link>
           </li>
@@ -139,11 +143,11 @@ export default function Navbar() {
                   className={({ isActive }) => (isActive ? "link linkActive" : "link")}
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Ayuda
+                  {LL.nav_help()}
                 </NavLink>
               ) : (
                 <Link to="/dashboard#inicio" className="link" onClick={() => setIsMenuOpen(false)}>
-                  Contacto
+                  {LL.nav_contact()}
                 </Link>
               )}
             </li>
@@ -153,7 +157,7 @@ export default function Navbar() {
           </li>
           <li>
             <button type="button" className="authButton" onClick={() => void handleAuthAction()}>
-              {isAuthenticated ? "Cerrar sesión" : "Iniciar sesión"}
+              {isAuthenticated ? LL.nav_logout() : LL.nav_login()}
             </button>
           </li>
         </ul>
@@ -171,14 +175,14 @@ export default function Navbar() {
             <button
               type="button"
               className="menuToggle"
-              aria-label="Cerrar menu"
+              aria-label={LL.nav_closeMenu()}
               onClick={() => setIsMenuOpen(false)}
             >
               <span />
               <span />
               <span />
             </button>
-            <Link to="/dashboard" className="logoLink mobileDrawerLogoLink" aria-label="Ir al inicio">
+            <Link to="/dashboard" className="logoLink mobileDrawerLogoLink" aria-label={LL.nav_goHome()}>
               <img src={logo} alt="LobbyPack" className="navLogo" />
             </Link>
           </div>
@@ -208,7 +212,7 @@ export default function Navbar() {
                     }
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Ayuda
+                    {LL.nav_help()}
                   </NavLink>
                 ) : (
                   <Link
@@ -216,7 +220,7 @@ export default function Navbar() {
                     className="mobileLink"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Contacto
+                    {LL.nav_contact()}
                   </Link>
                 )}
               </li>
@@ -230,7 +234,7 @@ export default function Navbar() {
                 className="mobileAuthButton"
                 onClick={() => void handleAuthAction()}
               >
-                {isAuthenticated ? "Cerrar sesión" : "Iniciar sesión"}
+                {isAuthenticated ? LL.nav_logout() : LL.nav_login()}
               </button>
             </li>
           </ul>
