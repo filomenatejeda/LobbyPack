@@ -12,8 +12,8 @@ export default function LanguageToggleButton({ className = "" }: LanguageToggleB
     <button
       type="button"
       className={["languageButton", className].filter(Boolean).join(" ")}
-      aria-label="Cambiar idioma proximamente"
-      title="Cambio de idioma proximamente"
+      aria-label={LL.language_aria()}
+      title={LL.language_title()}
       onClick={() => locale === "es" ? setLocale("en") : setLocale("es") }
     >
       <Globe2 size={16} aria-hidden="true" />

@@ -1141,7 +1141,7 @@ type RootTranslation = {
 	 */
 	admin_noResidents: string
 	/**
-	 * R​e​s​i​d​e​n​t​e​ ​c​o​n​f​i​r​m​o​ ​r​e​t​i​r​o
+	 * R​e​s​i​d​e​n​t​e​ ​c​o​n​f​i​r​m​ó​ ​r​e​t​i​r​o
 	 */
 	admin_residentConfirmed: string
 	/**
@@ -1364,6 +1364,10 @@ type RootTranslation = {
 	 * I​n​i​c​i​o
 	 */
 	nav_home: string
+	/**
+	 * I​r​ ​a​l​ ​i​n​i​c​i​o
+	 */
+	nav_goHome: string
 	/**
 	 * I​n​f​o​r​m​a​c​i​ó​n
 	 */
@@ -3033,7 +3037,7 @@ export type TranslationFunctions = {
 	 */
 	admin_noResidents: () => LocalizedString
 	/**
-	 * Residente confirmo retiro
+	 * Residente confirmó retiro
 	 */
 	admin_residentConfirmed: () => LocalizedString
 	/**
@@ -3256,6 +3260,10 @@ export type TranslationFunctions = {
 	 * Inicio
 	 */
 	nav_home: () => LocalizedString
+	/**
+	 * Ir al inicio
+	 */
+	nav_goHome: () => LocalizedString
 	/**
 	 * Información
 	 */

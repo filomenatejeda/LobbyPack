@@ -336,6 +336,7 @@ const en = {
     "nav_contact": "Contact",
     "nav_help": "Help",
     "nav_home": "Home",
+	"nav_goHome": "Go to home",
     "nav_info": "Information",
     "nav_login": "Log in",
     "nav_logout": "Log out",
