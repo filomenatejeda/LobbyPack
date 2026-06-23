@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { ArrowRight, Camera, Home, MessageCircle, PackageSearch } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
@@ -12,37 +13,33 @@ type HelpItem = {
   icon: typeof Camera;
 };
 
-const helpItems: HelpItem[] = [
-  {
-    title: "No puedo escanear el QR",
-    description:
-      "Abre la camara desde Cuenta, acerca el codigo y revisa que haya buena luz. Si no funciona, usa el ingreso manual del QR.",
-    icon: Camera,
-  },
-  {
-    title: "Mi paquete no aparece",
-    description:
-      "Revisa Paquetes pendientes en Cuenta. Si crees que falta un registro, avisa a conserjeria con los datos del envio.",
-    icon: PackageSearch,
-  },
-  {
-    title: "Mis datos estan incorrectos",
-    description:
-      "Tu informacion es solo de lectura. Para cambiar correo, nombre o departamento, contacta a administracion.",
-    icon: Home,
-  },
-  {
-    title: "Necesito reportar un problema",
-    description:
-      "En Cuenta puedes entrar a Reclamos y dejar el detalle asociado al paquete correspondiente.",
-    icon: MessageCircle,
-  },
-];
-
 export default function ResidentHelp() {
+  const { LL } = useI18nContext();
   const [currentUser, setCurrentUser] = useState<DashboardCurrentUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState("");
+  const helpItems: HelpItem[] = [
+    {
+      title: LL.resident_helpQrTitle(),
+      description: LL.resident_helpQrDesc(),
+      icon: Camera,
+    },
+    {
+      title: LL.resident_helpMissingTitle(),
+      description: LL.resident_helpMissingDesc(),
+      icon: PackageSearch,
+    },
+    {
+      title: LL.resident_helpDataTitle(),
+      description: LL.resident_helpDataDesc(),
+      icon: Home,
+    },
+    {
+      title: LL.resident_helpClaimTitle(),
+      description: LL.resident_helpClaimDesc(),
+      icon: MessageCircle,
+    },
+  ];
 
   useEffect(() => {
     const loadResident = async () => {
@@ -53,7 +50,7 @@ export default function ResidentHelp() {
         const dashboard = await fetchDashboard();
         setCurrentUser(dashboard.current_user);
       } catch (error) {
-        setStatusMessage(error instanceof Error ? error.message : "No se pudo cargar la ayuda.");
+        setStatusMessage(error instanceof Error ? error.message : LL.resident_residentHelpLoadError());
       } finally {
         setIsLoading(false);
       }
@@ -73,28 +70,25 @@ export default function ResidentHelp() {
   return (
     <main className="settingsPage residentHelpPage">
       <section className="settingsHero residentHelpHero">
-        <p className="settingsEyebrow">Ayuda residente</p>
-        <h1>Como podemos ayudarte</h1>
-        <p className="settingsLead">
-          Encuentra respuestas rapidas para retirar paquetes, revisar tu cuenta y resolver problemas
-          comunes.
-        </p>
+        <p className="settingsEyebrow">{LL.resident_help()}</p>
+        <h1>{LL.resident_helpTitle()}</h1>
+        <p className="settingsLead">{LL.resident_helpLead()}</p>
       </section>
 
       {statusMessage ? <p className="settingsLead">{statusMessage}</p> : null}
 
-      <section className="residentHelpActions" aria-label="Accesos rapidos">
+      <section className="residentHelpActions" aria-label={LL.resident_help()}>
         <Link to="/dashboard" className="residentHelpAction">
-          <span>Ir a Cuenta</span>
+          <span>{LL.resident_helpActionAccount()}</span>
           <ArrowRight size={18} aria-hidden="true" />
         </Link>
         <Link to="/configuracion" className="residentHelpAction secondary">
-          <span>Ver Informacion</span>
+          <span>{LL.resident_helpActionInfo()}</span>
           <ArrowRight size={18} aria-hidden="true" />
         </Link>
       </section>
 
-      <section className="residentHelpGrid" aria-label="Temas de ayuda">
+      <section className="residentHelpGrid" aria-label={LL.nav_help()}>
         {helpItems.map((item) => {
           const Icon = item.icon;
 
@@ -113,11 +107,10 @@ export default function ResidentHelp() {
       </section>
 
       <section className="residentHelpNote">
-        <p className="settingsLabel">Conserjeria</p>
-        <h2>Para casos urgentes, habla directamente con conserjeria</h2>
+        <p className="settingsLabel">{LL.resident_concierge()}</p>
+        <h2>{LL.resident_urgentHelpTitle()}</h2>
         <p>
-          Si el paquete ya esta en recepcion o necesitas retirar con prioridad, conserjeria puede
-          validar el estado del envio y ayudarte con el retiro.
+          {LL.resident_urgentHelpText()}
         </p>
       </section>
     </main>

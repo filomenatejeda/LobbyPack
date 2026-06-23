@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { useCallback, useEffect, useState } from "react";
 import type { AddPackageFormValues } from "../../../components/Home/packageFormTypes";
 import {
@@ -22,14 +23,12 @@ import type {
   ParcelItem,
   ServiceView,
 } from "../../../types/home";
-import {
-  formatIssueStatus,
-  normalizeSearchText,
-} from "../../../utils/packageUtils";
+import { normalizeSearchText } from "../../../utils/packageUtils";
 
 type FeedbackTone = "neutral" | "success" | "error";
 
 export function useHomeDashboard() {
+  const { LL } = useI18nContext();
   const [currentUser, setCurrentUser] = useState<DashboardCurrentUser | null>(null);
   const [activeView, setActiveView] = useState<ServiceView>("received");
   const [pendingParcels, setPendingParcels] = useState<ParcelItem[]>([]);
@@ -102,14 +101,14 @@ export function useHomeDashboard() {
       });
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "No se pudo cargar la informacion.",
+        error instanceof Error ? error.message : LL.home_loadError(),
       );
     } finally {
       if (showLoading) {
         setIsLoading(false);
       }
     }
-  }, []);
+  }, [LL]);
 
   useEffect(() => {
     void loadDashboard(true);
@@ -134,7 +133,6 @@ export function useHomeDashboard() {
     activeView === "complaints"
       ? null
       : {
-          title: activeView === "received" ? "Paquetes recepcionados" : "Paquetes retirados",
           parcels: activeView === "received" ? pendingParcels : claimedParcels,
         };
 
@@ -149,7 +147,7 @@ export function useHomeDashboard() {
         item.issue_description,
         item.created_at,
         item.issue_status,
-        formatIssueStatus(item.issue_status),
+        item.issue_status,
       ].join(" "),
     );
 
@@ -336,7 +334,7 @@ export function useHomeDashboard() {
 
   const openQrModal = (item: ParcelItem) => {
     if (!preferenceSettings.qr_access) {
-      setQrScanMessage("El acceso con QR esta desactivado para esta comunidad.");
+      setQrScanMessage(LL.home_qrDisabled());
       return;
     }
 
@@ -374,11 +372,11 @@ export function useHomeDashboard() {
         received: current.received.filter((selectedId) => selectedId !== movedParcel.id),
         pickedUp: current.pickedUp,
       }));
-      setPinClaimMessage(`Paquete ${movedParcel.id} marcado como retirado.`);
+      setPinClaimMessage(LL.home_packageWithdrawn({ id: movedParcel.id }));
       window.setTimeout(closePinModal, 900);
     } catch (error) {
       setPinClaimMessage(
-        error instanceof Error ? error.message : "No se pudo validar el PIN.",
+        error instanceof Error ? error.message : LL.home_pinError(),
       );
     } finally {
       setIsPinClaimProcessing(false);
@@ -387,7 +385,7 @@ export function useHomeDashboard() {
 
   const handleQrScan = async (decodedText: string) => {
     if (!preferenceSettings.qr_access) {
-      setQrScanMessage("El acceso con QR esta desactivado para esta comunidad.");
+      setQrScanMessage(LL.home_qrDisabled());
       return;
     }
 
@@ -398,7 +396,7 @@ export function useHomeDashboard() {
     const existsInPickedUp = claimedParcels.some((item) => item.id === packageId);
 
     if (!existsInReceived && !existsInPickedUp) {
-      setQrScanMessage("No se encontro el paquete asociado a ese QR.");
+      setQrScanMessage(LL.home_qrNotFound());
       return;
     }
 
@@ -406,7 +404,7 @@ export function useHomeDashboard() {
       const movedParcel = await claimParcel(packageId);
 
       if (!movedParcel) {
-        setQrScanMessage("No se pudo actualizar el estado del paquete.");
+        setQrScanMessage(LL.home_packageStatusError());
         return;
       }
 
@@ -419,19 +417,19 @@ export function useHomeDashboard() {
         received: current.received.filter((selectedId) => selectedId !== packageId),
         pickedUp: current.pickedUp,
       }));
-      setQrScanMessage(`Paquete ${packageId} movido a retiro.`);
+      setQrScanMessage(LL.home_packageMoved({ id: packageId }));
       activateView("pickedUp");
       window.setTimeout(closeQrModal, 900);
     } catch (error) {
       setQrScanMessage(
-        error instanceof Error ? error.message : "No se pudo marcar el retiro.",
+        error instanceof Error ? error.message : LL.home_withdrawError(),
       );
     }
   };
 
   const handleResidentScan = async (qrValue: string) => {
     setResidentFeedbackTone("neutral");
-    setResidentFeedbackMessage("Validando QR con tu departamento...");
+    setResidentFeedbackMessage(LL.home_qrValidating());
     setIsResidentProcessing(true);
 
     try {
@@ -440,14 +438,14 @@ export function useHomeDashboard() {
       setResidentScannedParcel(response.parcel);
       setResidentFeedbackTone("success");
       setResidentFeedbackMessage(
-        `El QR corresponde al paquete ${response.parcel.id}. Revisa los datos y confirma el retiro.`,
+        LL.home_qrMatchesPackage({ id: response.parcel.id }),
       );
       setErrorMessage("");
     } catch (error) {
       resetResidentClaimFlow();
       setResidentFeedbackTone("error");
       setResidentFeedbackMessage(
-        error instanceof Error ? error.message : "No se pudo validar el QR escaneado.",
+        error instanceof Error ? error.message : LL.home_qrScanError(),
       );
     } finally {
       setIsResidentProcessing(false);
@@ -469,7 +467,7 @@ export function useHomeDashboard() {
       const confirmedParcel = response.parcel;
 
       if (!confirmedParcel) {
-        throw new Error("No se pudo confirmar el retiro del paquete.");
+        throw new Error(LL.home_confirmWithdrawError());
       }
 
       setPendingParcels((current) =>
@@ -477,7 +475,7 @@ export function useHomeDashboard() {
       );
       setResidentFeedbackTone("success");
       setResidentFeedbackMessage(
-        `Retiro confirmado por residente. Espera la confirmacion final de conserjeria para completar la entrega del paquete ${confirmedParcel.id}.`,
+        LL.home_residentConfirmed({ id: confirmedParcel.id }),
       );
       resetResidentClaimFlow();
       await loadDashboard(false);
@@ -487,7 +485,7 @@ export function useHomeDashboard() {
       setResidentFeedbackMessage(
         error instanceof Error
           ? error.message
-          : "No se pudo confirmar el retiro del paquete.",
+          : LL.home_confirmWithdrawError(),
       );
       return false;
     } finally {
@@ -503,24 +501,24 @@ export function useHomeDashboard() {
 
     if (!parcelId || !normalizedDescription) {
       setResidentIssueTone("error");
-      setResidentIssueMessage("Selecciona un paquete y describe el problema.");
+      setResidentIssueMessage(LL.home_issueRequired());
       return false;
     }
 
     setIsCreatingResidentIssue(true);
     setResidentIssueTone("neutral");
-    setResidentIssueMessage("Enviando reclamo...");
+    setResidentIssueMessage(LL.home_issueSending());
 
     try {
       const createdIssue = await createResidentIssue(parcelId, normalizedDescription);
       setIssues((current) => [createdIssue, ...current]);
       setResidentIssueTone("success");
-      setResidentIssueMessage("Reclamo enviado. El equipo de administracion lo revisara.");
+      setResidentIssueMessage(LL.home_issueSent());
       return true;
     } catch (error) {
       setResidentIssueTone("error");
       setResidentIssueMessage(
-        error instanceof Error ? error.message : "No se pudo crear el reclamo.",
+        error instanceof Error ? error.message : LL.home_issueCreateError(),
       );
       return false;
     } finally {
@@ -543,7 +541,7 @@ export function useHomeDashboard() {
       setErrorMessage("");
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "No se pudo registrar el paquete.",
+        error instanceof Error ? error.message : LL.home_packageCreateError(),
       );
       throw error;
     }
@@ -571,7 +569,7 @@ export function useHomeDashboard() {
       setErrorMessage("");
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "No se pudo actualizar el paquete.",
+        error instanceof Error ? error.message : LL.home_packageUpdateError(),
       );
     }
   };
@@ -608,7 +606,7 @@ export function useHomeDashboard() {
       );
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "No se pudo actualizar el reclamo.",
+        error instanceof Error ? error.message : LL.home_issueUpdateError(),
       );
     } finally {
       setUpdatingIssueId(null);
@@ -647,7 +645,7 @@ export function useHomeDashboard() {
       );
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "No se pudieron actualizar los reclamos.",
+        error instanceof Error ? error.message : LL.home_issuesUpdateError(),
       );
     } finally {
       setUpdatingIssueId(null);

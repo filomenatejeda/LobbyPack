@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import type { GeneralSettings } from "../../../types/settings";
 
 type SettingsGeneralCardProps = {
@@ -12,8 +13,7 @@ type SettingsGeneralCardProps = {
   onSave: () => void;
 };
 
-export default function SettingsGeneralCard({
-  communityTypeOptions,
+export default function SettingsGeneralCard({communityTypeOptions,
   generalSettings,
   canEdit,
   isEditing,
@@ -23,15 +23,16 @@ export default function SettingsGeneralCard({
   onEdit,
   onSave,
 }: SettingsGeneralCardProps) {
+  const { LL } = useI18nContext();
   return (
     <article className="settingsCard">
       <div className="settingsCardHeader">
         <div>
-          <p className="settingsLabel">Condominio</p>
-          <h2>Lobby principal</h2>
+          <p className="settingsLabel">{LL.settings_condo()}</p>
+          <h2>{LL.settings_lobbyMain()}</h2>
         </div>
         <span className="settingsBadge">
-          {generalSettings.is_active ? "Activo" : "Inactivo"}
+          {generalSettings.is_active ? LL.settings_active() : LL.settings_inactive()}
         </span>
       </div>
 
@@ -39,7 +40,7 @@ export default function SettingsGeneralCard({
         <>
           <div className="settingsForm">
             <label className="settingsField">
-              <span>Nombre del edificio</span>
+              <span>{LL.settings_buildingName()}</span>
               <input
                 type="text"
                 value={generalSettings.building_name}
@@ -47,7 +48,7 @@ export default function SettingsGeneralCard({
               />
             </label>
             <label className="settingsField">
-              <span>Tipo de comunidad</span>
+              <span>{LL.settings_communityType()}</span>
               <select
                 value={generalSettings.community_type || communityTypeOptions[0]}
                 onChange={(event) => onChange("community_type", event.target.value)}
@@ -60,7 +61,7 @@ export default function SettingsGeneralCard({
               </select>
             </label>
             <label className="settingsField">
-              <span>Horario de recepcion</span>
+              <span>{LL.settings_receptionHours()}</span>
               <input
                 type="text"
                 value={generalSettings.reception_hours}
@@ -68,7 +69,7 @@ export default function SettingsGeneralCard({
               />
             </label>
             <label className="settingsField settingsFieldWide">
-              <span>Direccion</span>
+              <span>{LL.settings_address()}</span>
               <input
                 type="text"
                 value={generalSettings.address_line}
@@ -84,7 +85,7 @@ export default function SettingsGeneralCard({
               onClick={onCancel}
               disabled={isSaving}
             >
-              Cancelar
+              {LL.admin_cancel()}
             </button>
             <button
               type="button"
@@ -92,7 +93,7 @@ export default function SettingsGeneralCard({
               onClick={onSave}
               disabled={isSaving}
             >
-              {isSaving ? "Guardando..." : "Guardar informacion"}
+              {isSaving ? LL.resident_saving() : LL.settings_saveInfo()}
             </button>
           </div>
         </>
@@ -100,27 +101,27 @@ export default function SettingsGeneralCard({
         <>
           <dl className="settingsReadOnlyGrid">
             <div className="settingsReadOnlyItem">
-              <dt>Nombre del edificio</dt>
-              <dd>{generalSettings.building_name || "Sin nombre registrado"}</dd>
+              <dt>{LL.settings_buildingName()}</dt>
+              <dd>{generalSettings.building_name || LL.settings_noName()}</dd>
             </div>
             <div className="settingsReadOnlyItem">
-              <dt>Tipo de comunidad</dt>
+              <dt>{LL.settings_communityType()}</dt>
               <dd>{generalSettings.community_type || "Edificio"}</dd>
             </div>
             <div className="settingsReadOnlyItem">
-              <dt>Horario de recepcion</dt>
-              <dd>{generalSettings.reception_hours || "Sin horario registrado"}</dd>
+              <dt>{LL.settings_receptionHours()}</dt>
+              <dd>{generalSettings.reception_hours || LL.settings_noSchedule()}</dd>
             </div>
             <div className="settingsReadOnlyItem settingsReadOnlyItemWide">
-              <dt>Direccion</dt>
-              <dd>{generalSettings.address_line || "Sin direccion registrada"}</dd>
+              <dt>{LL.settings_address()}</dt>
+              <dd>{generalSettings.address_line || LL.settings_noAddress()}</dd>
             </div>
           </dl>
 
           {canEdit ? (
             <div className="settingsActions">
               <button type="button" className="primaryButton" onClick={onEdit}>
-                Editar informacion
+                {LL.settings_editInfo()}
               </button>
             </div>
           ) : null}

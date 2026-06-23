@@ -1,9 +1,11 @@
 import { useState } from "react";
 
 import { supabase, supabaseConfigError } from "@/lib/client";
+import { useI18nContext } from "@/i18n/i18n-react";
 import "./login-form.css";
 
 export function ForgotPasswordForm() {
+  const { LL } = useI18nContext();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -52,14 +54,13 @@ export function ForgotPasswordForm() {
   return (
     <form className="authCard" onSubmit={handleForgotPassword}>
       <div className="authCardHeader">
-        <p className="authEyebrow">Recuperacion</p>
+        <p className="authEyebrow">{LL.auth_recovery()}</p>
         <h2 className="authTitle">
-          {success ? "Revisa tu correo" : "Reinicia tu contrasena"}
+          {success ? LL.auth_checkEmail() : LL.auth_resetPassword()}
         </h2>
         <p className="authDescription">
           {success
-            ? "Te enviamos un enlace para actualizar tu contrasena y volver a entrar al sistema."
-            : "Ingresa tu correo electronico y te enviaremos un enlace para recuperar el acceso."}
+            ? LL.auth_resetSentText() : LL.auth_resetPromptText()}
         </p>
       </div>
 
@@ -67,7 +68,7 @@ export function ForgotPasswordForm() {
         <>
           <div className="authFields">
             <label className="authField">
-              <span>Correo electronico</span>
+              <span>{LL.auth_email()}</span>
               <input
                 className="authInput"
                 id="email"
@@ -91,25 +92,21 @@ export function ForgotPasswordForm() {
               className="authPrimaryButton"
               disabled={isLoading || Boolean(supabaseConfigError)}
             >
-              {isLoading ? "Enviando..." : "Enviar correo de recuperacion"}
+              {isLoading ? LL.admin_sending() : LL.auth_sendRecovery()}
             </button>
 
-            <a className="authSecondaryLink" href="/auth/login">
-              Volver al inicio de sesion
-            </a>
+            <a className="authSecondaryLink" href="/auth/login">{LL.auth_backToLogin()}</a>
           </div>
         </>
       ) : (
         <div className="authActions">
-          <a className="authPrimaryButton authPrimaryButtonLink" href="/auth/login">
-            Ir a iniciar sesion
-          </a>
+          <a className="authPrimaryButton authPrimaryButtonLink" href="/auth/login">{LL.auth_goLogin()}</a>
         </div>
       )}
 
       <div className="authFooter">
-        <span>Ya tienes una cuenta?</span>
-        <a href="/auth/login">Inicia sesion</a>
+        <span>{LL.auth_alreadyAccount()}</span>
+        <a href="/auth/login">{LL.auth_login()}</a>
       </div>
     </form>
   );

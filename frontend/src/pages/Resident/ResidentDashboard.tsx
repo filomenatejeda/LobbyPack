@@ -1,6 +1,7 @@
 import jsQR from "jsqr";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useI18nContext } from "@/i18n/i18n-react";
 import type {
   DashboardCurrentUser,
   DashboardPreferenceSettings,
@@ -8,9 +9,7 @@ import type {
   ParcelItem,
 } from "../../types/home";
 import {
-  formatIssueStatus,
   formatParcelDate,
-  formatParcelStatus,
   formatParcelTime,
   getIssueStatusClassName,
   getParcelDate,
@@ -39,6 +38,7 @@ type ResidentDashboardProps = {
 type ResidentView = "scanner" | "pending" | "claimed" | "issues";
 
 function ParcelSummaryCard({ item }: { item: ParcelItem }) {
+  const { LL } = useI18nContext();
   const parcelDate = getParcelDate(item);
 
   return (
@@ -46,17 +46,17 @@ function ParcelSummaryCard({ item }: { item: ParcelItem }) {
       <div className="residentParcelTop">
         <strong>{item.id}</strong>
         <span className={item.parcel_status === "pending" ? "residentPending" : "residentClaimed"}>
-          {item.parcel_status === "pending" ? "Pendiente" : "Entregado"}
+          {item.parcel_status === "pending" ? LL.resident_pending() : LL.resident_delivered()}
         </span>
       </div>
       <p>{item.business_name}</p>
-      <p>{item.parcel_description || "Sin descripcion"}</p>
+      <p>{item.parcel_description || LL.resident_emptyDescription()}</p>
       <p>
         {item.parcel_status === "pending"
           ? item.resident_claim_confirmed_at
-            ? "Confirmacion enviada. Pendiente de entrega por conserjeria"
-            : `Recibido por ${item.concierge_name}`
-          : `Retirado por ${item.claimed_by_name || item.resident_name}`}
+            ? LL.resident_confirmationSent()
+            : `${LL.resident_receivedBy()} ${item.concierge_name}`
+          : `${LL.resident_withdrawBy()} ${item.claimed_by_name || item.resident_name}`}
       </p>
       <p>
         {formatParcelDate(parcelDate)} a las {formatParcelTime(parcelDate)}
@@ -66,12 +66,24 @@ function ParcelSummaryCard({ item }: { item: ParcelItem }) {
 }
 
 function ResidentIssueCard({ item }: { item: IssueItem }) {
+  const { LL } = useI18nContext();
+  const issueStatusLabel =
+    item.issue_status === "open"
+      ? LL.admin_entered()
+      : item.issue_status === "under_review"
+        ? LL.admin_markReview()
+        : LL.admin_resolved();
+
   return (
     <article className="residentIssueCard">
       <div className="residentIssueMeta">
         <strong>{item.id_parcel}</strong>
         <span>{item.business_name}</span>
-        <span>{formatParcelStatus(item.parcel_status)}</span>
+        <span>
+          {item.parcel_status === "pending"
+            ? LL.resident_receivedStatus()
+            : LL.admin_withdrawal()}
+        </span>
         <span>
           {new Date(item.created_at).toLocaleDateString("es-CL", {
             day: "2-digit",
@@ -84,7 +96,7 @@ function ResidentIssueCard({ item }: { item: IssueItem }) {
             item.issue_status,
           )}`}
         >
-          {formatIssueStatus(item.issue_status)}
+          {issueStatusLabel}
         </span>
       </div>
       <p>{item.issue_description}</p>
@@ -110,6 +122,7 @@ export default function ResidentDashboard({
   issueTone,
   isCreatingIssue,
 }: ResidentDashboardProps) {
+  const { LL } = useI18nContext();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -136,10 +149,10 @@ export default function ResidentDashboard({
     label: string;
     count?: number;
   }> = [
-    { value: "scanner", label: "Retirar paquete" },
-    { value: "pending", label: "Paquetes pendientes", count: pendingParcels.length },
-    { value: "claimed", label: "Paquetes entregados", count: claimedParcels.length },
-    { value: "issues", label: "Reclamos", count: issues.length },
+    { value: "scanner", label: LL.resident_withdrawMenu() },
+    { value: "pending", label: LL.resident_pendingPackages(), count: pendingParcels.length },
+    { value: "claimed", label: LL.resident_claimed(), count: claimedParcels.length },
+    { value: "issues", label: LL.resident_claims(), count: issues.length },
   ];
   const residentMenuItems = qrAccessEnabled
     ? allResidentMenuItems
@@ -174,7 +187,7 @@ export default function ResidentDashboard({
 
     const startScanner = async () => {
       if (!navigator.mediaDevices?.getUserMedia) {
-        setCameraMessage("Tu navegador no permite abrir la camara. Usa el ingreso manual.");
+        setCameraMessage(LL.resident_cameraNoSupport());
         setIsCameraOpen(false);
         return;
       }
@@ -204,7 +217,7 @@ export default function ResidentDashboard({
 
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
-        setCameraMessage("Apunta la camara al QR del paquete.");
+        setCameraMessage(LL.resident_cameraPoint());
 
         const scanFrame = async () => {
           if (!isActive || !videoRef.current || !canvasRef.current) {
@@ -246,7 +259,7 @@ export default function ResidentDashboard({
             const context = canvas.getContext("2d", { willReadFrequently: true });
 
             if (!context) {
-              setCameraMessage("No se pudo preparar el lector de la camara.");
+              setCameraMessage(LL.resident_cameraReaderError());
               setIsCameraOpen(false);
               return;
             }
@@ -260,13 +273,13 @@ export default function ResidentDashboard({
 
             if (qrValue) {
               setManualQrValue(qrValue);
-              setCameraMessage("QR detectado. Validando paquete...");
+              setCameraMessage(LL.resident_cameraDetected());
               await onScan(qrValue);
               setIsCameraOpen(false);
               return;
             }
           } catch {
-            setCameraMessage("No se pudo leer el QR. Intenta acercar la camara un poco mas.");
+            setCameraMessage(LL.resident_cameraError());
           } finally {
             isDetectingRef.current = false;
           }
@@ -280,7 +293,7 @@ export default function ResidentDashboard({
           void scanFrame();
         });
       } catch {
-        setCameraMessage("No se pudo acceder a la camara. Revisa permisos o usa el ingreso manual.");
+        setCameraMessage(LL.resident_cameraNoAccess());
         setIsCameraOpen(false);
       }
     };
@@ -297,7 +310,7 @@ export default function ResidentDashboard({
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     };
-  }, [isCameraOpen, onScan]);
+  }, [LL, isCameraOpen, onScan]);
 
   useEffect(() => {
     if (issueParcelOptions.length === 0) {
@@ -315,22 +328,22 @@ export default function ResidentDashboard({
       <div className="residentHero">
         <div>
           <p className="residentEyebrow">
-            {qrAccessEnabled ? "Retiro seguro por QR" : "Gestion de paquetes"}
+            {qrAccessEnabled ? LL.resident_qrSecure() : LL.home_management()}
           </p>
           <h2>{currentUser.display_name}</h2>
           <p className="residentLead">
             {qrAccessEnabled
-              ? "Escanea el QR mostrado en conserjeria y confirma el retiro si el paquete pertenece a tu departamento."
-              : "Revisa tus paquetes pendientes, entregados y reclamos asociados a tu departamento."}
+              ? LL.resident_qrLead()
+              : LL.resident_settingsLeadNoQr()}
           </p>
         </div>
         <div className="residentDepartmentCard">
-          <span>Tu hogar</span>
-          <strong>{currentUser.department_address ?? "Sin departamento asignado"}</strong>
+          <span>{LL.resident_home()}</span>
+          <strong>{currentUser.department_address ?? LL.resident_emptyDepartment()}</strong>
         </div>
       </div>
 
-      <nav className="residentViewMenu" aria-label="Menu de residente">
+      <nav className="residentViewMenu" aria-label={LL.resident_resident()}>
         {residentMenuItems.map((item) => (
           <button
             key={item.value}
@@ -352,22 +365,21 @@ export default function ResidentDashboard({
         <div className="residentScannerPanel">
         {!qrAccessEnabled ? (
           <div className="residentQrDisabled">
-            <h3>Retiro por QR desactivado</h3>
+            <h3>{LL.resident_qrDisabled()}</h3>
             <p>
-              La administracion desactivo el acceso con QR para esta comunidad. Puedes revisar tus
-              paquetes pendientes o contactar a conserjeria.
+              {LL.resident_qrDisabledText()}
             </p>
           </div>
         ) : (
         <>
         <div className="residentScannerHeader">
-          <h3>Escanear QR</h3>
+          <h3>{LL.resident_scanQr()}</h3>
           <button
             type="button"
             className="residentScannerButton"
             onClick={() => setIsCameraOpen((current) => !current)}
           >
-            {isCameraOpen ? "Cerrar camara" : "Abrir camara"}
+            {isCameraOpen ? LL.resident_cameraClose() : LL.resident_cameraOpen()}
           </button>
         </div>
 
@@ -387,7 +399,7 @@ export default function ResidentDashboard({
           }}
         >
           <label className="residentManualField">
-            <span>Ingreso manual del QR</span>
+            <span>{LL.resident_enterManualQr()}</span>
             <input
               type="text"
               value={manualQrValue}
@@ -400,7 +412,7 @@ export default function ResidentDashboard({
             className="residentScannerButton secondary"
             disabled={!manualQrValue.trim() || isProcessing}
           >
-            Validar codigo
+            {LL.resident_manualValidate()}
           </button>
         </form>
 
@@ -420,7 +432,7 @@ export default function ResidentDashboard({
 
         {scannedParcel ? (
           <div className="residentConfirmationCard">
-            <h3>Confirma el retiro</h3>
+            <h3>{LL.resident_confirmClaim()}</h3>
             <ParcelSummaryCard item={scannedParcel} />
             <div className="residentConfirmationActions">
               <button
@@ -440,7 +452,7 @@ export default function ResidentDashboard({
                   }
                 }}
               >
-                {isProcessing ? "Confirmando..." : "Confirmar retiro"}
+                {isProcessing ? LL.resident_confirming() : LL.resident_confirmClaim()}
               </button>
               <button
                 type="button"
@@ -448,7 +460,7 @@ export default function ResidentDashboard({
                 disabled={isProcessing}
                 onClick={onResetScan}
               >
-                Cancelar
+                {LL.admin_cancel()}
               </button>
             </div>
           </div>
@@ -462,15 +474,15 @@ export default function ResidentDashboard({
         <div className="residentIssuePanel">
         <div className="residentIssueHeader">
           <div>
-            <h3>Reclamos</h3>
-            <p>Revisa el estado de tus reclamos o reporta un problema asociado a un paquete.</p>
+            <h3>{LL.resident_claims()}</h3>
+            <p>{LL.resident_claimsLead()}</p>
           </div>
           <button
             type="button"
             className="residentScannerButton"
             onClick={() => setIsIssueFormOpen((current) => !current)}
           >
-            {isIssueFormOpen ? "Cerrar formulario" : "Crear reclamo"}
+            {isIssueFormOpen ? LL.resident_closeForm() : LL.resident_createClaim()}
           </button>
         </div>
 
@@ -488,7 +500,7 @@ export default function ResidentDashboard({
           }}
         >
           <label className="residentManualField">
-            <span>Paquete</span>
+            <span>{LL.resident_package()}</span>
             <select
               value={issueParcelId}
               onChange={(event) => setIssueParcelId(event.target.value)}
@@ -501,19 +513,19 @@ export default function ResidentDashboard({
                   </option>
                 ))
               ) : (
-                <option value="">Sin paquetes disponibles</option>
+                <option value="">{LL.resident_noPackages()}</option>
               )}
             </select>
           </label>
 
           <label className="residentManualField">
-            <span>Descripcion del problema</span>
+            <span>{LL.resident_issueDescription()}</span>
             <textarea
               value={issueDescription}
               onChange={(event) => setIssueDescription(event.target.value)}
               maxLength={300}
               rows={4}
-              placeholder="Ej: el paquete figura como entregado, pero no lo recibi."
+              placeholder={LL.resident_issuePlaceholder()}
               disabled={isCreatingIssue}
             />
           </label>
@@ -529,7 +541,7 @@ export default function ResidentDashboard({
                 !issueDescription.trim()
               }
             >
-              {isCreatingIssue ? "Enviando..." : "Enviar reclamo"}
+              {isCreatingIssue ? LL.resident_reportSending() : LL.resident_reportIssue()}
             </button>
           </div>
         </form>
@@ -553,7 +565,7 @@ export default function ResidentDashboard({
           {issues.length > 0 ? (
             issues.map((item) => <ResidentIssueCard key={item.id} item={item} />)
           ) : (
-            <p className="residentEmptyState">Todavia no tienes reclamos registrados.</p>
+            <p className="residentEmptyState">{LL.resident_claimsEmpty()}</p>
           )}
         </div>
       </div>
@@ -563,14 +575,14 @@ export default function ResidentDashboard({
         <div className="residentParcelSections">
         <div className="residentParcelSection">
           <div className="residentSectionHeader">
-            <h3>Paquetes pendientes</h3>
+            <h3>{LL.resident_pendingPackages()}</h3>
             <span>{pendingParcels.length}</span>
           </div>
           <div className="residentParcelGrid">
             {pendingParcels.length > 0 ? (
               pendingParcels.map((item) => <ParcelSummaryCard key={item.id} item={item} />)
             ) : (
-              <p className="residentEmptyState">No hay paquetes pendientes para este departamento.</p>
+              <p className="residentEmptyState">{LL.resident_pendingEmpty()}</p>
             )}
           </div>
         </div>
@@ -581,14 +593,14 @@ export default function ResidentDashboard({
         <div className="residentParcelSections">
         <div className="residentParcelSection">
           <div className="residentSectionHeader">
-            <h3>Paquetes entregados</h3>
+            <h3>{LL.resident_claimed()}</h3>
             <span>{claimedParcels.length}</span>
           </div>
           <div className="residentParcelGrid">
             {claimedParcels.length > 0 ? (
               claimedParcels.map((item) => <ParcelSummaryCard key={item.id} item={item} />)
             ) : (
-              <p className="residentEmptyState">Todavia no hay paquetes entregados para este departamento.</p>
+              <p className="residentEmptyState">{LL.resident_claimedEmpty()}</p>
             )}
           </div>
         </div>

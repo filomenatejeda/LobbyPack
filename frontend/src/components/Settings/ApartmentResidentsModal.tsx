@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { useMemo, useState, type ComponentType, type FormEvent } from "react";
 import { Trash2, X } from "lucide-react";
 import QRCodeImport from "react-qr-code";
@@ -50,8 +51,7 @@ type ApartmentResidentsModalProps = {
   onVerifyMfa: (residentId: string, mfaCode: string) => Promise<void>;
 };
 
-export default function ApartmentResidentsModal({
-  apartmentName,
+export default function ApartmentResidentsModal({apartmentName,
   unitSingular,
   residents,
   canManageResidents,
@@ -63,6 +63,7 @@ export default function ApartmentResidentsModal({
   onVerifyEmail,
   onVerifyMfa,
 }: ApartmentResidentsModalProps) {
+  const { LL } = useI18nContext();
   const [isAdding, setIsAdding] = useState(false);
   const [accountPhase, setAccountPhase] = useState<string>(ResidentAccountPhase.Form);
   const [createdResident, setCreatedResident] =
@@ -248,12 +249,12 @@ export default function ApartmentResidentsModal({
       <section className="residentModal" onClick={(event) => event.stopPropagation()}>
         <div className="residentModalHeader">
           <div>
-            <p className="settingsLabel">Cuenta residente</p>
+            <p className="settingsLabel">{LL.resident_addAccount()}</p>
             <h3>{apartmentName}</h3>
             <p className="residentModalLead">
               {canManageResidents
-                ? `Crea accesos de residente asociados a este ${unitSingular}.`
-                : `Revisa las cuentas residentes asociadas a este ${unitSingular}.`}
+                ? LL.resident_createAccesses({ unit: unitSingular })
+                : LL.resident_reviewAccounts({ unit: unitSingular })}
             </p>
           </div>
           <button
@@ -267,7 +268,7 @@ export default function ApartmentResidentsModal({
         </div>
 
         <div className="residentModalBody">
-          {isLoading ? <p className="residentEmptyText">Cargando personas...</p> : null}
+          {isLoading ? <p className="residentEmptyText">{LL.resident_peopleLoading()}</p> : null}
 
           {!isLoading && !isAdding && residents.length > 0 ? (
             <div className="residentList">
@@ -279,8 +280,8 @@ export default function ApartmentResidentsModal({
                     <span>{resident.user_phone_number || "Sin telefono registrado"}</span>
                     <span>
                       {resident.email_verified && resident.mfa_enabled
-                        ? "Verificado con autenticador"
-                        : "Verificacion pendiente"}
+                        ? LL.resident_authenticatorActive()
+                        : LL.resident_authenticatorPending()}
                     </span>
                   </div>
                   {canManageResidents ? (
@@ -289,8 +290,8 @@ export default function ApartmentResidentsModal({
                       className="residentDeleteButton"
                       onClick={() => setResidentToDelete(resident)}
                       disabled={isSaving}
-                      aria-label={`Eliminar residente ${resident.resident_name}`}
-                      title="Eliminar residente"
+                      aria-label={`${LL.admin_delete()} ${LL.resident_resident()} ${resident.resident_name}`}
+                      title={`${LL.admin_delete()} ${LL.resident_resident()}`}
                     >
                       <Trash2 size={18} aria-hidden="true" />
                     </button>
@@ -309,7 +310,7 @@ export default function ApartmentResidentsModal({
           {isAdding && accountPhase === ResidentAccountPhase.Form ? (
             <form className="residentForm" onSubmit={handleSubmit}>
               <label className="settingsField">
-                <span>Correo de acceso</span>
+                <span>{LL.resident_emailAccess()}</span>
                 <input
                   type="email"
                   value={residentEmail}
@@ -318,7 +319,7 @@ export default function ApartmentResidentsModal({
                 />
               </label>
               <label className="settingsField">
-                <span>Nombre de la persona</span>
+                <span>{LL.resident_personName()}</span>
                 <input
                   type="text"
                   value={residentName}
@@ -327,7 +328,7 @@ export default function ApartmentResidentsModal({
                 />
               </label>
               <label className="settingsField">
-                <span>Contraseña</span>
+                <span>{LL.auth_password()}</span>
                 <input
                   type="password"
                   value={residentPassword}
@@ -337,12 +338,12 @@ export default function ApartmentResidentsModal({
                 />
               </label>
               <label className="settingsField">
-                <span>Telefono</span>
+                <span>{LL.resident_phone()}</span>
                 <input
                   type="tel"
                   value={phoneNumber}
                   onChange={(event) => setPhoneNumber(event.target.value)}
-                  placeholder="Ej: +56912345678"
+                  placeholder={LL.admin_phoneExample()}
                   maxLength={16}
                   required
                 />
@@ -354,10 +355,10 @@ export default function ApartmentResidentsModal({
                   onClick={resetCreateFlow}
                   disabled={isSaving}
                 >
-                  Cancelar
+                  {LL.admin_cancel()}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? "Creando..." : "Crear cuenta"}
+                  {isSaving ? LL.resident_creating() : LL.auth_createAccount()}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}
@@ -367,13 +368,13 @@ export default function ApartmentResidentsModal({
           {isAdding && accountPhase === ResidentAccountPhase.Code && createdResident ? (
             <form className="residentForm" onSubmit={handleVerifyEmail}>
               <div className="residentVerificationBox">
-                <strong>Codigo de verificacion</strong>
+                <strong>{LL.auth_emailCodeTitle()}</strong>
                 <p>
-                  Ingresa el codigo enviado al correo {createdResident.email}.
+                  {LL.auth_emailCodeHelp({ email: createdResident.email })}
                 </p>
               </div>
               <label className="settingsField">
-                <span>Codigo</span>
+                <span>{LL.settings_code()}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -385,10 +386,10 @@ export default function ApartmentResidentsModal({
               </label>
               <div className="residentActions">
                 <button type="button" className="secondaryButton" onClick={resetCreateFlow}>
-                  Cancelar
+                  {LL.admin_cancel()}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? "Verificando..." : "Verificar codigo"}
+                  {isSaving ? LL.settings_verifying() : LL.settings_verifyCode()}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}
@@ -402,18 +403,18 @@ export default function ApartmentResidentsModal({
                   {QRCodeComponent ? (
                     <QRCodeComponent value={totpSetup.totp_uri} size={176} />
                   ) : (
-                    <p>No se pudo cargar el QR.</p>
+                    <p>{LL.resident_qrLoadError()}</p>
                   )}
                 </div>
                 <p>
-                  Escanea este QR con Google Authenticator, Microsoft Authenticator o una app TOTP.
+                  {LL.resident_mfaHelp()}
                 </p>
                 <p className="residentSecret">
-                  Clave manual: <strong>{totpSetup.totp_secret}</strong>
+                  {LL.resident_mfaManualKey()} <strong>{totpSetup.totp_secret}</strong>
                 </p>
               </div>
               <label className="settingsField">
-                <span>Codigo del autenticador</span>
+                <span>{LL.resident_authCode()}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -425,10 +426,10 @@ export default function ApartmentResidentsModal({
               </label>
               <div className="residentActions">
                 <button type="button" className="secondaryButton" onClick={resetCreateFlow}>
-                  Cancelar
+                  {LL.admin_cancel()}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? "Activando..." : "Activar autenticador"}
+                  {isSaving ? LL.resident_activating() : LL.resident_activateAuthenticator()}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}
@@ -437,11 +438,11 @@ export default function ApartmentResidentsModal({
 
           {isAdding && accountPhase === ResidentAccountPhase.Done ? (
             <div className="residentVerificationBox">
-              <strong>Cuenta residente lista</strong>
-              <p>El correo fue verificado y el autenticador quedo activado.</p>
+              <strong>{LL.resident_readyAccount()}</strong>
+              <p>{LL.resident_readyAccountText()}</p>
               <div className="residentActions">
                 <button type="button" className="primaryButton" onClick={resetCreateFlow}>
-                  Terminar
+                  {LL.resident_done()}
                 </button>
               </div>
             </div>
@@ -450,7 +451,7 @@ export default function ApartmentResidentsModal({
           {!isAdding && canManageResidents ? (
             <div className="residentActions">
               <button type="button" className="primaryButton" onClick={() => setIsAdding(true)}>
-                Agregar cuenta residente
+                {LL.resident_addAccount()}
               </button>
             </div>
           ) : null}
@@ -466,7 +467,7 @@ export default function ApartmentResidentsModal({
             aria-modal="true"
             aria-labelledby="residentDeleteTitle"
           >
-            <p className="settingsLabel">Confirmar eliminacion</p>
+            <p className="settingsLabel">{LL.resident_confirmDelete()}</p>
             <h4 id="residentDeleteTitle">
               Estas seguro de querer eliminar al residente {residentToDelete.resident_name}
             </h4>

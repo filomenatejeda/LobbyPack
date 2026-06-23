@@ -6,6 +6,7 @@ import { supabase, supabaseConfigError } from "@/lib/client";
 import { isGoogleSSOUser } from "@/lib/auth-provider";
 import { checkAdminEmailRegistration } from "@/services/authRegistrationApi";
 import googleGLogo from "@/assets/google-g.svg";
+import { useI18nContext } from "@/i18n/i18n-react";
 import "./login-form.css";
 
 const Phase = {
@@ -14,6 +15,7 @@ const Phase = {
 } as const;
 
 export function LoginForm() {
+  const { LL } = useI18nContext();
   const location = useLocation();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -261,14 +263,13 @@ export function LoginForm() {
   return (
     <form className="authCard" onSubmit={handleLogin}>
       <div className="authCardHeader">
-        <p className="authEyebrow">Acceso</p>
+        <p className="authEyebrow">{LL.auth_access()}</p>
         <h2 className="authTitle">
-          {phase === Phase.MFA ? "Verifica tu acceso" : "Inicia sesión"}
+          {phase === Phase.MFA ? LL.auth_mfaTitle() : LL.auth_loginTitle()}
         </h2>
         <p className="authDescription">
           {phase === Phase.MFA
-            ? "Ingresa el código de 6 dígitos de tu autenticador para entrar al dashboard."
-            : "Entra con tu correo y contraseña o usa Google SSO para administrar paquetes, retiros y reclamos."}
+            ? LL.auth_mfaDescription() : LL.auth_loginDescription()}
         </p>
       </div>
 
@@ -276,7 +277,7 @@ export function LoginForm() {
         {phase === Phase.Login && (
           <>
             <label className="authField">
-              <span>Correo electrónico</span>
+              <span>{LL.auth_email()}</span>
               <input
                 className="authInput"
                 id="email"
@@ -290,7 +291,7 @@ export function LoginForm() {
             </label>
 
             <label className="authField">
-              <span>Contraseña</span>
+              <span>{LL.auth_password()}</span>
               <input
                 className="authInput"
                 id="password"
@@ -306,7 +307,7 @@ export function LoginForm() {
 
         {phase === Phase.MFA && (
           <label className="authField">
-            <span>Código del autenticador</span>
+            <span>{LL.resident_authCode()}</span>
             <input
               className="authInput authInputCode"
               id="mfa"
@@ -333,10 +334,9 @@ export function LoginForm() {
           disabled={isLoading || Boolean(supabaseConfigError)}
         >
           {isLoading
-            ? "Cargando..."
+            ? LL.common_loading()
             : phase === Phase.MFA
-              ? "Verificar código e ingresar"
-              : "Iniciar sesión"}
+              ? LL.auth_mfaSubmit() : LL.auth_login()}
         </button>
 
         {phase === Phase.Login && (
@@ -348,28 +348,22 @@ export function LoginForm() {
           >
             <span className="authGoogleIcon" aria-hidden="true">
               <img src={googleGLogo} alt="" />
-            </span>
-            Usar Google
-          </button>
+            </span>{LL.auth_useGoogle()}</button>
         )}
 
         {phase === Phase.MFA && (
-          <button type="button" className="authTextButton" onClick={() => void resetLoginFlow()}>
-            Usar otra cuenta
-          </button>
+          <button type="button" className="authTextButton" onClick={() => void resetLoginFlow()}>{LL.auth_useOtherAccount()}</button>
         )}
 
         {phase === Phase.Login && (
-        <a className="authSecondaryLink" href="/auth/forgot-password">
-          ¿Olvidaste tu contraseña?
-        </a>
+        <a className="authSecondaryLink" href="/auth/forgot-password">{LL.auth_forgotPassword()}</a>
         )}
       </div>
 
       {phase === Phase.Login && (
       <div className="authFooter">
-        <span>¿No tienes una cuenta?</span>
-        <a href="/auth/sign-up">Crea una cuenta</a>
+        <span>{LL.auth_noAccount()}</span>
+        <a href="/auth/sign-up">{LL.auth_createAccount()}</a>
       </div>
       )}
     </form>

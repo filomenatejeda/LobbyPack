@@ -1,3 +1,4 @@
+﻿import { useI18nContext } from "@/i18n/i18n-react";
 import "./PackagePanel.css";
 import PackageRow from "./PackageRow";
 import type { PackageServiceView, ParcelItem } from "../../types/home";
@@ -35,6 +36,7 @@ type PackagePanelProps = {
 };
 
 export default function PackagePanel(props: PackagePanelProps) {
+  const { LL } = useI18nContext();
   const {
     title,
     searchTerm,
@@ -72,7 +74,7 @@ export default function PackagePanel(props: PackagePanelProps) {
       </div>
       <div className="panelTools">
         <label className="searchField">
-          <span>Buscar paquete</span>
+          <span>{LL.admin_searchPackage()}</span>
           <div className="searchInputWrap">
             <svg viewBox="0 0 24 24" aria-hidden="true" className="searchIcon">
               <path
@@ -96,7 +98,7 @@ export default function PackagePanel(props: PackagePanelProps) {
               value={searchTerm}
               maxLength={SEARCH_MAX_LENGTH}
               onChange={(event) => onSearchChange(event.target.value.slice(0, SEARCH_MAX_LENGTH))}
-              placeholder="Busca por código, nombre, depto. o compañía"
+              placeholder={LL.admin_searchPackagePlaceholder()}
             />
           </div>
         </label>
@@ -107,7 +109,7 @@ export default function PackagePanel(props: PackagePanelProps) {
             checked={allVisibleSelected}
             onChange={(event) => onSelectAllVisible(event.target.checked)}
           />
-          <span>Seleccionar visibles</span>
+          <span>{LL.admin_selectVisible()}</span>
         </label>
 
         <div className="bulkActions">
@@ -116,8 +118,8 @@ export default function PackagePanel(props: PackagePanelProps) {
             className="toolbarButton"
             onClick={onEditSelected}
             disabled={selectedVisibleCount !== 1}
-            aria-label="Editar paquete seleccionado"
-            title="Editar"
+            aria-label={LL.admin_editSelectedPackage()}
+            title={LL.resident_edit()}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true" className="actionIcon">
               <path
@@ -142,8 +144,8 @@ export default function PackagePanel(props: PackagePanelProps) {
             className="toolbarButton dangerButton"
             onClick={onDeleteSelected}
             disabled={selectedVisibleCount === 0}
-            aria-label="Borrar paquetes seleccionados"
-            title="Borrar"
+            aria-label={LL.admin_deleteSelectedPackages()}
+            title={LL.admin_delete()}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true" className="actionIcon">
               <path
@@ -182,8 +184,7 @@ export default function PackagePanel(props: PackagePanelProps) {
       </div>
 
       <p className="resultsText">
-        {filteredCount} paquete{filteredCount === 1 ? "" : "s"} en total · página {safePage} de{" "}
-        {totalPages} · {selectedVisibleCount} seleccionado{selectedVisibleCount === 1 ? "" : "s"}
+        {filteredCount} {filteredCount === 1 ? LL.admin_totalPackage() : LL.admin_totalPackages()} · {LL.admin_page()} {safePage} {LL.admin_of()} {totalPages} · {selectedVisibleCount} {selectedVisibleCount === 1 ? LL.admin_selected() : LL.admin_selectedPlural()}
       </p>
 
       <ul className="packageList">
@@ -205,11 +206,11 @@ export default function PackagePanel(props: PackagePanelProps) {
       </ul>
 
       {filteredCount === 0 ? (
-        <p className="emptyState">No hay paquetes que coincidan con la búsqueda.</p>
+        <p className="emptyState">{LL.admin_noPackageResults()}</p>
       ) : (
         <div className="panelFooter">
           <label className="pageSizeField">
-            <span>Mostrar</span>
+            <span>{LL.admin_show()}</span>
             <select
               className="pageSizeSelect"
               value={pageSize}
@@ -230,10 +231,10 @@ export default function PackagePanel(props: PackagePanelProps) {
               onClick={onPrevPage}
               disabled={safePage === 1}
             >
-              Anterior
+              {LL.admin_previous()}
             </button>
             <span className="paginationInfo">
-              Mostrando {startIndex + 1}-{Math.min(startIndex + pageSize, filteredCount)} de{" "}
+              {LL.admin_showing()} {startIndex + 1}-{Math.min(startIndex + pageSize, filteredCount)} {LL.admin_of()}{" "}
               {filteredCount}
             </span>
             <button
@@ -242,7 +243,7 @@ export default function PackagePanel(props: PackagePanelProps) {
               onClick={onNextPage}
               disabled={safePage === totalPages}
             >
-              Siguiente
+              {LL.admin_next()}
             </button>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import TowerCard from "../../../components/Settings/TowerCard";
 import type { TowerConfig } from "../../../types/settings";
 import type { StructureLabels } from "../settingsConfig";
@@ -29,8 +30,7 @@ type SettingsStructureCardProps = {
   towers: TowerConfig[];
 };
 
-export default function SettingsStructureCard({
-  canEdit,
+export default function SettingsStructureCard({canEdit,
   isLoading,
   isSaving,
   labels,
@@ -50,13 +50,14 @@ export default function SettingsStructureCard({
   totalUnits,
   towers,
 }: SettingsStructureCardProps) {
+  const { LL } = useI18nContext();
   const isEditingStructure = towers.some((tower) => tower.is_editing);
 
   return (
     <article className="settingsCard settingsCardWide">
       <div className="settingsCardHeader">
         <div>
-          <p className="settingsLabel">Estructura</p>
+          <p className="settingsLabel">{LL.settings_structure()}</p>
           <h2>{labels.title}</h2>
         </div>
         {canEdit ? (
@@ -69,7 +70,7 @@ export default function SettingsStructureCard({
                   onClick={onCancel}
                   disabled={isSaving || isLoading}
                 >
-                  Cancelar
+                  {LL.admin_cancel()}
                 </button>
                 <button
                   type="button"
@@ -77,7 +78,7 @@ export default function SettingsStructureCard({
                   onClick={onSave}
                   disabled={isSaving}
                 >
-                  {isSaving ? "Guardando..." : "Guardar"}
+                  {isSaving ? LL.resident_saving() : LL.resident_save()}
                 </button>
               </>
             ) : null}
@@ -108,7 +109,7 @@ export default function SettingsStructureCard({
       <div className="towerList">
         {towers.length === 0 ? (
           <div className="settingsEmptyState">
-            <strong>La estructura aun no esta configurada.</strong>
+            <strong>{LL.settings_emptyStructure()}</strong>
             <p>
               Agrega {labels.groupPlural.toLowerCase()} para comenzar a ordenar la comunidad.
             </p>

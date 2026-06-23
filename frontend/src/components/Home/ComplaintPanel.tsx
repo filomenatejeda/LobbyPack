@@ -1,11 +1,9 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { useState } from "react";
 import "./ComplaintPanel.css";
 import { sendContactEmail } from "../../services/homeApi";
 import type { IssueItem, IssueStatus } from "../../types/home";
-import {
-  formatIssueStatus,
-  getIssueStatusClassName,
-} from "../../utils/packageUtils";
+import { getIssueStatusClassName } from "../../utils/packageUtils";
 import { getPhoneDigitsForWhatsapp } from "../../utils/phoneUtils";
 
 const SEARCH_MAX_LENGTH = 50;
@@ -64,8 +62,7 @@ function buildWhatsappUrl(item: IssueItem) {
   return `https://api.whatsapp.com/send/?${params.toString()}`;
 }
 
-export default function ComplaintPanel({
-  title,
+export default function ComplaintPanel({title,
   searchTerm,
   pageSize,
   pageSizeOptions,
@@ -91,6 +88,7 @@ export default function ComplaintPanel({
   onDeleteSelectedIssues,
   startIndex,
 }: ComplaintPanelProps) {
+  const { LL } = useI18nContext();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [emailTarget, setEmailTarget] = useState<IssueItem | null>(null);
   const [emailSubject, setEmailSubject] = useState("");
@@ -100,6 +98,11 @@ export default function ComplaintPanel({
   const [emailStatusMessage, setEmailStatusMessage] = useState("");
   const hasSelectedIssues = selectedIssueIds.length > 0;
   const isUpdatingIssues = updatingIssueId !== null;
+  const formatIssueStatusLabel = (status: IssueStatus) => {
+    if (status === "open") return LL.admin_entered();
+    if (status === "under_review") return LL.admin_markReview();
+    return LL.admin_resolved();
+  };
 
   const handleStatusChange = (issueId: string, nextStatus: IssueStatus) => {
     onIssueStatusChange(issueId, nextStatus);
@@ -158,7 +161,7 @@ export default function ComplaintPanel({
 
       <div className="complaintTools">
         <label className="complaintSearchField">
-          <span>Buscar reclamo</span>
+          <span>{LL.admin_searchClaim()}</span>
           <div className="complaintSearchInputWrap">
             <svg viewBox="0 0 24 24" aria-hidden="true" className="complaintSearchIcon">
               <path
@@ -182,7 +185,7 @@ export default function ComplaintPanel({
               value={searchTerm}
               maxLength={SEARCH_MAX_LENGTH}
               onChange={(event) => onSearchChange(event.target.value.slice(0, SEARCH_MAX_LENGTH))}
-              placeholder="Busca por nombre, paquete, depto. o reclamo"
+              placeholder={LL.admin_searchClaimPlaceholder()}
             />
           </div>
         </label>
@@ -191,24 +194,28 @@ export default function ComplaintPanel({
       {hasSelectedIssues ? (
         <div className="complaintBulkBar">
           <strong>
-            {selectedIssueIds.length} reclamo{selectedIssueIds.length === 1 ? "" : "s"} seleccionado
-            {selectedIssueIds.length === 1 ? "" : "s"}
+            {selectedIssueIds.length}{" "}
+            {selectedIssueIds.length === 1
+              ? LL.admin_claimSelected()
+              : LL.admin_claimsSelected()}
           </strong>
-          <span>{selectedVisibleCount} visible{selectedVisibleCount === 1 ? "" : "s"} en esta pagina</span>
+          <span>
+            {selectedVisibleCount} {LL.admin_claimsVisiblePage()}
+          </span>
           <div className="complaintBulkActions">
             <button
               type="button"
               onClick={() => onBulkIssueStatusChange(selectedIssueIds, "resolved")}
               disabled={!canManageStatus || isUpdatingIssues}
             >
-              Marcar respondido
+              {LL.admin_markAnswered()}
             </button>
             <button
               type="button"
               onClick={() => onBulkIssueStatusChange(selectedIssueIds, "under_review")}
               disabled={!canManageStatus || isUpdatingIssues}
             >
-              En revision
+              {LL.admin_markReview()}
             </button>
             <button
               type="button"
@@ -216,15 +223,16 @@ export default function ComplaintPanel({
               onClick={() => onDeleteSelectedIssues(selectedIssueIds)}
               disabled={!canManageStatus || isUpdatingIssues}
             >
-              Eliminar
+              {LL.admin_delete()}
             </button>
           </div>
         </div>
       ) : null}
 
       <p className="complaintResultsText">
-        {filteredCount} reclamo{filteredCount === 1 ? "" : "s"} en total · página {safePage} de{" "}
-        {totalPages}
+        {filteredCount}{" "}
+        {filteredCount === 1 ? LL.admin_claimTotal() : LL.admin_claimsTotal()} ·{" "}
+        {LL.admin_page()} {safePage} {LL.admin_of()} {totalPages}
       </p>
 
       <div className="complaintTableWrap">
@@ -236,14 +244,14 @@ export default function ComplaintPanel({
                   type="checkbox"
                   checked={allVisibleSelected}
                   disabled={paginatedComplaints.length === 0}
-                  aria-label="Seleccionar reclamos visibles"
+                  aria-label={LL.admin_selectVisible()}
                   onChange={(event) => onSelectAllVisible(event.target.checked)}
                 />
               </th>
-              <th>Mensajes</th>
-              <th>Fecha</th>
-              <th>Estado</th>
-              <th>Acciones</th>
+              <th>{LL.admin_messages()}</th>
+              <th>{LL.admin_date()}</th>
+              <th>{LL.admin_status()}</th>
+              <th>{LL.admin_actions()}</th>
             </tr>
           </thead>
           <tbody>
@@ -258,7 +266,7 @@ export default function ComplaintPanel({
                     <input
                       type="checkbox"
                       checked={isSelected}
-                      aria-label={`Seleccionar reclamo ${item.id}`}
+                      aria-label={`${LL.admin_claims()} ${item.id}`}
                       onChange={(event) => onSelect(item.id, event.target.checked)}
                     />
                   </td>
@@ -278,14 +286,14 @@ export default function ComplaintPanel({
                         item.issue_status,
                       )}`}
                     >
-                      Mensaje
+                      {LL.admin_messageLabel()}
                     </span>
                     <span
                       className={`complaintBadge complaintBadge${getIssueStatusClassName(
                         item.issue_status,
                       )}`}
                     >
-                      {formatIssueStatus(item.issue_status)}
+                      {formatIssueStatusLabel(item.issue_status)}
                     </span>
                   </td>
                   <td className="complaintActionCell">
@@ -294,7 +302,7 @@ export default function ComplaintPanel({
                       className="complaintMenuButton"
                       onClick={() => setOpenMenuId((current) => (current === item.id ? null : item.id))}
                       aria-expanded={openMenuId === item.id}
-                      aria-label={`Abrir acciones de reclamo ${item.id}`}
+                      aria-label={`${LL.admin_actions()} ${item.id}`}
                     >
                       ⋮
                     </button>
@@ -306,28 +314,28 @@ export default function ComplaintPanel({
                           onClick={() => handleStatusChange(item.id, "resolved")}
                           disabled={!canManageStatus || isUpdating}
                         >
-                          Marcar como respondido
+                          {LL.admin_markAnswered()}
                         </button>
                         {item.resident_email ? (
                           <button type="button" onClick={() => openEmailModal(item)}>
-                            Contactar por e-mail
+                            {LL.admin_contactEmail()}
                           </button>
                         ) : (
-                          <span>Sin e-mail registrado</span>
+                          <span>{LL.admin_noEmail()}</span>
                         )}
                         {whatsappUrl ? (
                           <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                            Contactar por WhatsApp
+                            {LL.admin_contactWhatsapp()}
                           </a>
                         ) : (
-                          <span>Sin WhatsApp registrado</span>
+                          <span>{LL.admin_noWhatsapp()}</span>
                         )}
                         <button
                           type="button"
                           onClick={() => handleStatusChange(item.id, "under_review")}
                           disabled={!canManageStatus || isUpdating}
                         >
-                          Marcar como en revisión
+                          {LL.admin_markReview()}
                         </button>
                         <button
                           type="button"
@@ -338,7 +346,7 @@ export default function ComplaintPanel({
                           }}
                           disabled={!canManageStatus || isUpdating}
                         >
-                          Eliminar
+                          {LL.admin_delete()}
                         </button>
                       </div>
                     ) : null}
@@ -351,11 +359,11 @@ export default function ComplaintPanel({
       </div>
 
       {filteredCount === 0 ? (
-        <p className="complaintEmptyState">No hay reclamos que coincidan con la búsqueda.</p>
+        <p className="complaintEmptyState">{LL.admin_noClaimResults()}</p>
       ) : (
         <div className="complaintFooter">
           <label className="complaintPageSizeField">
-            <span>Mostrar</span>
+            <span>{LL.admin_show()}</span>
             <select
               className="complaintPageSizeSelect"
               value={pageSize}
@@ -376,10 +384,10 @@ export default function ComplaintPanel({
               onClick={onPrevPage}
               disabled={safePage === 1}
             >
-              Anterior
+              {LL.admin_previous()}
             </button>
             <span className="complaintPaginationInfo">
-              Mostrando {startIndex + 1}-{Math.min(startIndex + pageSize, filteredCount)} de{" "}
+              {LL.admin_showing()} {startIndex + 1}-{Math.min(startIndex + pageSize, filteredCount)} {LL.admin_of()}{" "}
               {filteredCount}
             </span>
             <button
@@ -388,7 +396,7 @@ export default function ComplaintPanel({
               onClick={onNextPage}
               disabled={safePage === totalPages}
             >
-              Siguiente
+              {LL.admin_next()}
             </button>
           </div>
         </div>
@@ -404,12 +412,12 @@ export default function ComplaintPanel({
             aria-labelledby="complaintEmailModalTitle"
           >
             <div className="emailModalHeader">
-              <h3 id="complaintEmailModalTitle">Enviar un email</h3>
+              <h3 id="complaintEmailModalTitle">{LL.admin_sendEmail()}</h3>
               <button
                 type="button"
                 className="emailModalClose"
                 onClick={closeEmailModal}
-                aria-label="Cerrar"
+                aria-label={LL.settings_close()}
               >
                 X
               </button>
@@ -424,17 +432,17 @@ export default function ComplaintPanel({
             >
               <div className="emailFormRow">
                 <label className="emailField">
-                  <span>Para</span>
+                  <span>{LL.admin_to()}</span>
                   <input type="email" value={emailTarget.resident_email} readOnly />
                 </label>
                 <label className="emailField">
-                  <span>De</span>
+                  <span>{LL.admin_from()}</span>
                   <input type="text" value={senderEmail || "LobbyPack"} readOnly />
                 </label>
               </div>
 
               <label className="emailField">
-                <span>Asunto</span>
+                <span>{LL.admin_subject()}</span>
                 <input
                   type="text"
                   value={emailSubject}
@@ -444,7 +452,7 @@ export default function ComplaintPanel({
               </label>
 
               <label className="emailField">
-                <span>Mensaje</span>
+                <span>{LL.admin_message()}</span>
                 <textarea
                   value={emailMessage}
                   onChange={(event) => setEmailMessage(event.target.value)}
@@ -459,7 +467,7 @@ export default function ComplaintPanel({
                     checked={sendBlindCopy}
                     onChange={(event) => setSendBlindCopy(event.target.checked)}
                   />
-                  <span>Enviar a {senderEmail} como copia oculta</span>
+                  <span>{LL.admin_sendBlindCopy({ email: senderEmail })}</span>
                 </label>
               ) : null}
 
@@ -474,10 +482,10 @@ export default function ComplaintPanel({
                   onClick={closeEmailModal}
                   disabled={isSendingEmail}
                 >
-                  Cancelar
+                  {LL.admin_cancel()}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSendingEmail}>
-                  {isSendingEmail ? "Enviando..." : "Enviar"}
+                  {isSendingEmail ? LL.admin_sending() : LL.admin_send()}
                 </button>
               </div>
             </form>

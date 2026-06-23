@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { useEffect, useState, type FormEvent } from "react";
 import AddPackageFormSection from "./AddPackageFormSection";
 import type { AddPackageFormValues } from "./packageFormTypes";
@@ -76,14 +77,15 @@ function loadPackageDraftStorage(emptyValues: AddPackageFormValues) {
   }
 }
 
-export default function AddPackageModal({
-  conciergeName = "",
+export default function AddPackageModal({conciergeName = "",
   communityStructure = [],
   initialValues,
-  title = "Completa los datos del paquete",
+  title,
   onClose,
   onSubmit,
 }: AddPackageModalProps) {
+  const { LL } = useI18nContext();
+  const modalTitle = title ?? LL.admin_addPackage();
   const emptyValues: AddPackageFormValues = {
     ...defaultValues,
     concierge_name: conciergeName,
@@ -97,6 +99,14 @@ export default function AddPackageModal({
     () => savedDrafts?.queue ?? [],
   );
   const [errorMessage, setErrorMessage] = useState("");
+  const validationMessages = {
+    departmentRequired: LL.admin_departmentRequired(),
+    departmentTooLong: LL.admin_departmentTooLong(),
+    departmentRegisteredRequired: LL.admin_departmentRegisteredRequired(),
+    invalidPhone: LL.resident_phoneInvalid(),
+    invalidDescription: LL.admin_invalidPackageDescription(),
+    invalidName: LL.admin_invalidNameField(),
+  };
 
   useEffect(() => {
     if (isEditing || typeof window === "undefined") {
@@ -123,7 +133,7 @@ export default function AddPackageModal({
   };
 
   const handleQueueCurrentPackage = () => {
-    const validation = validateParcelForm(values, communityStructure);
+    const validation = validateParcelForm(values, communityStructure, validationMessages);
 
     if (validation.message) {
       setErrorMessage(validation.message);
@@ -147,7 +157,7 @@ export default function AddPackageModal({
     const packagesToSave = [...queuedPackages];
 
     if (shouldIncludeCurrentPackage) {
-      const validation = validateParcelForm(values, communityStructure);
+      const validation = validateParcelForm(values, communityStructure, validationMessages);
 
       if (validation.message) {
         setErrorMessage(validation.message);
@@ -158,7 +168,7 @@ export default function AddPackageModal({
     }
 
     if (packagesToSave.length === 0) {
-      setErrorMessage("Agrega al menos un paquete valido antes de guardar.");
+      setErrorMessage(LL.admin_packageRequired());
       return;
     }
 
@@ -173,7 +183,7 @@ export default function AddPackageModal({
       onClose();
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "No se pudieron guardar los paquetes.",
+        error instanceof Error ? error.message : LL.home_packageCreateError(),
       );
     }
   };
@@ -183,14 +193,14 @@ export default function AddPackageModal({
       <div className="addPackageModal" onClick={(event) => event.stopPropagation()}>
         <div className="addPackageHeader">
           <div>
-            <p className="addPackageEyebrow">Nuevo paquete</p>
-            <h3>{title}</h3>
+            <p className="addPackageEyebrow">{modalTitle}</p>
+            <h3>{modalTitle}</h3>
           </div>
           <button
             type="button"
             className="closeModalButton"
             onClick={onClose}
-            aria-label="Cerrar modal"
+            aria-label={LL.settings_close()}
           >
             ×
           </button>

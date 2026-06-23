@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import type { TowerConfig } from "../../types/settings";
 
 type TowerCardProps = {
@@ -49,6 +50,7 @@ export default function TowerCard({
   onUpdateApartmentName,
   onRemoveApartment,
 }: TowerCardProps) {
+  const { LL } = useI18nContext();
   const selectedFloor =
     tower.floors.find((floor) => floor.floor_number === tower.selected_floor) ?? tower.floors[0];
   const selectedFloorNumber = selectedFloor?.floor_number ?? 1;
@@ -72,7 +74,7 @@ export default function TowerCard({
             className="secondaryButton"
             onClick={() => onToggleEditing(tower.id)}
           >
-            {tower.is_editing ? "Cerrar edición" : "Editar"}
+            {tower.is_editing ? LL.settings_close() : LL.resident_edit()}
           </button>
           <button
             type="button"
@@ -80,7 +82,7 @@ export default function TowerCard({
             onClick={() => onRemove(tower.id)}
             disabled={!canRemove}
           >
-            Eliminar
+            {LL.admin_delete()}
           </button>
         </div>
         ) : null}
@@ -183,7 +185,7 @@ export default function TowerCard({
                     }
                     disabled={selectedFloor.apartments.length === 1}
                   >
-                    Quitar
+                    {LL.settings_remove()}
                   </button>
                 </div>
               ))}
