@@ -14,6 +14,16 @@ let databaseStatus: "starting" | "ready" | "error" = "starting";
 let databaseError: string | null = null;
 let apiApp: { handle(request: Request): Response | Promise<Response> } | null = null;
 
+const noStoreHeaders = {
+  "Cache-Control": "no-store",
+  "X-Content-Type-Options": "nosniff",
+};
+
+const immutableAssetHeaders = {
+  "Cache-Control": "public, max-age=31536000, immutable",
+  "X-Content-Type-Options": "nosniff",
+};
+
 const server = Bun.serve({
   port,
   hostname,
@@ -21,11 +31,11 @@ const server = Bun.serve({
     const url = new URL(request.url);
 
     if (url.pathname === "/health") {
-      return Response.json({ status: "ok", database: databaseStatus });
+      return jsonResponse({ status: "ok", database: databaseStatus });
     }
 
     if (url.pathname === "/ready") {
-      return Response.json(
+      return jsonResponse(
         {
           status: databaseStatus === "ready" ? "ready" : "not_ready",
           database: databaseStatus,
@@ -40,11 +50,11 @@ const server = Bun.serve({
     }
 
     if (url.pathname.startsWith("/api/") && apiApp) {
-      return apiApp.handle(request);
+      return withDefaultHeaders(await apiApp.handle(request));
     }
 
     if (url.pathname.startsWith("/api/")) {
-      return Response.json(
+      return jsonResponse(
         {
           error: "API is starting",
           database: databaseStatus,
@@ -64,7 +74,7 @@ async function serveFrontend(pathname: string) {
   const frontendDistPath = await findFrontendDistPath();
 
   if (!frontendDistPath) {
-    return Response.json(
+    return jsonResponse(
       {
         error: "Frontend build not found",
         expectedPaths: frontendDistPaths,
@@ -78,19 +88,22 @@ async function serveFrontend(pathname: string) {
   const relativePath = normalize(decodedPath).replace(/^[/\\]+/, "");
 
   if (relativePath.startsWith("..") || relativePath.includes(`..${sep}`)) {
-    return new Response("Bad request", { status: 400 });
+    return new Response("Bad request", { status: 400, headers: noStoreHeaders });
   }
 
   if (relativePath && relativePath !== ".") {
     const assetFile = Bun.file(resolve(frontendDistPath, relativePath));
 
     if (await assetFile.exists()) {
-      return new Response(assetFile);
+      return new Response(assetFile, {
+        headers: relativePath.startsWith("assets/") ? immutableAssetHeaders : noStoreHeaders,
+      });
     }
   }
 
   return new Response(indexFile, {
     headers: {
+      ...noStoreHeaders,
       "Content-Type": "text/html; charset=utf-8",
     },
   });
@@ -104,6 +117,34 @@ async function findFrontendDistPath() {
   }
 
   return null;
+}
+
+function jsonResponse(body: unknown, init?: ResponseInit) {
+  return Response.json(body, {
+    ...init,
+    headers: {
+      ...noStoreHeaders,
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
+function withDefaultHeaders(response: Response) {
+  const headers = new Headers(response.headers);
+
+  if (!headers.has("Cache-Control")) {
+    headers.set("Cache-Control", "no-store");
+  }
+
+  if (!headers.has("X-Content-Type-Options")) {
+    headers.set("X-Content-Type-Options", "nosniff");
+  }
+
+  return new Response(response.body, {
+    headers,
+    status: response.status,
+    statusText: response.statusText,
+  });
 }
 
 async function initializeDatabase() {
@@ -178,7 +219,7 @@ function serveRuntimeConfig() {
 
   return new Response(`window.__LOBBYPACK_CONFIG__ = ${JSON.stringify(config)};`, {
     headers: {
-      "Cache-Control": "no-store",
+      ...noStoreHeaders,
       "Content-Type": "application/javascript; charset=utf-8",
     },
   });
