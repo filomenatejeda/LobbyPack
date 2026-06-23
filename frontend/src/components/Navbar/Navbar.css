@@ -82,6 +82,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: auto;
   width: auto;
   padding: 10px 0;
   white-space: nowrap;

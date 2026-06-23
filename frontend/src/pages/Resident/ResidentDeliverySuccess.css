@@ -126,7 +126,7 @@
   }
 
   .deliverySuccessVisual {
-    min-height: 0;
+    min-height: auto;
     background: transparent;
   }
 

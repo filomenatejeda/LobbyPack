@@ -203,6 +203,7 @@
     overflow-x: auto;
     padding: 0 2px 8px;
     scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
   }
 
   .adminOverviewCard {
@@ -228,6 +229,7 @@
 
   .adminIssueNotice {
     display: grid;
+    min-height: auto;
     margin-top: 8px;
     padding: 12px 14px;
     gap: 4px;
