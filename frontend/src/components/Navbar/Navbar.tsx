@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import LanguageToggleButton from "./LanguageToggleButton";
-import logo from "../../assets/Logo.png";
 import { supabase } from "../../lib/client";
 import { useI18n } from "../../lib/i18n";
 import { fetchDashboard } from "../../services/homeApi";
 import type { AppRole } from "../../types/home";
+
+const logo = "https://i.imgur.com/HmaidCI.png";
 
 const navItems = [
   { labelKey: "nav.account", to: "/dashboard", exact: true },

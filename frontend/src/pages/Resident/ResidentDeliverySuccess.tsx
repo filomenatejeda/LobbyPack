@@ -1,8 +1,9 @@
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import logo from "../../assets/Logo1.png";
 import { useI18n } from "../../lib/i18n";
 import type { ParcelItem } from "../../types/home";
 import "./ResidentDeliverySuccess.css";
+
+const logo = "https://i.imgur.com/Loik7zl.png";
 
 type DeliverySuccessState = {
   parcel?: ParcelItem;
