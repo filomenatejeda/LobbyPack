@@ -156,11 +156,7 @@ export default function PackageRow({
                 item.parcel_status === "pending" ? "statusValueRecepcion" : "statusValueRetiro"
               }`}
             >
-              {language === "es"
-                ? formatParcelStatus(item.parcel_status)
-                : item.parcel_status === "pending"
-                  ? "Reception"
-                  : "Pickup"}
+              {formatParcelStatus(item.parcel_status, language)}
             </p>
             {item.parcel_status === "pending" && item.resident_claim_confirmed_at ? (
               <p className="statusValue statusValueRetiro">{t("admin.residentConfirmed")}</p>
@@ -173,8 +169,8 @@ export default function PackageRow({
                 type="button"
                 className="rowActionButton qrButton"
                 onClick={() => onShowQr(item)}
-                aria-label={`Mostrar QR del paquete ${item.id}`}
-                title="Mostrar QR"
+                aria-label={`${t("qr.showPackageQr")} ${item.id}`}
+                title={t("qr.showQr")}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="actionIcon">
                   <path
@@ -200,8 +196,8 @@ export default function PackageRow({
                 type="button"
                 className="rowActionButton qrButton"
                 onClick={() => onShowPin(item)}
-                aria-label={`Validar PIN del paquete ${item.id}`}
-                title="Validar PIN"
+                aria-label={`${t("admin.validatePinPackage")} ${item.id}`}
+                title={t("admin.validatePin")}
               >
                 PIN
               </button>
@@ -213,7 +209,7 @@ export default function PackageRow({
                 target="_blank"
                 rel="noreferrer"
                 aria-label={`Contactar por WhatsApp a ${item.resident_name}`}
-                title="WhatsApp del paquete"
+                title={t("admin.packageWhatsapp")}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="actionIcon">
                   <path
@@ -516,7 +512,7 @@ export default function PackageRow({
                     checked={sendBlindCopy}
                     onChange={(event) => setSendBlindCopy(event.target.checked)}
                   />
-                  <span>Enviar a {senderEmail} como copia oculta</span>
+                  <span>{t("admin.sendBlindCopy").replace("{email}", senderEmail)}</span>
                 </label>
               ) : null}
 

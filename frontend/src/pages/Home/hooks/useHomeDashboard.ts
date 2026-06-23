@@ -31,7 +31,7 @@ import { useI18n } from "../../../lib/i18n";
 type FeedbackTone = "neutral" | "success" | "error";
 
 export function useHomeDashboard() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [currentUser, setCurrentUser] = useState<DashboardCurrentUser | null>(null);
   const [activeView, setActiveView] = useState<ServiceView>("received");
   const [pendingParcels, setPendingParcels] = useState<ParcelItem[]>([]);
@@ -154,7 +154,7 @@ export function useHomeDashboard() {
         item.issue_description,
         item.created_at,
         item.issue_status,
-        formatIssueStatus(item.issue_status),
+        formatIssueStatus(item.issue_status, language),
       ].join(" "),
     );
 

@@ -79,11 +79,7 @@ function ResidentIssueCard({ item }: { item: IssueItem }) {
         <strong>{item.id_parcel}</strong>
         <span>{item.business_name}</span>
         <span>
-          {language === "es"
-            ? formatParcelStatus(item.parcel_status)
-            : item.parcel_status === "pending"
-              ? "Reception"
-              : "Pickup"}
+          {formatParcelStatus(item.parcel_status, language)}
         </span>
         <span>
           {new Date(item.created_at).toLocaleDateString(language === "es" ? "es-CL" : "en-US", {
@@ -97,13 +93,7 @@ function ResidentIssueCard({ item }: { item: IssueItem }) {
             item.issue_status,
           )}`}
         >
-          {language === "es"
-            ? formatIssueStatus(item.issue_status)
-            : item.issue_status === "open"
-              ? "Submitted"
-              : item.issue_status === "under_review"
-                ? "Under review"
-                : "Resolved"}
+          {formatIssueStatus(item.issue_status, language)}
         </span>
       </div>
       <p>{item.issue_description}</p>

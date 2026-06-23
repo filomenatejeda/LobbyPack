@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import AddPackageFormSection from "./AddPackageFormSection";
 import type { AddPackageFormValues } from "./packageFormTypes";
 import type { CommunityStructureTower } from "../../types/home";
+import { useI18n } from "../../lib/i18n";
 import { validateParcelForm } from "../../utils/parcelValidation";
 import "./AddPackageModal.css";
 
@@ -80,10 +81,11 @@ export default function AddPackageModal({
   conciergeName = "",
   communityStructure = [],
   initialValues,
-  title = "Completa los datos del paquete",
+  title,
   onClose,
   onSubmit,
 }: AddPackageModalProps) {
+  const { t } = useI18n();
   const emptyValues: AddPackageFormValues = {
     ...defaultValues,
     concierge_name: conciergeName,
@@ -97,6 +99,7 @@ export default function AddPackageModal({
     () => savedDrafts?.queue ?? [],
   );
   const [errorMessage, setErrorMessage] = useState("");
+  const modalTitle = title ?? t("admin.completePackageData");
 
   useEffect(() => {
     if (isEditing || typeof window === "undefined") {
@@ -158,7 +161,7 @@ export default function AddPackageModal({
     }
 
     if (packagesToSave.length === 0) {
-      setErrorMessage("Agrega al menos un paquete valido antes de guardar.");
+      setErrorMessage(t("admin.addPackageRequired"));
       return;
     }
 
@@ -173,7 +176,7 @@ export default function AddPackageModal({
       onClose();
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "No se pudieron guardar los paquetes.",
+        error instanceof Error ? error.message : t("home.packageCreateError"),
       );
     }
   };
@@ -183,14 +186,16 @@ export default function AddPackageModal({
       <div className="addPackageModal" onClick={(event) => event.stopPropagation()}>
         <div className="addPackageHeader">
           <div>
-            <p className="addPackageEyebrow">Nuevo paquete</p>
-            <h3>{title}</h3>
+            <p className="addPackageEyebrow">
+              {isEditing ? t("admin.editPackage") : t("admin.newPackage")}
+            </p>
+            <h3>{modalTitle}</h3>
           </div>
           <button
             type="button"
             className="closeModalButton"
             onClick={onClose}
-            aria-label="Cerrar modal"
+            aria-label={t("admin.closeModal")}
           >
             ×
           </button>

@@ -34,9 +34,14 @@ describe("package utils", () => {
   test("formats parcel and issue statuses", () => {
     expect(formatParcelStatus("pending")).toBe("Recepción");
     expect(formatParcelStatus("claimed")).toBe("Retiro");
+    expect(formatParcelStatus("pending", "en")).toBe("Reception");
+    expect(formatParcelStatus("claimed", "en")).toBe("Pickup");
     expect(formatIssueStatus("open")).toBe("Ingresado");
     expect(formatIssueStatus("under_review")).toBe("En revisión");
     expect(formatIssueStatus("resolved")).toBe("Resuelto");
+    expect(formatIssueStatus("open", "en")).toBe("Submitted");
+    expect(formatIssueStatus("under_review", "en")).toBe("Under review");
+    expect(formatIssueStatus("resolved", "en")).toBe("Resolved");
   });
 
   test("gets issue status class names", () => {
@@ -51,6 +56,11 @@ describe("package utils", () => {
       { value: "under_review", label: "En revisión" },
       { value: "resolved", label: "Resuelto" },
     ]);
+    expect(getIssueStatusOptions("en")).toEqual([
+      { value: "open", label: "Submitted" },
+      { value: "under_review", label: "Under review" },
+      { value: "resolved", label: "Resolved" },
+    ]);
   });
 
   test("gets quick issue status transitions and labels", () => {
@@ -60,6 +70,9 @@ describe("package utils", () => {
     expect(getQuickIssueStatusLabel("open")).toBe("Pasar a En revisión");
     expect(getQuickIssueStatusLabel("under_review")).toBe("Marcar resuelto");
     expect(getQuickIssueStatusLabel("resolved")).toBe("Volver a En revisión");
+    expect(getQuickIssueStatusLabel("open", "en")).toBe("Move to under review");
+    expect(getQuickIssueStatusLabel("under_review", "en")).toBe("Mark resolved");
+    expect(getQuickIssueStatusLabel("resolved", "en")).toBe("Move back to under review");
   });
 
   test("normalizes search text by removing accents and lowercasing", () => {

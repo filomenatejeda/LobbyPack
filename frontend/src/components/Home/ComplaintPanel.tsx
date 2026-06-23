@@ -193,10 +193,17 @@ export default function ComplaintPanel({
       {hasSelectedIssues ? (
         <div className="complaintBulkBar">
           <strong>
-            {selectedIssueIds.length} reclamo{selectedIssueIds.length === 1 ? "" : "s"} seleccionado
-            {selectedIssueIds.length === 1 ? "" : "s"}
+            {selectedIssueIds.length}{" "}
+            {selectedIssueIds.length === 1
+              ? t("admin.selectedClaim")
+              : t("admin.selectedClaims")}
           </strong>
-          <span>{selectedVisibleCount} visible{selectedVisibleCount === 1 ? "" : "s"} en esta página</span>
+          <span>
+            {selectedVisibleCount}{" "}
+            {selectedVisibleCount === 1
+              ? t("admin.visibleOnPage")
+              : t("admin.visiblePluralOnPage")}
+          </span>
           <div className="complaintBulkActions">
             <button
               type="button"
@@ -226,7 +233,7 @@ export default function ComplaintPanel({
 
       <p className="complaintResultsText">
         {filteredCount}{" "}
-        {filteredCount === 1 ? t("admin.openClaimSingular") : t("admin.openClaimPlural")} Â·{" "}
+        {filteredCount === 1 ? t("admin.openClaimSingular") : t("admin.openClaimPlural")} ·{" "}
         {t("admin.page")} {safePage} {t("admin.of")} {totalPages}
       </p>
 
@@ -239,7 +246,7 @@ export default function ComplaintPanel({
                   type="checkbox"
                   checked={allVisibleSelected}
                   disabled={paginatedComplaints.length === 0}
-                  aria-label="Seleccionar reclamos visibles"
+                  aria-label={t("admin.selectVisibleClaims")}
                   onChange={(event) => onSelectAllVisible(event.target.checked)}
                 />
               </th>
@@ -261,7 +268,7 @@ export default function ComplaintPanel({
                     <input
                       type="checkbox"
                       checked={isSelected}
-                      aria-label={`Seleccionar reclamo ${item.id}`}
+                      aria-label={`${t("admin.selectClaim")} ${item.id}`}
                       onChange={(event) => onSelect(item.id, event.target.checked)}
                     />
                   </td>
@@ -271,7 +278,7 @@ export default function ComplaintPanel({
                     </button>
                     <p>{item.issue_description}</p>
                     <span>
-                      {item.id_parcel} Â· {item.department_address} Â· {item.business_name}
+                      {item.id_parcel} · {item.department_address} · {item.business_name}
                     </span>
                   </td>
                   <td className="complaintDateCell">{formatComplaintDate(item.created_at)}</td>
@@ -288,13 +295,7 @@ export default function ComplaintPanel({
                         item.issue_status,
                       )}`}
                     >
-                      {language === "es"
-                        ? formatIssueStatus(item.issue_status)
-                        : item.issue_status === "open"
-                          ? "Submitted"
-                          : item.issue_status === "under_review"
-                            ? "Under review"
-                            : "Resolved"}
+                      {formatIssueStatus(item.issue_status, language)}
                     </span>
                   </td>
                   <td className="complaintActionCell">
@@ -303,9 +304,9 @@ export default function ComplaintPanel({
                       className="complaintMenuButton"
                       onClick={() => setOpenMenuId((current) => (current === item.id ? null : item.id))}
                       aria-expanded={openMenuId === item.id}
-                      aria-label={`Abrir acciones de reclamo ${item.id}`}
+                      aria-label={`${t("admin.openClaimActions")} ${item.id}`}
                     >
-                      â‹®
+                      ⋮
                     </button>
 
                     {openMenuId === item.id ? (
@@ -468,7 +469,7 @@ export default function ComplaintPanel({
                     checked={sendBlindCopy}
                     onChange={(event) => setSendBlindCopy(event.target.checked)}
                   />
-                  <span>Enviar a {senderEmail} como copia oculta</span>
+                  <span>{t("admin.sendBlindCopy").replace("{email}", senderEmail)}</span>
                 </label>
               ) : null}
 
