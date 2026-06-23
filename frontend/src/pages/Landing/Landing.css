@@ -502,37 +502,90 @@
     padding: 0 12px;
   }
 
+  .landingTopNav {
+    background: rgba(111, 134, 74, 0.96);
+    border-bottom-color: rgba(96, 62, 33, 0.18);
+    box-shadow: 0 8px 22px rgba(76, 92, 44, 0.16);
+  }
+
+  .landingTopNav .landingContainer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
   .landingTopNavInner {
-    min-height: 64px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    flex-direction: column;
-    justify-content: center;
+    min-height: 58px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    flex-direction: row;
+    justify-content: space-between;
   }
 
   .landingTopNavLinks {
-    justify-content: center;
-    gap: 6px;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .landingBrandLobby {
+    color: #f4ead8;
+  }
+
+  .landingBrandPack {
+    color: #2f3d18;
+  }
+
+  .landingQuickNavLink {
+    display: none;
   }
 
   .landingHero {
-    padding: 114px 0 32px;
+    padding: 74px 0 32px;
   }
 
   .landingLogoHero {
     width: min(100%, 320px);
   }
 
-  .landingQuickNavLink {
-    min-height: 32px;
-    padding: 0 12px;
-    font-size: 0.85rem;
+  .landingLanguageButton {
+    min-width: 46px;
+    min-height: 36px;
+    padding: 0 10px;
+    border-color: rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
   }
 
-  .landingLanguageButton {
-    min-width: 42px;
-    min-height: 32px;
-    padding: 0 10px;
+  .landingLanguageButton:hover,
+  .landingLanguageButton:focus-visible {
+    border-color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+  }
+
+  .landingLeadStrong {
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+
+  .landingLeadSecondary {
+    margin-top: 22px;
+    padding: 16px 0;
+    font-size: 0.92rem;
+  }
+
+  .landingActions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: min(100%, 180px);
+    margin-left: auto;
+    margin-right: auto;
+    gap: 10px;
+  }
+
+  .landingPrimaryButton,
+  .landingSecondaryButton {
+    min-width: 0;
+    width: 100%;
   }
 
   .landingShowcaseSection {
