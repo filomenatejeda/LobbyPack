@@ -12,6 +12,7 @@ import {
   sendParcelClaimedEmailNotifications,
 } from "../../utils/email";
 import { normalizeTextInput } from "../../utils/textEncoding";
+import { scheduleUrgentParcelNotifications } from "../../utils/parcelNotificationScheduler";
 import {
   sendParcelClaimedWhatsappNotifications,
   sendParcelWhatsappNotifications,
@@ -139,12 +140,23 @@ export const parcelRoutes = new Elysia()
               recipients: departmentResidents,
               departmentAddress: validatedPayload.department_address,
               parcelId,
+              isUrgent: validatedPayload.is_urgent,
             });
             const emailResults = await sendParcelArrivalEmailNotifications({
               recipients: departmentResidents,
               departmentAddress: validatedPayload.department_address,
               parcelId,
+              isUrgent: validatedPayload.is_urgent,
             });
+
+            if (validatedPayload.is_urgent) {
+              scheduleUrgentParcelNotifications({
+                parcelId,
+                departmentAddress: validatedPayload.department_address,
+                isUrgent: true,
+                recipients: departmentResidents,
+              });
+            }
 
             const failedNotifications = notificationResults.filter(
               (result) => result.status === "rejected",
