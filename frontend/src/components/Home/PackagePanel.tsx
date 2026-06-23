@@ -1,4 +1,4 @@
-﻿import "./PackagePanel.css";
+import "./PackagePanel.css";
 import PackageRow from "./PackageRow";
 import { useI18n } from "../../lib/i18n";
 import type { PackageServiceView, ParcelItem } from "../../types/home";

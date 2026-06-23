@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import "./ComplaintPanel.css";
 import { useI18n } from "../../lib/i18n";
 import { sendContactEmail } from "../../services/homeApi";

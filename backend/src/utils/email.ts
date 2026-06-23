@@ -19,6 +19,7 @@ type ParcelEmailNotification = {
   recipients: EmailRecipient[];
   departmentAddress: string;
   parcelId: string;
+  isUrgent?: boolean;
 };
 
 type ParcelClaimedEmailNotification = ParcelEmailNotification & {
@@ -168,6 +169,35 @@ export async function sendParcelClaimedEmailNotifications({
   const sentCount = results.filter((result) => result.status === "fulfilled").length;
   console.info(`Email retiro: ${sentCount}/${uniqueRecipients.length} notificaciones procesadas.`);
   logEmailRejectedResults("Email retiro", uniqueRecipients, results);
+
+  return results;
+}
+
+export async function sendParcelUrgentEmailNotifications({
+  recipients,
+  departmentAddress,
+  parcelId,
+}: ParcelEmailNotification) {
+  const uniqueRecipients = uniqueEmailRecipients(recipients);
+
+  if (uniqueRecipients.length === 0) {
+    console.warn(`Email urgente no enviado: no hay correos para ${departmentAddress}.`);
+    return [];
+  }
+
+  const results = await Promise.allSettled(
+    uniqueRecipients.map((recipient) =>
+      sendLobbyPackEmail({
+        to: recipient.email,
+        subject: `PAQUETE URGENTE - ${departmentAddress}`,
+        text: `Hola ${recipient.resident_name},\n\nTienes un paquete URGENTE esperándote.\n\nPaquete: ${parcelId}\nDepartamento: ${departmentAddress}\n\nPor favor retíralo lo antes posible en conserjería.\n\nLobbyPack`,
+      }),
+    ),
+  );
+
+  const sentCount = results.filter((result) => result.status === "fulfilled").length;
+  console.info(`Email urgente: ${sentCount}/${uniqueRecipients.length} notificaciones procesadas.`);
+  logEmailRejectedResults("Email urgente", uniqueRecipients, results);
 
   return results;
 }

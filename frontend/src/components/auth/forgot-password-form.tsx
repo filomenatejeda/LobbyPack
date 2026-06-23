@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 
 import { getSupabaseRedirectUrl } from "@/lib/authRedirect";
 import { supabase, supabaseConfigError } from "@/lib/client";

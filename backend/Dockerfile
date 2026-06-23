@@ -10,3 +10,13 @@ COPY . .
 EXPOSE 3000
 
 CMD ["bun", "run", "start"]
+# WORKDIR /app-lobbypack/backend
+
+# COPY backend/package.json ./package.json
+# RUN bun install
+
+# COPY backend .
+
+# EXPOSE 3000
+
+# CMD ["bun", "run", "dev"]

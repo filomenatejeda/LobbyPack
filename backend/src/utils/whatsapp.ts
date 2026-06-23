@@ -9,6 +9,7 @@ type ParcelWhatsappNotification = {
   recipients: WhatsappRecipient[];
   departmentAddress: string;
   parcelId?: string;
+  isUrgent?: boolean;
 };
 
 type ParcelClaimedWhatsappNotification = ParcelWhatsappNotification & {
@@ -291,6 +292,95 @@ export async function sendParcelClaimedWhatsappNotifications({
   const sentCount = results.filter((result) => result.status === "fulfilled").length;
   console.info(`WhatsApp retiro: ${sentCount}/${uniqueRecipients.length} notificaciones procesadas.`);
   logWhatsappRejectedResults("WhatsApp retiro", uniqueRecipients, results);
+
+  return results;
+}
+
+export async function sendParcelUrgentWhatsappNotifications({
+  recipients,
+  departmentAddress,
+  parcelId,
+}: ParcelWhatsappNotification) {
+  const config = getTwilioConfig();
+
+  if (!config) {
+    console.warn(
+      "WhatsApp urgente no configurado: faltan TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM o TWILIO_WHATSAPP_CONTENT_SID.",
+    );
+    return [];
+  }
+
+  if (recipients.length === 0) {
+    console.warn(`WhatsApp urgente no enviado: no hay residentes para ${departmentAddress}.`);
+    return [];
+  }
+
+  const uniqueRecipients = getUniqueWhatsappRecipients(recipients);
+
+  if (uniqueRecipients.length === 0) {
+    console.warn(
+      `WhatsApp urgente no enviado: los residentes de ${departmentAddress} no tienen telefono internacional valido.`,
+    );
+    return [];
+  }
+
+  console.info(
+    `WhatsApp urgente ${parcelId ?? ""}: enviando a ${uniqueRecipients
+      .map((recipient) => `${recipient.resident_name} ${recipient.user_phone_number}`)
+      .join(", ")}.`,
+  );
+
+  const results = await Promise.allSettled(
+    uniqueRecipients.map((recipient) => {
+      const to = toWhatsappAddress(recipient.user_phone_number);
+      if (!to) return Promise.reject(new Error("Número de teléfono inválido"));
+
+      const body = new URLSearchParams({
+        From: config.from,
+        To: to,
+        ContentSid: config.contentSid,
+        ContentVariables: JSON.stringify({
+          1: recipient.resident_name,
+          2: departmentAddress,
+          3: "PAQUETE URGENTE",
+        }),
+      });
+
+      return fetch(
+        `https://api.twilio.com/2010-04-01/Accounts/${config.accountSid}/Messages.json`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${Buffer.from(
+              `${config.accountSid}:${config.authToken}`,
+            ).toString("base64")}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body,
+        },
+      ).then(async (response) => {
+        const payload = (await response.json().catch(() => ({}))) as {
+          sid?: string;
+          message?: string;
+          error_message?: string;
+        };
+
+        if (!response.ok) {
+          throw new Error(
+            payload.message ||
+              payload.error_message ||
+              `Twilio respondio con estado ${response.status}.`,
+          );
+        }
+
+        return payload.sid ?? null;
+      });
+    }),
+  );
+
+  const sentCount = results.filter((result) => result.status === "fulfilled").length;
+  console.info(`WhatsApp urgente: ${sentCount}/${uniqueRecipients.length} notificaciones procesadas.`);
+  logWhatsappRejectedResults("WhatsApp urgente", uniqueRecipients, results);
 
   return results;
 }

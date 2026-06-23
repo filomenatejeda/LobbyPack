@@ -34,6 +34,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      # context: .
+      # dockerfile: backend/Dockerfile
     container_name: lobbypack-backend
     depends_on:
       mysql_lobbypack:

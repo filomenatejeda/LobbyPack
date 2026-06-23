@@ -1,4 +1,4 @@
-﻿export type GeoapifyResult = {
+export type GeoapifyResult = {
   formatted?: string;
   address_line1?: string;
   address_line2?: string;

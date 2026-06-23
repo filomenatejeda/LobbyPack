@@ -1,4 +1,4 @@
-﻿import SignUpFormHeader from "./sign-up/SignUpFormHeader";
+import SignUpFormHeader from "./sign-up/SignUpFormHeader";
 import SignUpPhaseFields from "./sign-up/SignUpPhaseFields";
 import { useSignUpForm } from "./sign-up/useSignUpForm";
 import "./login-form.css";

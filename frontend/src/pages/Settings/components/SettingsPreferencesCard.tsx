@@ -1,6 +1,6 @@
 import { preferenceItems } from "../../../data/settingsData";
-import { useI18n } from "../../../lib/i18n";
 import type { PreferenceSettings } from "../../../types/settings";
+import { useI18nContext } from "../../../i18n/i18n-react";
 
 type SettingsPreferencesCardProps = {
   canEdit: boolean;
@@ -18,28 +18,14 @@ export default function SettingsPreferencesCard({
   onOpenDailySummaryReport,
   preferenceSettings,
 }: SettingsPreferencesCardProps) {
-  const { t } = useI18n();
-  const preferenceText = {
-    package_notifications: {
-      title: t("settings.prefPackageTitle"),
-      description: t("settings.prefPackageDescription"),
-    },
-    daily_summary: {
-      title: t("settings.prefDailyTitle"),
-      description: t("settings.prefDailyDescription"),
-    },
-    qr_access: {
-      title: t("settings.prefQrTitle"),
-      description: t("settings.prefQrDescription"),
-    },
-  } as const;
+  const { LL } = useI18nContext();
 
   return (
     <article className="settingsCard">
       <div className="settingsCardHeader">
         <div>
-          <p className="settingsLabel">{t("settings.preferences")}</p>
-          <h2>{t("settings.automations")}</h2>
+          <p className="settingsLabel">{LL.settings_preferences()}</p>
+          <h2>{LL.settings_automations()}</h2>
         </div>
       </div>
 
@@ -47,8 +33,8 @@ export default function SettingsPreferencesCard({
         {preferenceItems.map((item) => (
           <div key={item.title} className="settingsOption">
             <div>
-              <strong>{preferenceText[item.preference_key].title}</strong>
-              <p>{preferenceText[item.preference_key].description}</p>
+              <strong>{LL[item.title]()}</strong>
+              <p>{LL[item.description]()}</p>
               {item.preference_key === "daily_summary" && preferenceSettings.daily_summary ? (
                 <span className="settingsInlineActions">
                   <button
@@ -57,14 +43,14 @@ export default function SettingsPreferencesCard({
                     disabled={!canEdit}
                     onClick={onOpenDailySummaryReport}
                   >
-                    {t("settings.openReport")}
+                    {LL.settings_openReport()}
                   </button>
                 </span>
               ) : null}
             </div>
             <label className="settingsSwitchWrap">
               <span className="settingsSwitchText">
-                {preferenceSettings[item.preference_key] ? t("common.yes") : t("common.no")}
+                {preferenceSettings[item.preference_key] ? LL.common_yes() : LL.common_no()}
               </span>
               <input
                 type="checkbox"

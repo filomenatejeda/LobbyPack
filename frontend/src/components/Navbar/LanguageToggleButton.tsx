@@ -1,23 +1,23 @@
 import { Globe2 } from "lucide-react";
-import { useI18n } from "../../lib/i18n";
+import { useI18nContext } from "../../i18n/i18n-react";
 
 type LanguageToggleButtonProps = {
   className?: string;
 };
 
 export default function LanguageToggleButton({ className = "" }: LanguageToggleButtonProps) {
-  const { language, t, toggleLanguage } = useI18n();
+  const { LL, locale, setLocale } = useI18nContext();
 
   return (
     <button
       type="button"
       className={["languageButton", className].filter(Boolean).join(" ")}
-      aria-label={t("language.aria")}
-      title={t("language.title")}
-      onClick={toggleLanguage}
+      aria-label={LL.language_aria()}
+      title={LL.language_title()}
+      onClick={() => locale === "es" ? setLocale("en") : setLocale("es") }
     >
       <Globe2 size={16} aria-hidden="true" />
-      <span>{language.toUpperCase()}</span>
+      <span>{LL.language_code()}</span>
     </button>
   );
 }

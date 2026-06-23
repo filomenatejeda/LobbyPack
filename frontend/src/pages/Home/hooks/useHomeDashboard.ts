@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { AddPackageFormValues } from "../../../components/Home/packageFormTypes";
 import {
   claimParcel,

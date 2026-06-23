@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 
 import { cn } from "@/lib/utils";

@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
 import { pool } from "../../db/pool";
 import { createSequentialId } from "../../utils/ids";
@@ -8,6 +8,14 @@ import type { AccountSecurityRow, ConciergeRow } from "./types";
 
 function hashPassword(password: string) {
   return createHash("sha256").update(password).digest("hex");
+}
+
+function createVerificationCode() {
+  return String(randomBytes(4).readUInt32BE(0) % 1_000_000).padStart(6, "0");
+}
+
+function hashVerificationCode(code: string) {
+  return createHash("sha256").update(code).digest("hex");
 }
 
 function mapConciergeRow(concierge: ConciergeRow) {
@@ -67,6 +75,7 @@ export async function createConciergeAccount(
     throw new Error("Este correo ya tiene una cuenta registrada.");
   }
 
+  const verificationCode = createVerificationCode();
   const conciergeId = await createSequentialId(connection, {
     tableName: "Users",
     columnName: "id",
@@ -104,12 +113,12 @@ export async function createConciergeAccount(
         email_verified,
         totp_verified
       )
-      VALUES (?, NULL, NULL, TRUE, FALSE)
+      VALUES (?, ?, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 15 MINUTE), FALSE, FALSE)
     `,
-    [conciergeId],
+    [conciergeId, hashVerificationCode(verificationCode)],
   );
 
-  return { conciergeId, verificationCode: "" };
+  return { conciergeId, verificationCode };
 }
 
 export async function getConciergeById(conciergeId: string) {

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ConciergeInviteModal from "../../components/Settings/ConciergeInviteModal";
 import ApartmentResidentsModal from "../../components/Settings/ApartmentResidentsModal";
 import {

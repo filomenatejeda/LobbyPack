@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { isGoogleSSOUser } from "@/lib/auth-provider";
 import { supabase, supabaseConfigError } from "@/lib/client";
