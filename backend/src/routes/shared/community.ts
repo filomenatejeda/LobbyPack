@@ -255,11 +255,10 @@ export async function getBuildingPreferences(buildingId: string) {
     [buildingId],
   );
 
-  let preference = preferences[0] ?? {
-    package_notifications: 1,
-    daily_summary: 1,
-    qr_access: 1,
-  };
+  const preference = preferences[0];
+  let packageNotifications = preference?.package_notifications ?? 1;
+  let dailySummary = preference?.daily_summary ?? 1;
+  let qrAccess = preference?.qr_access ?? 1;
 
   if (buildingId === BUILDING_ID) {
     const [communityPreferences] = await pool.query<PreferenceRow[]>(
@@ -272,28 +271,21 @@ export async function getBuildingPreferences(buildingId: string) {
     );
 
     if (communityPreferences.length > 0) {
-      preference = {
-        package_notifications:
-          preference.package_notifications &&
-          communityPreferences.every((item) => Boolean(item.package_notifications))
-            ? 1
-            : 0,
-        daily_summary:
-          preference.daily_summary &&
-          communityPreferences.every((item) => Boolean(item.daily_summary))
-            ? 1
-            : 0,
-        qr_access:
-          preference.qr_access && communityPreferences.every((item) => Boolean(item.qr_access))
-            ? 1
-            : 0,
-      };
+      packageNotifications =
+        packageNotifications &&
+        communityPreferences.every((item) => Boolean(item.package_notifications))
+          ? 1
+          : 0;
+      dailySummary =
+        dailySummary && communityPreferences.every((item) => Boolean(item.daily_summary)) ? 1 : 0;
+      qrAccess =
+        qrAccess && communityPreferences.every((item) => Boolean(item.qr_access)) ? 1 : 0;
     }
   }
 
   return {
-    packageNotifications: Boolean(preference.package_notifications),
-    dailySummary: Boolean(preference.daily_summary),
-    qrAccess: Boolean(preference.qr_access),
+    packageNotifications: Boolean(packageNotifications),
+    dailySummary: Boolean(dailySummary),
+    qrAccess: Boolean(qrAccess),
   };
 }
