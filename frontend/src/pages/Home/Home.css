@@ -31,7 +31,6 @@
   font-size: clamp(3rem, 10vw, 7rem);
   line-height: 0.9;
   letter-spacing: -0.08em;
-  text-wrap: balance;
 }
 
 .residentMain h1 {
@@ -168,7 +167,6 @@
     margin-top: 12px;
     font-size: 0.92rem;
     line-height: 1.45;
-    text-wrap: balance;
   }
 
   .residentMain {

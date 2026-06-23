@@ -14,6 +14,16 @@ let databaseStatus: "starting" | "ready" | "error" = "starting";
 let databaseError: string | null = null;
 let apiApp: { handle(request: Request): Response | Promise<Response> } | null = null;
 
+const revalidateHeaders = {
+  "Cache-Control": "max-age=0, must-revalidate",
+  "X-Content-Type-Options": "nosniff",
+};
+
+const immutableAssetHeaders = {
+  "Cache-Control": "public, max-age=31536000, immutable",
+  "X-Content-Type-Options": "nosniff",
+};
+
 const server = Bun.serve({
   port,
   hostname,
@@ -85,15 +95,11 @@ async function serveFrontend(pathname: string) {
     const assetFile = Bun.file(resolve(frontendDistPath, relativePath));
 
     if (await assetFile.exists()) {
-      return new Response(assetFile);
+      return serveStaticFile(assetFile, relativePath);
     }
   }
 
-  return new Response(indexFile, {
-    headers: {
-      "Content-Type": "text/html; charset=utf-8",
-    },
-  });
+  return serveStaticFile(indexFile, "index.html");
 }
 
 async function findFrontendDistPath() {
@@ -101,6 +107,50 @@ async function findFrontendDistPath() {
     if (await Bun.file(resolve(frontendDistPath, "index.html")).exists()) {
       return frontendDistPath;
     }
+  }
+
+  return null;
+}
+
+async function serveStaticFile(file: ReturnType<typeof Bun.file>, relativePath: string) {
+  const body = await file.arrayBuffer();
+  const headers = new Headers(
+    relativePath.startsWith("assets/") ? immutableAssetHeaders : revalidateHeaders,
+  );
+  const contentType = getContentType(relativePath);
+
+  if (contentType) {
+    headers.set("Content-Type", contentType);
+  }
+
+  headers.set("Content-Length", String(body.byteLength));
+
+  return new Response(body, { headers });
+}
+
+function getContentType(pathname: string) {
+  if (pathname.endsWith(".html")) {
+    return "text/html; charset=utf-8";
+  }
+
+  if (pathname.endsWith(".js")) {
+    return "application/javascript; charset=utf-8";
+  }
+
+  if (pathname.endsWith(".css")) {
+    return "text/css; charset=utf-8";
+  }
+
+  if (pathname.endsWith(".png")) {
+    return "image/png";
+  }
+
+  if (pathname.endsWith(".svg")) {
+    return "image/svg+xml";
+  }
+
+  if (pathname.endsWith(".ico")) {
+    return "image/x-icon";
   }
 
   return null;
@@ -178,7 +228,7 @@ function serveRuntimeConfig() {
 
   return new Response(`window.__LOBBYPACK_CONFIG__ = ${JSON.stringify(config)};`, {
     headers: {
-      "Cache-Control": "no-store",
+      ...revalidateHeaders,
       "Content-Type": "application/javascript; charset=utf-8",
     },
   });
