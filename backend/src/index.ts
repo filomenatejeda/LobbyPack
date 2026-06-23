@@ -82,10 +82,13 @@ async function serveFrontend(pathname: string) {
   }
 
   if (relativePath && relativePath !== ".") {
-    const assetFile = Bun.file(resolve(frontendDistPath, relativePath));
+    const assetPath = resolve(frontendDistPath, relativePath);
+    const assetFile = Bun.file(assetPath);
 
     if (await assetFile.exists()) {
-      return new Response(assetFile);
+      return new Response(assetFile, {
+        headers: getStaticAssetHeaders(assetPath),
+      });
     }
   }
 
@@ -104,6 +107,29 @@ async function findFrontendDistPath() {
   }
 
   return null;
+}
+
+function getStaticAssetHeaders(filePath: string) {
+  const lowerFilePath = filePath.toLowerCase();
+  const headers = new Headers({
+    "Cache-Control": lowerFilePath.includes(`${sep}assets${sep}`)
+      ? "public, max-age=31536000, immutable"
+      : "no-cache",
+  });
+
+  if (lowerFilePath.endsWith(".js")) {
+    headers.set("Content-Type", "text/javascript; charset=utf-8");
+  } else if (lowerFilePath.endsWith(".css")) {
+    headers.set("Content-Type", "text/css; charset=utf-8");
+  } else if (lowerFilePath.endsWith(".png")) {
+    headers.set("Content-Type", "image/png");
+  } else if (lowerFilePath.endsWith(".svg")) {
+    headers.set("Content-Type", "image/svg+xml");
+  } else if (lowerFilePath.endsWith(".ico")) {
+    headers.set("Content-Type", "image/x-icon");
+  }
+
+  return headers;
 }
 
 async function initializeDatabase() {
