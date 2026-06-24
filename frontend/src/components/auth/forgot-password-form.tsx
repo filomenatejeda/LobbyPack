@@ -2,11 +2,11 @@ import { useState } from "react";
 
 import { getSupabaseRedirectUrl } from "@/lib/authRedirect";
 import { supabase, supabaseConfigError } from "@/lib/client";
-import { useI18n } from "@/lib/i18n";
+import { useI18nContext } from "@/i18n/i18n-react";
 import "./login-form.css";
 
 export function ForgotPasswordForm() {
-  const { language, t } = useI18n();
+  const { LL } = useI18nContext();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -61,14 +61,13 @@ export function ForgotPasswordForm() {
   return (
     <form className="authCard" onSubmit={handleForgotPassword}>
       <div className="authCardHeader">
-        <p className="authEyebrow">{t("auth.recovery")}</p>
+        <p className="authEyebrow">{LL.auth_recovery()}</p>
         <h2 className="authTitle">
-          {success ? t("auth.checkEmail") : t("auth.resetPassword")}
+          {success ? LL.auth_checkEmail() : LL.auth_resetPassword()}
         </h2>
         <p className="authDescription">
           {success
-            ? t("auth.resetSentText")
-            : t("auth.resetPromptText")}
+            ? LL.auth_resetSentText() : LL.auth_resetPromptText()}
         </p>
       </div>
 
@@ -76,7 +75,7 @@ export function ForgotPasswordForm() {
         <>
           <div className="authFields">
             <label className="authField">
-              <span>{t("auth.email")}</span>
+              <span>{LL.auth_email()}</span>
               <input
                 className="authInput"
                 id="email"
@@ -100,25 +99,21 @@ export function ForgotPasswordForm() {
               className="authPrimaryButton"
               disabled={isLoading || Boolean(supabaseConfigError)}
             >
-              {isLoading ? t("admin.sending") : t("auth.sendRecovery")}
+              {isLoading ? LL.admin_sending() : LL.auth_sendRecovery()}
             </button>
 
-            <a className="authSecondaryLink" href="/auth/login">
-              {t("auth.backToLogin")}
-            </a>
+            <a className="authSecondaryLink" href="/auth/login">{LL.auth_backToLogin()}</a>
           </div>
         </>
       ) : (
         <div className="authActions">
-          <a className="authPrimaryButton authPrimaryButtonLink" href="/auth/login">
-            {t("auth.goLogin")}
-          </a>
+          <a className="authPrimaryButton authPrimaryButtonLink" href="/auth/login">{LL.auth_goLogin()}</a>
         </div>
       )}
 
       <div className="authFooter">
-        <span>{t("auth.alreadyAccount")}</span>
-        <a href="/auth/login">{t("auth.login")}</a>
+        <span>{LL.auth_alreadyAccount()}</span>
+        <a href="/auth/login">{LL.auth_login()}</a>
       </div>
     </form>
   );

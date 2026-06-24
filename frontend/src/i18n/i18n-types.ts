@@ -364,6 +364,10 @@ type RootTranslation = {
 	 */
 	settings_active: string
 	/**
+	 * A​d​m​i​n​i​s​t​r​a​d​o​r
+	 */
+	settings_adminRole: string
+	/**
 	 * P​r​e​f​e​r​e​n​c​i​a​s​ ​d​e​ ​a​u​t​o​m​a​t​i​z​a​c​i​o​n​ ​g​u​a​r​d​a​d​a​s​.
 	 */
 	settings_automationSaved: string
@@ -559,6 +563,10 @@ type RootTranslation = {
 	 */
 	settings_teamTitle: string
 	/**
+	 * C​o​n​s​e​r​j​e
+	 */
+	settings_conciergeRole: string
+	/**
 	 * O​r​g​a​n​i​z​a​ ​t​o​r​r​e​s​,​ ​p​i​s​o​s​ ​y​ ​d​e​p​a​r​t​a​m​e​n​t​o​s​.​ ​E​n​t​r​a​ ​a​ ​u​n​ ​d​e​p​a​r​t​a​m​e​n​t​o​ ​p​a​r​a​ ​g​e​s​t​i​o​n​a​r​ ​s​u​s​ ​r​e​s​i​d​e​n​t​e​s​.
 	 */
 	settings_unitManagementLead: string
@@ -618,6 +626,190 @@ type RootTranslation = {
 	 * C​ó​d​i​g​o​ ​i​n​v​á​l​i​d​o​.
 	 */
 	settings_codeInvalid: string
+	/**
+	 * C​o​m​u​n​i​d​a​d
+	 */
+	settings_community: string
+	/**
+	 * S​e​c​t​o​r​e​s​,​ ​e​t​a​p​a​s​ ​y​ ​v​i​v​i​e​n​d​a​s
+	 */
+	settings_structureCondoTitle: string
+	/**
+	 * Á​r​e​a​s​,​ ​n​i​v​e​l​e​s​ ​y​ ​u​n​i​d​a​d​e​s
+	 */
+	settings_structureOtherTitle: string
+	/**
+	 * T​o​r​r​e​s​,​ ​p​i​s​o​s​ ​y​ ​d​e​p​a​r​t​a​m​e​n​t​o​s
+	 */
+	settings_structureDefaultTitle: string
+	/**
+	 * A​g​r​e​g​a​r​ ​s​e​c​t​o​r
+	 */
+	settings_addSector: string
+	/**
+	 * A​g​r​e​g​a​r​ ​á​r​e​a
+	 */
+	settings_addArea: string
+	/**
+	 * A​g​r​e​g​a​r​ ​t​o​r​r​e
+	 */
+	settings_addTower: string
+	/**
+	 * S​e​c​t​o​r
+	 */
+	settings_sector: string
+	/**
+	 * S​e​c​t​o​r​e​s
+	 */
+	settings_sectors: string
+	/**
+	 * Á​r​e​a
+	 */
+	settings_area: string
+	/**
+	 * Á​r​e​a​s
+	 */
+	settings_areas: string
+	/**
+	 * T​o​r​r​e
+	 */
+	settings_tower: string
+	/**
+	 * T​o​r​r​e​s
+	 */
+	settings_towers: string
+	/**
+	 * N​o​m​b​r​e​ ​d​e​l​ ​s​e​c​t​o​r
+	 */
+	settings_sectorName: string
+	/**
+	 * N​o​m​b​r​e​ ​d​e​l​ ​á​r​e​a
+	 */
+	settings_areaName: string
+	/**
+	 * N​o​m​b​r​e​ ​d​e​ ​l​a​ ​t​o​r​r​e
+	 */
+	settings_towerName: string
+	/**
+	 * E​t​a​p​a
+	 */
+	settings_stage: string
+	/**
+	 * E​t​a​p​a​s
+	 */
+	settings_stages: string
+	/**
+	 * N​i​v​e​l
+	 */
+	settings_level: string
+	/**
+	 * N​i​v​e​l​e​s
+	 */
+	settings_levels: string
+	/**
+	 * P​i​s​o
+	 */
+	settings_floor: string
+	/**
+	 * P​i​s​o​s
+	 */
+	settings_floors: string
+	/**
+	 * C​a​n​t​i​d​a​d​ ​d​e​ ​e​t​a​p​a​s
+	 */
+	settings_stageCount: string
+	/**
+	 * C​a​n​t​i​d​a​d​ ​d​e​ ​n​i​v​e​l​e​s
+	 */
+	settings_levelCount: string
+	/**
+	 * C​a​n​t​i​d​a​d​ ​d​e​ ​p​i​s​o​s
+	 */
+	settings_floorCount: string
+	/**
+	 * v​i​v​i​e​n​d​a
+	 */
+	settings_homeUnit: string
+	/**
+	 * v​i​v​i​e​n​d​a​s
+	 */
+	settings_homeUnits: string
+	/**
+	 * u​n​i​d​a​d
+	 */
+	settings_unit: string
+	/**
+	 * u​n​i​d​a​d​e​s
+	 */
+	settings_units: string
+	/**
+	 * d​e​p​a​r​t​a​m​e​n​t​o
+	 */
+	settings_apartment: string
+	/**
+	 * d​e​p​a​r​t​a​m​e​n​t​o​s
+	 */
+	settings_apartments: string
+	/**
+	 * V​i​v​i​e​n​d​a​s​ ​r​e​g​i​s​t​r​a​d​a​s
+	 */
+	settings_homesRegistered: string
+	/**
+	 * U​n​i​d​a​d​e​s​ ​r​e​g​i​s​t​r​a​d​a​s
+	 */
+	settings_unitsRegistered: string
+	/**
+	 * D​e​p​a​r​t​a​m​e​n​t​o​s​ ​r​e​g​i​s​t​r​a​d​o​s
+	 */
+	settings_apartmentsRegistered: string
+	/**
+	 * V​i​v​i​e​n​d​a​s​ ​p​o​r​ ​e​t​a​p​a
+	 */
+	settings_homesByStage: string
+	/**
+	 * U​n​i​d​a​d​e​s​ ​p​o​r​ ​n​i​v​e​l
+	 */
+	settings_unitsByLevel: string
+	/**
+	 * D​e​p​a​r​t​a​m​e​n​t​o​s​ ​p​o​r​ ​p​i​s​o
+	 */
+	settings_apartmentsByFloor: string
+	/**
+	 * C​a​d​a​ ​s​e​c​t​o​r​ ​q​u​e​d​a​ ​v​i​s​i​b​l​e​ ​c​o​m​o​ ​f​i​c​h​a​ ​f​i​j​a​.​ ​S​i​ ​n​e​c​e​s​i​t​a​s​ ​c​a​m​b​i​a​r​ ​n​o​m​b​r​e​,​ ​e​t​a​p​a​s​ ​o​ ​v​i​v​i​e​n​d​a​s​,​ ​e​n​t​r​a​ ​a​ ​e​d​i​t​a​r​ ​e​s​e​ ​s​e​c​t​o​r​.
+	 */
+	settings_sectorLead: string
+	/**
+	 * C​a​d​a​ ​á​r​e​a​ ​q​u​e​d​a​ ​v​i​s​i​b​l​e​ ​c​o​m​o​ ​f​i​c​h​a​ ​f​i​j​a​.​ ​S​i​ ​n​e​c​e​s​i​t​a​s​ ​c​a​m​b​i​a​r​ ​n​o​m​b​r​e​,​ ​n​i​v​e​l​e​s​ ​o​ ​u​n​i​d​a​d​e​s​,​ ​e​n​t​r​a​ ​a​ ​e​d​i​t​a​r​ ​e​s​a​ ​á​r​e​a​.
+	 */
+	settings_areaLead: string
+	/**
+	 * C​a​d​a​ ​t​o​r​r​e​ ​q​u​e​d​a​ ​v​i​s​i​b​l​e​ ​c​o​m​o​ ​f​i​c​h​a​ ​f​i​j​a​.​ ​S​i​ ​n​e​c​e​s​i​t​a​s​ ​c​a​m​b​i​a​r​ ​n​o​m​b​r​e​,​ ​p​i​s​o​s​ ​o​ ​d​e​p​a​r​t​a​m​e​n​t​o​s​,​ ​e​n​t​r​a​ ​a​ ​e​d​i​t​a​r​ ​e​s​a​ ​t​o​r​r​e​.
+	 */
+	settings_towerLead: string
+	/**
+	 * S​e​l​e​c​c​i​o​n​a​ ​u​n​a​ ​e​t​a​p​a​ ​p​a​r​a​ ​v​e​r​ ​s​o​l​o​ ​s​u​s​ ​v​i​v​i​e​n​d​a​s​.
+	 */
+	settings_stagePreview: string
+	/**
+	 * S​e​l​e​c​c​i​o​n​a​ ​u​n​ ​n​i​v​e​l​ ​p​a​r​a​ ​v​e​r​ ​s​o​l​o​ ​s​u​s​ ​u​n​i​d​a​d​e​s​.
+	 */
+	settings_levelPreview: string
+	/**
+	 * S​e​l​e​c​c​i​o​n​a​ ​u​n​ ​p​i​s​o​ ​p​a​r​a​ ​v​e​r​ ​s​o​l​o​ ​s​u​s​ ​d​e​p​a​r​t​a​m​e​n​t​o​s​.
+	 */
+	settings_floorPreview: string
+	/**
+	 * A​g​r​e​g​a​r​ ​v​i​v​i​e​n​d​a
+	 */
+	settings_addHome: string
+	/**
+	 * A​g​r​e​g​a​r​ ​u​n​i​d​a​d
+	 */
+	settings_addUnit: string
+	/**
+	 * A​g​r​e​g​a​r​ ​d​e​p​a​r​t​a​m​e​n​t​o
+	 */
+	settings_addApartment: string
 	/**
 	 * V​e​r​i​f​i​c​a​n​d​o​.​.​.
 	 */
@@ -833,6 +1025,10 @@ type RootTranslation = {
 	 */
 	admin_pinDigits: string
 	/**
+	 * R​e​p​i​t​e​ ​t​u​ ​P​I​N
+	 */
+	admin_pinRepeat: string
+	/**
 	 * P​I​N​ ​d​e​ ​r​e​t​i​r​o
 	 */
 	admin_pinLabel: string
@@ -973,6 +1169,30 @@ type RootTranslation = {
 	 */
 	admin_actions: string
 	/**
+	 * r​e​c​l​a​m​o​ ​s​e​l​e​c​c​i​o​n​a​d​o
+	 */
+	admin_claimSelected: string
+	/**
+	 * r​e​c​l​a​m​o​s​ ​s​e​l​e​c​c​i​o​n​a​d​o​s
+	 */
+	admin_claimsSelected: string
+	/**
+	 * v​i​s​i​b​l​e​s​ ​e​n​ ​e​s​t​a​ ​p​á​g​i​n​a
+	 */
+	admin_claimsVisiblePage: string
+	/**
+	 * r​e​c​l​a​m​o​s​ ​e​n​ ​t​o​t​a​l
+	 */
+	admin_claimsTotal: string
+	/**
+	 * r​e​c​l​a​m​o​ ​e​n​ ​t​o​t​a​l
+	 */
+	admin_claimTotal: string
+	/**
+	 * I​n​g​r​e​s​a​d​o
+	 */
+	admin_entered: string
+	/**
 	 * M​a​r​c​a​r​ ​r​e​s​p​o​n​d​i​d​o
 	 */
 	admin_markAnswered: string
@@ -980,6 +1200,14 @@ type RootTranslation = {
 	 * E​n​ ​r​e​v​i​s​i​ó​n
 	 */
 	admin_markReview: string
+	/**
+	 * M​e​n​s​a​j​e
+	 */
+	admin_messageLabel: string
+	/**
+	 * R​e​s​u​e​l​t​o
+	 */
+	admin_resolved: string
 	/**
 	 * C​o​n​t​a​c​t​a​r​ ​p​o​r​ ​e​-​m​a​i​l
 	 */
@@ -1020,6 +1248,11 @@ type RootTranslation = {
 	 * E​n​v​i​a​r
 	 */
 	admin_send: string
+	/**
+	 * E​n​v​i​a​r​ ​a​ ​{​e​m​a​i​l​}​ ​c​o​m​o​ ​c​o​p​i​a​ ​o​c​u​l​t​a
+	 * @param {string} email
+	 */
+	admin_sendBlindCopy: RequiredParams<'email'>
 	/**
 	 * E​n​v​i​a​n​d​o​.​.​.
 	 */
@@ -1077,6 +1310,30 @@ type RootTranslation = {
 	 */
 	admin_residentName: string
 	/**
+	 * E​j​:​ ​+​5​6​9​1​2​3​4​5​6​7​8
+	 */
+	admin_phoneExample: string
+	/**
+	 * S​e​l​e​c​c​i​o​n​a​ ​u​n​ ​d​e​p​a​r​t​a​m​e​n​t​o​ ​o​ ​u​n​i​d​a​d​.
+	 */
+	admin_departmentRequired: string
+	/**
+	 * E​l​ ​d​e​p​a​r​t​a​m​e​n​t​o​ ​o​ ​u​n​i​d​a​d​ ​d​e​b​e​ ​t​e​n​e​r​ ​u​n​ ​m​á​x​i​m​o​ ​d​e​ ​1​0​0​ ​c​a​r​a​c​t​e​r​e​s​.
+	 */
+	admin_departmentTooLong: string
+	/**
+	 * S​e​l​e​c​c​i​o​n​a​ ​u​n​ ​d​e​p​a​r​t​a​m​e​n​t​o​ ​o​ ​u​n​i​d​a​d​ ​r​e​g​i​s​t​r​a​d​a​.
+	 */
+	admin_departmentRegisteredRequired: string
+	/**
+	 * E​s​t​e​ ​c​a​m​p​o​ ​s​o​l​o​ ​a​d​m​i​t​e​ ​l​e​t​r​a​s​,​ ​n​ú​m​e​r​o​s​,​ ​t​i​l​d​e​s​,​ ​ñ​ ​y​ ​e​s​p​a​c​i​o​s​,​ ​c​o​n​ ​u​n​ ​m​á​x​i​m​o​ ​d​e​ ​3​0​ ​c​a​r​a​c​t​e​r​e​s​.
+	 */
+	admin_invalidNameField: string
+	/**
+	 * L​a​ ​d​e​s​c​r​i​p​c​i​ó​n​ ​s​o​l​o​ ​a​d​m​i​t​e​ ​l​e​t​r​a​s​,​ ​n​ú​m​e​r​o​s​,​ ​t​i​l​d​e​s​,​ ​ñ​,​ ​e​s​p​a​c​i​o​s​,​ ​p​u​n​t​u​a​c​i​ó​n​ ​y​ ​u​n​ ​m​á​x​i​m​o​ ​d​e​ ​1​5​0​ ​c​a​r​a​c​t​e​r​e​s​.
+	 */
+	admin_invalidPackageDescription: string
+	/**
 	 * C​o​m​p​a​ñ​í​a
 	 */
 	admin_company: string
@@ -1108,6 +1365,10 @@ type RootTranslation = {
 	 * P​a​q​u​e​t​e​s​ ​p​o​r​ ​g​u​a​r​d​a​r
 	 */
 	admin_packagesToSave: string
+	/**
+	 * A​g​r​e​g​a​ ​a​l​ ​m​e​n​o​s​ ​u​n​ ​p​a​q​u​e​t​e​ ​v​á​l​i​d​o​ ​a​n​t​e​s​ ​d​e​ ​g​u​a​r​d​a​r​.
+	 */
+	admin_packageRequired: string
 	/**
 	 * P​a​q​u​e​t​e​s​ ​e​n​ ​c​o​l​a
 	 */
@@ -1405,9 +1666,33 @@ type RootTranslation = {
 	 */
 	resident_cameraClose: string
 	/**
+	 * Q​R​ ​d​e​t​e​c​t​a​d​o​.​ ​V​a​l​i​d​a​n​d​o​ ​p​a​q​u​e​t​e​.​.​.
+	 */
+	resident_cameraDetected: string
+	/**
+	 * N​o​ ​s​e​ ​p​u​d​o​ ​l​e​e​r​ ​e​l​ ​Q​R​.​ ​I​n​t​e​n​t​a​ ​a​c​e​r​c​a​r​ ​l​a​ ​c​á​m​a​r​a​ ​u​n​ ​p​o​c​o​ ​m​á​s​.
+	 */
+	resident_cameraError: string
+	/**
+	 * N​o​ ​s​e​ ​p​u​d​o​ ​a​c​c​e​d​e​r​ ​a​ ​l​a​ ​c​á​m​a​r​a​.​ ​R​e​v​i​s​a​ ​p​e​r​m​i​s​o​s​ ​o​ ​u​s​a​ ​e​l​ ​i​n​g​r​e​s​o​ ​m​a​n​u​a​l​.
+	 */
+	resident_cameraNoAccess: string
+	/**
+	 * T​u​ ​n​a​v​e​g​a​d​o​r​ ​n​o​ ​p​e​r​m​i​t​e​ ​a​b​r​i​r​ ​l​a​ ​c​á​m​a​r​a​.​ ​U​s​a​ ​e​l​ ​i​n​g​r​e​s​o​ ​m​a​n​u​a​l​.
+	 */
+	resident_cameraNoSupport: string
+	/**
 	 * A​b​r​i​r​ ​c​á​m​a​r​a
 	 */
 	resident_cameraOpen: string
+	/**
+	 * A​p​u​n​t​a​ ​l​a​ ​c​á​m​a​r​a​ ​a​l​ ​Q​R​ ​d​e​l​ ​p​a​q​u​e​t​e​.
+	 */
+	resident_cameraPoint: string
+	/**
+	 * N​o​ ​s​e​ ​p​u​d​o​ ​p​r​e​p​a​r​a​r​ ​e​l​ ​l​e​c​t​o​r​ ​d​e​ ​l​a​ ​c​á​m​a​r​a​.
+	 */
+	resident_cameraReaderError: string
 	/**
 	 * C​a​n​c​e​l​a​r
 	 */
@@ -1669,6 +1954,10 @@ type RootTranslation = {
 	 */
 	resident_receivedBy: string
 	/**
+	 * R​e​c​e​p​c​i​ó​n
+	 */
+	resident_receivedStatus: string
+	/**
 	 * E​n​v​i​a​r​ ​r​e​c​l​a​m​o
 	 */
 	resident_reportIssue: string
@@ -1692,6 +1981,22 @@ type RootTranslation = {
 	 * E​l​ ​P​I​N​ ​d​e​b​e​ ​t​e​n​e​r​ ​e​n​t​r​e​ ​4​ ​y​ ​6​ ​d​í​g​i​t​o​s​.
 	 */
 	resident_pinInvalid: string
+	/**
+	 * L​o​s​ ​P​I​N​ ​n​o​ ​c​o​i​n​c​i​d​e​n​.
+	 */
+	resident_pinMismatch: string
+	/**
+	 * N​o​ ​s​e​ ​p​u​d​o​ ​g​u​a​r​d​a​r​ ​e​l​ ​P​I​N​.
+	 */
+	resident_pinSaveError: string
+	/**
+	 * P​I​N​ ​d​e​ ​r​e​t​i​r​o​ ​a​c​t​u​a​l​i​z​a​d​o​ ​c​o​r​r​e​c​t​a​m​e​n​t​e​.
+	 */
+	resident_pinUpdated: string
+	/**
+	 * N​o​ ​s​e​ ​p​u​d​o​ ​c​a​r​g​a​r​ ​l​a​ ​a​y​u​d​a​.
+	 */
+	resident_residentHelpLoadError: string
 	/**
 	 * G​u​a​r​d​a​r
 	 */
@@ -2269,6 +2574,10 @@ export type TranslationFunctions = {
 	 */
 	settings_active: () => LocalizedString
 	/**
+	 * Administrador
+	 */
+	settings_adminRole: () => LocalizedString
+	/**
 	 * Preferencias de automatizacion guardadas.
 	 */
 	settings_automationSaved: () => LocalizedString
@@ -2461,6 +2770,10 @@ export type TranslationFunctions = {
 	 */
 	settings_teamTitle: () => LocalizedString
 	/**
+	 * Conserje
+	 */
+	settings_conciergeRole: () => LocalizedString
+	/**
 	 * Organiza torres, pisos y departamentos. Entra a un departamento para gestionar sus residentes.
 	 */
 	settings_unitManagementLead: () => LocalizedString
@@ -2520,6 +2833,190 @@ export type TranslationFunctions = {
 	 * Código inválido.
 	 */
 	settings_codeInvalid: () => LocalizedString
+	/**
+	 * Comunidad
+	 */
+	settings_community: () => LocalizedString
+	/**
+	 * Sectores, etapas y viviendas
+	 */
+	settings_structureCondoTitle: () => LocalizedString
+	/**
+	 * Áreas, niveles y unidades
+	 */
+	settings_structureOtherTitle: () => LocalizedString
+	/**
+	 * Torres, pisos y departamentos
+	 */
+	settings_structureDefaultTitle: () => LocalizedString
+	/**
+	 * Agregar sector
+	 */
+	settings_addSector: () => LocalizedString
+	/**
+	 * Agregar área
+	 */
+	settings_addArea: () => LocalizedString
+	/**
+	 * Agregar torre
+	 */
+	settings_addTower: () => LocalizedString
+	/**
+	 * Sector
+	 */
+	settings_sector: () => LocalizedString
+	/**
+	 * Sectores
+	 */
+	settings_sectors: () => LocalizedString
+	/**
+	 * Área
+	 */
+	settings_area: () => LocalizedString
+	/**
+	 * Áreas
+	 */
+	settings_areas: () => LocalizedString
+	/**
+	 * Torre
+	 */
+	settings_tower: () => LocalizedString
+	/**
+	 * Torres
+	 */
+	settings_towers: () => LocalizedString
+	/**
+	 * Nombre del sector
+	 */
+	settings_sectorName: () => LocalizedString
+	/**
+	 * Nombre del área
+	 */
+	settings_areaName: () => LocalizedString
+	/**
+	 * Nombre de la torre
+	 */
+	settings_towerName: () => LocalizedString
+	/**
+	 * Etapa
+	 */
+	settings_stage: () => LocalizedString
+	/**
+	 * Etapas
+	 */
+	settings_stages: () => LocalizedString
+	/**
+	 * Nivel
+	 */
+	settings_level: () => LocalizedString
+	/**
+	 * Niveles
+	 */
+	settings_levels: () => LocalizedString
+	/**
+	 * Piso
+	 */
+	settings_floor: () => LocalizedString
+	/**
+	 * Pisos
+	 */
+	settings_floors: () => LocalizedString
+	/**
+	 * Cantidad de etapas
+	 */
+	settings_stageCount: () => LocalizedString
+	/**
+	 * Cantidad de niveles
+	 */
+	settings_levelCount: () => LocalizedString
+	/**
+	 * Cantidad de pisos
+	 */
+	settings_floorCount: () => LocalizedString
+	/**
+	 * vivienda
+	 */
+	settings_homeUnit: () => LocalizedString
+	/**
+	 * viviendas
+	 */
+	settings_homeUnits: () => LocalizedString
+	/**
+	 * unidad
+	 */
+	settings_unit: () => LocalizedString
+	/**
+	 * unidades
+	 */
+	settings_units: () => LocalizedString
+	/**
+	 * departamento
+	 */
+	settings_apartment: () => LocalizedString
+	/**
+	 * departamentos
+	 */
+	settings_apartments: () => LocalizedString
+	/**
+	 * Viviendas registradas
+	 */
+	settings_homesRegistered: () => LocalizedString
+	/**
+	 * Unidades registradas
+	 */
+	settings_unitsRegistered: () => LocalizedString
+	/**
+	 * Departamentos registrados
+	 */
+	settings_apartmentsRegistered: () => LocalizedString
+	/**
+	 * Viviendas por etapa
+	 */
+	settings_homesByStage: () => LocalizedString
+	/**
+	 * Unidades por nivel
+	 */
+	settings_unitsByLevel: () => LocalizedString
+	/**
+	 * Departamentos por piso
+	 */
+	settings_apartmentsByFloor: () => LocalizedString
+	/**
+	 * Cada sector queda visible como ficha fija. Si necesitas cambiar nombre, etapas o viviendas, entra a editar ese sector.
+	 */
+	settings_sectorLead: () => LocalizedString
+	/**
+	 * Cada área queda visible como ficha fija. Si necesitas cambiar nombre, niveles o unidades, entra a editar esa área.
+	 */
+	settings_areaLead: () => LocalizedString
+	/**
+	 * Cada torre queda visible como ficha fija. Si necesitas cambiar nombre, pisos o departamentos, entra a editar esa torre.
+	 */
+	settings_towerLead: () => LocalizedString
+	/**
+	 * Selecciona una etapa para ver solo sus viviendas.
+	 */
+	settings_stagePreview: () => LocalizedString
+	/**
+	 * Selecciona un nivel para ver solo sus unidades.
+	 */
+	settings_levelPreview: () => LocalizedString
+	/**
+	 * Selecciona un piso para ver solo sus departamentos.
+	 */
+	settings_floorPreview: () => LocalizedString
+	/**
+	 * Agregar vivienda
+	 */
+	settings_addHome: () => LocalizedString
+	/**
+	 * Agregar unidad
+	 */
+	settings_addUnit: () => LocalizedString
+	/**
+	 * Agregar departamento
+	 */
+	settings_addApartment: () => LocalizedString
 	/**
 	 * Verificando...
 	 */
@@ -2729,6 +3226,10 @@ export type TranslationFunctions = {
 	 */
 	admin_pinDigits: () => LocalizedString
 	/**
+	 * Repite tu PIN
+	 */
+	admin_pinRepeat: () => LocalizedString
+	/**
 	 * PIN de retiro
 	 */
 	admin_pinLabel: () => LocalizedString
@@ -2869,6 +3370,30 @@ export type TranslationFunctions = {
 	 */
 	admin_actions: () => LocalizedString
 	/**
+	 * reclamo seleccionado
+	 */
+	admin_claimSelected: () => LocalizedString
+	/**
+	 * reclamos seleccionados
+	 */
+	admin_claimsSelected: () => LocalizedString
+	/**
+	 * visibles en esta página
+	 */
+	admin_claimsVisiblePage: () => LocalizedString
+	/**
+	 * reclamos en total
+	 */
+	admin_claimsTotal: () => LocalizedString
+	/**
+	 * reclamo en total
+	 */
+	admin_claimTotal: () => LocalizedString
+	/**
+	 * Ingresado
+	 */
+	admin_entered: () => LocalizedString
+	/**
 	 * Marcar respondido
 	 */
 	admin_markAnswered: () => LocalizedString
@@ -2876,6 +3401,14 @@ export type TranslationFunctions = {
 	 * En revisión
 	 */
 	admin_markReview: () => LocalizedString
+	/**
+	 * Mensaje
+	 */
+	admin_messageLabel: () => LocalizedString
+	/**
+	 * Resuelto
+	 */
+	admin_resolved: () => LocalizedString
 	/**
 	 * Contactar por e-mail
 	 */
@@ -2916,6 +3449,10 @@ export type TranslationFunctions = {
 	 * Enviar
 	 */
 	admin_send: () => LocalizedString
+	/**
+	 * Enviar a {email} como copia oculta
+	 */
+	admin_sendBlindCopy: (arg: { email: string }) => LocalizedString
 	/**
 	 * Enviando...
 	 */
@@ -2973,6 +3510,30 @@ export type TranslationFunctions = {
 	 */
 	admin_residentName: () => LocalizedString
 	/**
+	 * Ej: +56912345678
+	 */
+	admin_phoneExample: () => LocalizedString
+	/**
+	 * Selecciona un departamento o unidad.
+	 */
+	admin_departmentRequired: () => LocalizedString
+	/**
+	 * El departamento o unidad debe tener un máximo de 100 caracteres.
+	 */
+	admin_departmentTooLong: () => LocalizedString
+	/**
+	 * Selecciona un departamento o unidad registrada.
+	 */
+	admin_departmentRegisteredRequired: () => LocalizedString
+	/**
+	 * Este campo solo admite letras, números, tildes, ñ y espacios, con un máximo de 30 caracteres.
+	 */
+	admin_invalidNameField: () => LocalizedString
+	/**
+	 * La descripción solo admite letras, números, tildes, ñ, espacios, puntuación y un máximo de 150 caracteres.
+	 */
+	admin_invalidPackageDescription: () => LocalizedString
+	/**
 	 * Compañía
 	 */
 	admin_company: () => LocalizedString
@@ -3004,6 +3565,10 @@ export type TranslationFunctions = {
 	 * Paquetes por guardar
 	 */
 	admin_packagesToSave: () => LocalizedString
+	/**
+	 * Agrega al menos un paquete válido antes de guardar.
+	 */
+	admin_packageRequired: () => LocalizedString
 	/**
 	 * Paquetes en cola
 	 */
@@ -3301,9 +3866,33 @@ export type TranslationFunctions = {
 	 */
 	resident_cameraClose: () => LocalizedString
 	/**
+	 * QR detectado. Validando paquete...
+	 */
+	resident_cameraDetected: () => LocalizedString
+	/**
+	 * No se pudo leer el QR. Intenta acercar la cámara un poco más.
+	 */
+	resident_cameraError: () => LocalizedString
+	/**
+	 * No se pudo acceder a la cámara. Revisa permisos o usa el ingreso manual.
+	 */
+	resident_cameraNoAccess: () => LocalizedString
+	/**
+	 * Tu navegador no permite abrir la cámara. Usa el ingreso manual.
+	 */
+	resident_cameraNoSupport: () => LocalizedString
+	/**
 	 * Abrir cámara
 	 */
 	resident_cameraOpen: () => LocalizedString
+	/**
+	 * Apunta la cámara al QR del paquete.
+	 */
+	resident_cameraPoint: () => LocalizedString
+	/**
+	 * No se pudo preparar el lector de la cámara.
+	 */
+	resident_cameraReaderError: () => LocalizedString
 	/**
 	 * Cancelar
 	 */
@@ -3565,6 +4154,10 @@ export type TranslationFunctions = {
 	 */
 	resident_receivedBy: () => LocalizedString
 	/**
+	 * Recepción
+	 */
+	resident_receivedStatus: () => LocalizedString
+	/**
 	 * Enviar reclamo
 	 */
 	resident_reportIssue: () => LocalizedString
@@ -3588,6 +4181,22 @@ export type TranslationFunctions = {
 	 * El PIN debe tener entre 4 y 6 dígitos.
 	 */
 	resident_pinInvalid: () => LocalizedString
+	/**
+	 * Los PIN no coinciden.
+	 */
+	resident_pinMismatch: () => LocalizedString
+	/**
+	 * No se pudo guardar el PIN.
+	 */
+	resident_pinSaveError: () => LocalizedString
+	/**
+	 * PIN de retiro actualizado correctamente.
+	 */
+	resident_pinUpdated: () => LocalizedString
+	/**
+	 * No se pudo cargar la ayuda.
+	 */
+	resident_residentHelpLoadError: () => LocalizedString
 	/**
 	 * Guardar
 	 */

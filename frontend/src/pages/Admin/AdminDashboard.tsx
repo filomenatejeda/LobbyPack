@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { useState } from "react";
 import AddPackageModal from "../../components/Home/AddPackageModal";
 import ComplaintPanel from "../../components/Home/ComplaintPanel";
@@ -13,7 +14,7 @@ type AdminDashboardProps = {
 };
 
 export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
-  const { t } = useI18n();
+  const { LL } = useI18nContext();
   const [withdrawalPin, setWithdrawalPin] = useState("");
   const canManageIssueStatus = dashboard.currentUser?.role === "admin";
   const openIssues = dashboard.issues.filter((issue) => issue.issue_status === "open");
@@ -36,9 +37,9 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           }
           onClick={() => dashboard.activateView("received")}
         >
-          <span>{t("admin.inReception")}</span>
+          <span>{LL.admin_inReception()}</span>
           <strong>{pendingPickupCount}</strong>
-          <small>{t("admin.packagesWaiting")}</small>
+          <small>{LL.admin_packagesWaiting()}</small>
         </button>
 
         <button
@@ -50,9 +51,9 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           }
           onClick={() => dashboard.activateView("pickedUp")}
         >
-          <span>{t("admin.withdrawn")}</span>
+          <span>{LL.admin_withdrawn()}</span>
           <strong>{claimedCount}</strong>
-          <small>{t("admin.completedDeliveries")}</small>
+          <small>{LL.admin_completedDeliveries()}</small>
         </button>
 
         <button
@@ -64,9 +65,11 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           }
           onClick={() => dashboard.activateView("complaints")}
         >
-          <span>{t("admin.claimsOpen")}</span>
+          <span>{LL.admin_claimsOpen()}</span>
           <strong>{openIssueCount}</strong>
-          <small>{underReviewIssues.length} {t("admin.underReview")}</small>
+          <small>
+            {underReviewIssues.length} {LL.admin_underReview()}
+          </small>
         </button>
       </section>
 
@@ -79,20 +82,20 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           <strong>
             {openIssueCount}{" "}
             {openIssueCount === 1
-              ? t("admin.openClaimSingular")
-              : t("admin.openClaimPlural")}
+              ? LL.admin_openClaimSingular()
+              : LL.admin_openClaimPlural()}
           </strong>
-          <span>{t("admin.reviewClaims")}</span>
+          <span>{LL.admin_reviewClaims()}</span>
         </button>
       ) : null}
 
-      <div className="serviceToggle" aria-label={t("admin.receipt")}>
+      <div className="serviceToggle" aria-label={`${LL.admin_receipt()} / ${LL.admin_withdrawal()}`}>
         <button
           type="button"
           className={dashboard.activeView === "received" ? "toggleButton active" : "toggleButton"}
           onClick={() => dashboard.activateView("received")}
         >
-          <span>{t("admin.receipt")}</span>
+          <span>{LL.admin_receipt()}</span>
           <strong className="toggleCount">{pendingPickupCount}</strong>
         </button>
         <button
@@ -100,7 +103,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           className={dashboard.activeView === "pickedUp" ? "toggleButton active" : "toggleButton"}
           onClick={() => dashboard.activateView("pickedUp")}
         >
-          <span>{t("admin.withdrawal")}</span>
+          <span>{LL.admin_withdrawal()}</span>
           <strong className="toggleCount">{claimedCount}</strong>
         </button>
         <button
@@ -108,7 +111,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           className={dashboard.activeView === "complaints" ? "toggleButton active" : "toggleButton"}
           onClick={() => dashboard.activateView("complaints")}
         >
-          <span>{t("admin.claims")}</span>
+          <span>{LL.resident_claims()}</span>
           <strong className={openIssueCount > 0 ? "toggleCount alert" : "toggleCount"}>
             {openIssueCount}
           </strong>
@@ -117,7 +120,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
 
       {dashboard.activeView === "complaints" ? (
         <ComplaintPanel
-          title={t("admin.claims")}
+          title={LL.admin_claims()}
           searchTerm={dashboard.searchTerm}
           pageSize={dashboard.pageSize}
           pageSizeOptions={pageSizeOptions}
@@ -153,7 +156,11 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
 
           return (
             <PackagePanel
-              title={dashboard.currentPackageView?.title ?? t("admin.packages")}
+              title={
+                dashboard.activeView === "received"
+                  ? LL.home_receivedPackages()
+                  : LL.home_withdrawnPackages()
+              }
               searchTerm={dashboard.searchTerm}
               pageSize={dashboard.pageSize}
               pageSizeOptions={pageSizeOptions}
@@ -193,7 +200,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           className="addPackageButton floatingAddButton"
           onClick={() => dashboard.setIsAddPackageOpen(true)}
         >
-          {t("admin.addPackage")}
+          {LL.admin_addPackage()}
         </button>
       ) : null}
 
@@ -218,22 +225,22 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
           >
             <div className="pinModalHeader">
               <div>
-                <p>{t("admin.pinTitle")}</p>
-                <h3 id="pinModalTitle">{t("resident.package")} {dashboard.pinPackage.id}</h3>
+                <p>{LL.admin_pinTitle()}</p>
+                <h3 id="pinModalTitle">{LL.resident_package()} {dashboard.pinPackage.id}</h3>
               </div>
               <button
                 type="button"
                 className="closeModalButton"
                 onClick={dashboard.closePinModal}
-                aria-label={t("admin.pinClose")}
+                aria-label={LL.admin_pinClose()}
               >
                 x
               </button>
             </div>
 
             <p className="pinModalText">
-              {t("admin.pinText")} <strong>{dashboard.pinPackage.department_address}</strong>{" "}
-              {t("admin.pinTextEnd")}
+              {LL.admin_pinText()}{" "}
+              <strong>{dashboard.pinPackage.department_address}</strong> {LL.admin_pinTextEnd()}
             </p>
 
             <form
@@ -245,7 +252,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
               }}
             >
               <label>
-                <span>{t("admin.pinLabel")}</span>
+                <span>{LL.admin_pinLabel()}</span>
                 <input
                   type="text"
                   name="lobbypack-package-withdrawal-pin"
@@ -261,7 +268,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
                   onChange={(event) =>
                     setWithdrawalPin(event.target.value.replace(/\D/g, "").slice(0, 6))
                   }
-                  placeholder={t("admin.pinDigits")}
+                  placeholder={LL.admin_pinDigits()}
                   autoFocus
                 />
               </label>
@@ -277,14 +284,14 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
                   onClick={dashboard.closePinModal}
                   disabled={dashboard.isPinClaimProcessing}
                 >
-                  {t("admin.cancel")}
+                  {LL.admin_cancel()}
                 </button>
                 <button
                   type="submit"
                   className="primaryButton"
                   disabled={dashboard.isPinClaimProcessing || withdrawalPin.length < 4}
                 >
-                  {dashboard.isPinClaimProcessing ? t("admin.validating") : t("admin.validate")}
+                  {dashboard.isPinClaimProcessing ? LL.admin_validating() : LL.admin_validate()}
                 </button>
               </div>
             </form>
@@ -305,7 +312,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
         <AddPackageModal
           conciergeName={dashboard.currentUser?.display_name ?? ""}
           communityStructure={dashboard.communityStructure}
-          title={`${t("admin.editPackage")} ${dashboard.editingParcel.id}`}
+          title={`${LL.admin_editPackage()} ${dashboard.editingParcel.id}`}
           initialValues={{
             department_address: dashboard.editingParcel.department_address,
             resident_name: dashboard.editingParcel.resident_name,

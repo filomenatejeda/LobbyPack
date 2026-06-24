@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { useI18n } from "../../lib/i18n";
 import type { AddPackageFormValues } from "./packageFormTypes";
@@ -16,8 +17,7 @@ type AddPackageFormSectionProps = {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
-export default function AddPackageFormSection({
-  communityStructure = [],
+export default function AddPackageFormSection({communityStructure = [],
   errorMessage,
   queuedPackages = [],
   showBatchControls = false,
@@ -28,7 +28,7 @@ export default function AddPackageFormSection({
   onRemoveQueuedPackage,
   onSubmit,
 }: AddPackageFormSectionProps) {
-  const { t } = useI18n();
+  const { LL } = useI18nContext();
   const [isDepartmentPickerOpen, setIsDepartmentPickerOpen] = useState(false);
   const departmentOptions = useMemo(
     () =>
@@ -60,18 +60,18 @@ export default function AddPackageFormSection({
 
   const departmentListText =
     filteredDepartmentOptions.length > 0
-      ? `${filteredDepartmentOptions.length} coincidencia${
-          filteredDepartmentOptions.length === 1 ? "" : "s"
+      ? `${filteredDepartmentOptions.length} ${
+          filteredDepartmentOptions.length === 1 ? LL.admin_match() : LL.admin_matches()
         }`
-      : t("admin.noMatches");
+      : LL.admin_noMatches();
 
   const departmentInputLabel = departmentOptions.length > 0
-    ? t("admin.departmentPick")
-    : t("admin.department");
+    ? LL.admin_departmentPick()
+    : LL.admin_department();
 
   const departmentButtonLabel = isDepartmentPickerOpen
-    ? t("admin.departmentListClose")
-    : t("admin.departmentListOpen");
+    ? LL.admin_departmentListClose()
+    : LL.admin_departmentListOpen();
 
   const hasExactDepartmentMatch = departmentOptions.some(
     (department) =>
@@ -125,7 +125,7 @@ export default function AddPackageFormSection({
               <div className="departmentPickerMenu">
                 <div className="departmentPickerMeta">
                   <span>{departmentListText}</span>
-                  {hasExactDepartmentMatch ? <strong>{t("admin.selectedUnit")}</strong> : null}
+                  {hasExactDepartmentMatch ? <strong>{LL.admin_selectedUnit()}</strong> : null}
                 </div>
 
                 {filteredDepartmentOptions.length > 0 ? (
@@ -148,7 +148,7 @@ export default function AddPackageFormSection({
                   </div>
                 ) : (
                   <p className="departmentPickerEmpty">
-                    {t("admin.noUnitMatch")}
+                    {LL.admin_noUnitMatch()}
                   </p>
                 )}
               </div>
@@ -157,42 +157,42 @@ export default function AddPackageFormSection({
         </label>
 
         <label className="addPackageField">
-          <span>{t("admin.name")}</span>
+          <span>{LL.admin_name()}</span>
           <input
             type="text"
             value={values.resident_name}
             onChange={(event) => onChange("resident_name", event.target.value)}
-            placeholder={t("admin.residentName")}
+            placeholder={LL.admin_residentName()}
             maxLength={30}
             required
           />
         </label>
 
         <label className="addPackageField">
-          <span>{t("admin.company")}</span>
+          <span>{LL.admin_company()}</span>
           <input
             type="text"
             value={values.business_name}
             onChange={(event) => onChange("business_name", event.target.value)}
-            placeholder={t("admin.optional")}
+            placeholder={LL.admin_optional()}
             maxLength={30}
           />
         </label>
 
         <label className="addPackageField">
-          <span>{t("admin.phone")}</span>
+          <span>{LL.admin_phone()}</span>
           <input
             type="tel"
             value={values.user_phone_number}
             onChange={(event) => onChange("user_phone_number", event.target.value)}
-            placeholder="Ej: +56912345678"
+            placeholder={LL.admin_phoneExample()}
             inputMode="tel"
             maxLength={16}
           />
         </label>
 
         <label className="addPackageField">
-          <span>{t("admin.concierge")}</span>
+          <span>{LL.admin_concierge()}</span>
           <input
             type="text"
             value={values.concierge_name}
@@ -202,18 +202,18 @@ export default function AddPackageFormSection({
         </label>
 
         <label className="addPackageField addPackageFieldWide">
-          <span>{t("admin.description")}</span>
+          <span>{LL.admin_description()}</span>
           <input
             type="text"
             value={values.parcel_description}
             onChange={(event) => onChange("parcel_description", event.target.value)}
-            placeholder={t("admin.packageDescription")}
+            placeholder={LL.admin_packageDescription()}
             maxLength={150}
           />
         </label>
 
         <label className="addPackageField addPackageCheckboxField">
-          <span>{t("admin.urgent")}</span>
+          <span>{LL.admin_urgent()}</span>
           <input
             type="checkbox"
             checked={values.is_urgent}
@@ -223,14 +223,12 @@ export default function AddPackageFormSection({
       </div>
 
       {showBatchControls ? (
-        <section className="addPackageQueue" aria-label={t("admin.packagesToSave")}>
+        <section className="addPackageQueue" aria-label={LL.admin_packagesToSave()}>
           <div className="addPackageQueueHeader">
             <div>
-              <strong>{t("admin.queuePackages")}</strong>
+              <strong>{LL.admin_queuePackages()}</strong>
               <span>
-                {queuedPackages.length}{" "}
-                {queuedPackages.length === 1 ? t("admin.totalPackage") : t("admin.totalPackages")}{" "}
-                {t("admin.readyToSave")}
+                {queuedPackages.length} {LL.admin_readyToSave()}
               </span>
             </div>
             <button
@@ -238,7 +236,7 @@ export default function AddPackageFormSection({
               className="modalSecondaryButton"
               onClick={onQueuePackage}
             >
-              {t("admin.addAnotherPackage")}
+              {LL.admin_addAnotherPackage()}
             </button>
           </div>
 
@@ -252,22 +250,22 @@ export default function AddPackageFormSection({
                   <div>
                     <strong>{packageValues.department_address}</strong>
                     <span>{packageValues.resident_name}</span>
-                    <span>{packageValues.business_name || t("admin.noCompany")}</span>
+                    <span>{packageValues.business_name || LL.admin_noCompany()}</span>
                   </div>
                   <button
                     type="button"
                     className="queueRemoveButton"
-                    aria-label={`${t("admin.remove")} ${t("resident.package")} ${index + 1}`}
+                    aria-label={`${LL.settings_remove()} ${LL.resident_package()} ${index + 1}`}
                     onClick={() => onRemoveQueuedPackage?.(index)}
                   >
-                    {t("admin.remove")}
+                    {LL.settings_remove()}
                   </button>
                 </article>
               ))}
             </div>
           ) : (
             <p className="addPackageQueueEmpty">
-              {t("admin.queueEmpty")}
+              {LL.admin_queueEmpty()}
             </p>
           )}
         </section>
@@ -277,7 +275,7 @@ export default function AddPackageFormSection({
 
       <div className="addPackageActions">
         <button type="button" className="modalSecondaryButton" onClick={onCancel}>
-          {t("admin.cancel")}
+          {LL.admin_cancel()}
         </button>
         {showBatchControls ? (
           <button
@@ -285,13 +283,13 @@ export default function AddPackageFormSection({
             className="modalSecondaryButton"
             onClick={onQueuePackage}
           >
-            {t("admin.queueAndContinue")}
+            {LL.admin_queueAndContinue()}
           </button>
         ) : null}
         <button type="submit" className="modalPrimaryButton">
           {showBatchControls && totalPackagesToSave > 1
-            ? `${t("admin.savePackages")} (${totalPackagesToSave})`
-            : t("admin.savePackage")}
+            ? LL.admin_savePackages()
+            : LL.admin_savePackage()}
         </button>
       </div>
     </form>

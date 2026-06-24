@@ -1,11 +1,10 @@
 import { UpdatePasswordForm } from "@/components/auth";
-import LanguageToggleButton from "@/components/Navbar/LanguageToggleButton";
-import { useI18n } from "@/lib/i18n";
+import { useI18nContext } from "@/i18n/i18n-react";
 import { Link } from "react-router-dom";
 import "./Auth.css";
 
 export default function Update_Password() {
-  const { t } = useI18n();
+  const { LL } = useI18nContext();
 
   return (
     <main className="authPage">
@@ -15,11 +14,10 @@ export default function Update_Password() {
             LobbyPack
           </Link>
           <div className="authTopLinks">
-            <a href="/#inicio" className="authHomeLink">{t("nav.home")}</a>
-            <a href="/#funciones" className="authHomeLink">{t("landing.features")}</a>
-            <a href="/#como-funciona" className="authHomeLink">{t("landing.flow")}</a>
-            <a href="/#acceso" className="authHomeLink">{t("landing.access")}</a>
-            <LanguageToggleButton />
+            <a href="/#inicio" className="authHomeLink">{LL.nav_home()}</a>
+            <a href="/#funciones" className="authHomeLink">{LL.landing_features()}</a>
+            <a href="/#como-funciona" className="authHomeLink">{LL.landing_flow()}</a>
+            <a href="/#acceso" className="authHomeLink">{LL.landing_access()}</a>
           </div>
         </div>
       </div>

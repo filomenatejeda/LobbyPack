@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { useEffect, useState } from "react";
 import ConciergeInviteModal from "../../components/Settings/ConciergeInviteModal";
 import ApartmentResidentsModal from "../../components/Settings/ApartmentResidentsModal";
@@ -46,7 +47,7 @@ type AdminSettingsProps = {
 };
 
 export default function AdminSettings({ currentUser, section = "general" }: AdminSettingsProps) {
-  const { language, t } = useI18n();
+  const { LL } = useI18nContext();
   const [generalSettings, setGeneralSettings] =
     useState<GeneralSettings>(emptyGeneralSettings);
   const [preferenceSettings, setPreferenceSettings] =
@@ -104,7 +105,25 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
       sum + tower.floors.reduce((floorSum, floor) => floorSum + floor.apartments.length, 0),
     0,
   );
-  const structureLabels = getStructureLabels(generalSettings.community_type, language);
+  const sectionContent = {
+    general: {
+      eyebrow: LL.settings_info(),
+      title: LL.settings_lobbyInfo(),
+      lead: LL.settings_lobbyLead(),
+    },
+    structure: {
+      eyebrow: LL.settings_community(),
+      title: LL.settings_unitManagementTitle(),
+      lead: LL.settings_unitManagementLead(),
+    },
+    team: {
+      eyebrow: LL.settings_team(),
+      title: LL.settings_teamTitle(),
+      lead: LL.settings_teamLead(),
+    },
+  } as const;
+  const structureLabels = getStructureLabels(generalSettings.community_type, LL);
+  const currentSectionContent = sectionContent[section];
 
   const updateGeneralSettings = <K extends keyof GeneralSettings>(
     field: K,
@@ -364,7 +383,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
 
     try {
       await saveGeneralSettings(generalSettings, adminEmail);
-      setStatusMessage(t("settings.generalSaved"));
+      setStatusMessage(LL.settings_generalSaved());
       setIsEditingGeneralSettings(false);
       await loadSettings();
     } catch (error) {
@@ -489,7 +508,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
       </section>
 
       {statusMessage ? <p className="settingsLead">{statusMessage}</p> : null}
-      {isLoading ? <p className="settingsLead">{t("settings.loadingMysql")}</p> : null}
+      {isLoading ? <p className="settingsLead">{LL.settings_loadingMysql()}</p> : null}
 
       <section className="settingsGrid">
         {section === "general" ? (
@@ -575,8 +594,8 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
           >
             <div className="settingsCardHeader">
               <div>
-                <p className="settingsLabel">{t("settings.report")}</p>
-                <h2 id="dailySummaryTitle">{t("settings.dailySummary")}</h2>
+                <p className="settingsLabel">{LL.settings_report()}</p>
+                <h2 id="dailySummaryTitle">{LL.settings_dailySummary()}</h2>
               </div>
               <button
                 type="button"
@@ -592,7 +611,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
             </p>
 
             <label className="settingsField">
-              <span>{t("settings.reportDate")}</span>
+              <span>{LL.settings_reportDate()}</span>
               <input
                 type="date"
                 value={dailySummaryDate}

@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import AdminDashboard from "../Admin/AdminDashboard";
 import ResidentDashboard from "../Resident/ResidentDashboard";
 import { useI18n } from "../../lib/i18n";
@@ -5,7 +6,7 @@ import { useHomeDashboard } from "./hooks/useHomeDashboard";
 import "./Home.css";
 
 export default function Home() {
-  const { t } = useI18n();
+  const { LL } = useI18nContext();
   const dashboard = useHomeDashboard();
 
   if (dashboard.isLoading && !dashboard.currentUser) {
@@ -17,7 +18,7 @@ export default function Home() {
       <section className="hero" id="inicio">
         <div className={dashboard.isResident ? "main residentMain" : "main"}>
           <p className="eyebrow">
-            {dashboard.isResident ? t("home.withdrawal") : t("home.management")}
+            {dashboard.isResident ? LL.home_withdrawal() : LL.home_management()}
           </p>
           <h1>
             <span className="titlePrimary">Lobby</span>
@@ -26,14 +27,14 @@ export default function Home() {
           <p className="lead">
             {dashboard.isResident
               ? dashboard.preferenceSettings.qr_access
-                ? t("home.residentLeadQr")
-                : t("home.residentLeadNoQr")
-              : t("home.adminLead")}
+                ? LL.home_residentLeadQr()
+                : LL.home_residentLeadNoQr()
+              : LL.home_adminLead()}
           </p>
 
           {dashboard.errorMessage ? <p className="emptyState">{dashboard.errorMessage}</p> : null}
           {dashboard.isLoading ? (
-            <p className="resultsText">{t("home.loadingData")}</p>
+            <p className="resultsText">{LL.home_loadingData()}</p>
           ) : null}
 
           {!dashboard.isLoading && dashboard.isResident && dashboard.currentUser ? (

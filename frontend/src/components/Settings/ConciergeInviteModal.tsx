@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { useMemo, useState, type ComponentType, type FormEvent } from "react";
 import { X } from "lucide-react";
 import QRCodeImport from "react-qr-code";
@@ -38,14 +39,13 @@ type ConciergeInviteModalProps = {
   onDone: () => Promise<void>;
 };
 
-export default function ConciergeInviteModal({
-  isSaving,
+export default function ConciergeInviteModal({isSaving,
   onClose,
   onInviteConcierge,
   onVerifyMfa,
   onDone,
 }: ConciergeInviteModalProps) {
-  const { t } = useI18n();
+  const { LL } = useI18nContext();
   const [accountPhase, setAccountPhase] = useState<string>(ConciergeAccountPhase.Form);
   const [createdConcierge, setCreatedConcierge] =
     useState<ConciergeAccountCreationResponse | null>(null);
@@ -184,11 +184,9 @@ export default function ConciergeInviteModal({
       <section className="residentModal" onClick={(event) => event.stopPropagation()}>
         <div className="residentModalHeader">
           <div>
-            <p className="settingsLabel">{t("settings.conciergeAccount")}</p>
-            <h3>{t("settings.inviteUser")}</h3>
-            <p className="residentModalLead">
-              {t("settings.conciergeInviteLead")}
-            </p>
+            <p className="settingsLabel">{LL.settings_conciergeAccount()}</p>
+            <h3>{LL.settings_inviteUser()}</h3>
+            <p className="residentModalLead">{LL.settings_conciergeInviteLead()}</p>
           </div>
           <button
             type="button"
@@ -204,7 +202,7 @@ export default function ConciergeInviteModal({
           {accountPhase === ConciergeAccountPhase.Form ? (
             <form className="residentForm" onSubmit={handleSubmit}>
               <label className="settingsField">
-                <span>{t("resident.emailAccess")}</span>
+                <span>{LL.resident_emailAccess()}</span>
                 <input
                   type="email"
                   value={conciergeEmail}
@@ -213,7 +211,7 @@ export default function ConciergeInviteModal({
                 />
               </label>
               <label className="settingsField">
-                <span>{t("resident.personName")}</span>
+                <span>{LL.resident_personName()}</span>
                 <input
                   type="text"
                   value={conciergeName}
@@ -222,7 +220,7 @@ export default function ConciergeInviteModal({
                 />
               </label>
               <label className="settingsField">
-                <span>{t("auth.password")}</span>
+                <span>{LL.auth_password()}</span>
                 <input
                   type="password"
                   value={conciergePassword}
@@ -238,10 +236,39 @@ export default function ConciergeInviteModal({
                   onClick={onClose}
                   disabled={isSaving}
                 >
-                  {t("admin.cancel")}
+                  {LL.admin_cancel()}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? t("resident.creating") : t("auth.createAccount")}
+                  {isSaving ? LL.resident_creating() : LL.auth_createAccount()}
+                </button>
+              </div>
+              {formError ? <p className="residentError">{formError}</p> : null}
+            </form>
+          ) : null}
+
+          {accountPhase === ConciergeAccountPhase.Code && createdConcierge ? (
+            <form className="residentForm" onSubmit={handleVerifyEmail}>
+              <div className="residentVerificationBox">
+                <strong>{LL.auth_emailCodeTitle()}</strong>
+                <p>{LL.auth_emailCodeHelp({ email: createdConcierge.email })}</p>
+              </div>
+              <label className="settingsField">
+                <span>{LL.settings_code()}</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={8}
+                  value={verificationCode}
+                  onChange={(event) => setVerificationCode(event.target.value)}
+                  required
+                />
+              </label>
+              <div className="residentActions">
+                <button type="button" className="secondaryButton" onClick={resetCreateFlow}>
+                  {LL.admin_cancel()}
+                </button>
+                <button type="submit" className="primaryButton" disabled={isSaving}>
+                  {isSaving ? LL.settings_verifying() : LL.settings_verifyCode()}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}
@@ -255,18 +282,18 @@ export default function ConciergeInviteModal({
                   {QRCodeComponent ? (
                     <QRCodeComponent value={totpSetup.totp_uri} size={176} />
                   ) : (
-                    <p>{t("resident.qrLoadError")}</p>
+                    <p>{LL.resident_qrLoadError()}</p>
                   )}
                 </div>
                 <p>
-                  {t("resident.mfaHelp")}
+                  {LL.resident_mfaHelp()}
                 </p>
                 <p className="residentSecret">
-                  {t("resident.mfaManualKey")} <strong>{totpSetup.totp_secret}</strong>
+                  {LL.resident_mfaManualKey()} <strong>{totpSetup.totp_secret}</strong>
                 </p>
               </div>
               <label className="settingsField">
-                <span>{t("resident.authCode")}</span>
+                <span>{LL.resident_authCode()}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -278,10 +305,10 @@ export default function ConciergeInviteModal({
               </label>
               <div className="residentActions">
                 <button type="button" className="secondaryButton" onClick={resetCreateFlow}>
-                  {t("admin.cancel")}
+                  {LL.admin_cancel()}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? t("resident.activating") : t("resident.activateAuthenticator")}
+                  {isSaving ? LL.resident_activating() : LL.resident_activateAuthenticator()}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}
@@ -290,15 +317,15 @@ export default function ConciergeInviteModal({
 
           {accountPhase === ConciergeAccountPhase.Done ? (
             <div className="residentVerificationBox">
-              <strong>{t("settings.conciergeReady")}</strong>
-              <p>{t("resident.readyAccountText")}</p>
+              <strong>{LL.settings_conciergeReady()}</strong>
+              <p>{LL.resident_readyAccountText()}</p>
               <div className="residentActions">
                 <button
                   type="button"
                   className="primaryButton"
                   onClick={() => void handleDone()}
                 >
-                  {t("resident.done")}
+                  {LL.resident_done()}
                 </button>
               </div>
             </div>

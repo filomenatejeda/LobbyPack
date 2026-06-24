@@ -1,9 +1,11 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import SignUpFormHeader from "./sign-up/SignUpFormHeader";
 import SignUpPhaseFields from "./sign-up/SignUpPhaseFields";
 import { useSignUpForm } from "./sign-up/useSignUpForm";
 import "./login-form.css";
 
 export function SignUpForm() {
+  const { LL } = useI18nContext();
   const form = useSignUpForm();
 
   return (
@@ -28,7 +30,7 @@ export function SignUpForm() {
       </div>
 
       <div className="authFooter">
-        <span>¿Ya tienes una cuenta?</span>
+        <span>{LL.auth_alreadyAccount()}</span>
         <button
           type="button"
           className="authTextButton"

@@ -1,5 +1,5 @@
-﻿import { useI18n } from "@/lib/i18n";
-import { Phase, type SignUpPhase } from "./constants";
+import { useI18nContext } from "@/i18n/i18n-react";
+import { getPhaseDescription, Phase, type SignUpPhase } from "./constants";
 
 type SignUpFormHeaderProps = {
   isCompletingGoogleRegistration: boolean;
@@ -14,35 +14,7 @@ export default function SignUpFormHeader({
   onGoBack,
   phase,
 }: SignUpFormHeaderProps) {
-  const { language, t } = useI18n();
-  const description =
-    phase === Phase.Community
-      ? language === "en"
-        ? "Complete the community details before registering the administrator."
-        : "Completa los datos de la comunidad antes de registrar a la persona administradora."
-      : phase === Phase.Admin
-        ? isCompletingGoogleRegistration
-          ? language === "en"
-            ? "Complete the administrator details to create the account with Google."
-            : "Completa los datos de la persona administradora para crear la cuenta con Google."
-          : language === "en"
-            ? "Enter the administrator details and email to continue to password setup."
-            : "Ingresa los datos de la persona administradora y el correo para continuar a la contraseña."
-        : phase === Phase.OTP
-          ? language === "en"
-            ? "Enter the code that arrived by email to verify the account."
-            : "Escribe el código que llego a tu correo para verificar la cuenta."
-          : phase === Phase.MFA
-            ? mfaSecret
-              ? language === "en"
-                ? "Scan the TOTP QR and enter the 6-digit authenticator code."
-                : "Escanea el QR del TOTP y escribe el código de 6 dígitos del autenticador."
-              : language === "en"
-                ? "Enter the 6-digit code from your authenticator to continue."
-                : "Ingresa el código de 6 dígitos de tu autenticador para continuar."
-            : language === "en"
-              ? "Set your password and confirmation to update it in Supabase."
-              : "Define tu contraseña y su confirmacion para actualizarla en Supabase.";
+  const { LL } = useI18nContext();
 
   return (
     <div className="authCardHeader">
@@ -50,15 +22,17 @@ export default function SignUpFormHeader({
         <button
           type="button"
           className="authBackButton"
-          aria-label={t("auth.backPreviousStep")}
+          aria-label={LL.auth_backPreviousStep()}
           onClick={onGoBack}
         >
           {"<"}
         </button>
       )}
-      <p className="authEyebrow">{t("auth.register")}</p>
-      <h2 className="authTitle">{t("auth.communityTitle")}</h2>
-      <p className="authDescription">{description}</p>
+      <p className="authEyebrow">{LL.auth_register()}</p>
+      <h2 className="authTitle">{LL.auth_communityTitle()}</h2>
+      <p className="authDescription">
+        {getPhaseDescription(phase, isCompletingGoogleRegistration, mfaSecret)}
+      </p>
     </div>
   );
 }

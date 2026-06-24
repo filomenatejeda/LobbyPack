@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import TowerCard from "../../../components/Settings/TowerCard";
 import { useI18n } from "../../../lib/i18n";
 import type { TowerConfig } from "../../../types/settings";
@@ -30,8 +31,7 @@ type SettingsStructureCardProps = {
   towers: TowerConfig[];
 };
 
-export default function SettingsStructureCard({
-  canEdit,
+export default function SettingsStructureCard({canEdit,
   isLoading,
   isSaving,
   labels,
@@ -51,14 +51,14 @@ export default function SettingsStructureCard({
   totalUnits,
   towers,
 }: SettingsStructureCardProps) {
-  const { t } = useI18n();
+  const { LL } = useI18nContext();
   const isEditingStructure = towers.some((tower) => tower.is_editing);
 
   return (
     <article className="settingsCard settingsCardWide">
       <div className="settingsCardHeader">
         <div>
-          <p className="settingsLabel">{t("settings.structure")}</p>
+          <p className="settingsLabel">{LL.settings_structure()}</p>
           <h2>{labels.title}</h2>
         </div>
         {canEdit ? (
@@ -71,7 +71,7 @@ export default function SettingsStructureCard({
                   onClick={onCancel}
                   disabled={isSaving || isLoading}
                 >
-                  {t("admin.cancel")}
+                  {LL.admin_cancel()}
                 </button>
                 <button
                   type="button"
@@ -79,7 +79,7 @@ export default function SettingsStructureCard({
                   onClick={onSave}
                   disabled={isSaving}
                 >
-                  {isSaving ? t("resident.saving") : t("resident.save")}
+                  {isSaving ? LL.resident_saving() : LL.resident_save()}
                 </button>
               </>
             ) : null}
@@ -110,7 +110,7 @@ export default function SettingsStructureCard({
       <div className="towerList">
         {towers.length === 0 ? (
           <div className="settingsEmptyState">
-            <strong>{t("settings.emptyStructure")}</strong>
+            <strong>{LL.settings_emptyStructure()}</strong>
             <p>
               {t("settings.emptyStructureText").replace(
                 "{groups}",

@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Eye, EyeOff } from "lucide-react";
 import { geoapifyApiKey, Phase } from "./constants";
@@ -10,15 +11,14 @@ type SignUpPhaseFieldsProps = {
 };
 
 export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
-  const { language, t } = useI18n();
-  const communityTypeOptions = getCommunityTypeOptions(language);
+  const { LL } = useI18nContext();
 
   return (
     <div className="authFields">
       {form.phase === Phase.Community && (
         <>
           <label className="authField">
-            <span>{t("auth.communityName")}</span>
+            <span>{LL.auth_communityName()}</span>
             <input
               className="authInput"
               id="community-name"
@@ -31,7 +31,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
           </label>
 
           <label className="authField">
-            <span>{t("settings.communityType")}</span>
+            <span>{LL.settings_communityType()}</span>
             <select
               className="authInput"
               id="community-type"
@@ -48,7 +48,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
           </label>
 
           <label className="authField">
-            <span>{t("auth.country")}</span>
+            <span>{LL.auth_country()}</span>
             <input
               className="authInput"
               id="community-country"
@@ -83,7 +83,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
           </label>
 
           <label className="authField">
-            <span>{t("auth.city")}</span>
+            <span>{LL.auth_city()}</span>
             <input
               className="authInput"
               id="community-location"
@@ -122,7 +122,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                   </div>
                 )}
                 {form.isLoadingLocations && (
-                  <div className="authSuggestionStatus">{t("auth.loadingCities")}</div>
+                  <div className="authSuggestionStatus">{LL.auth_loadingCities()}</div>
                 )}
                 {!form.isLoadingLocations &&
                   form.locationSuggestions.map((location) => (
@@ -151,7 +151,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
           </label>
 
           <label className="authField">
-            <span>{t("settings.address")}</span>
+            <span>{LL.settings_address()}</span>
             <input
               className="authInput"
               id="community-address"
@@ -192,7 +192,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                   </div>
                 )}
                 {form.isLoadingAddresses && (
-                  <div className="authSuggestionStatus">{t("auth.loadingAddresses")}</div>
+                  <div className="authSuggestionStatus">{LL.auth_loadingAddresses()}</div>
                 )}
                 {!form.isLoadingAddresses &&
                   form.addressSuggestions.map((address) => (
@@ -219,7 +219,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               </div>
             ) : null}
             {form.isCheckingCommunityAddress && (
-              <p className="authFieldNote">{t("auth.verifyingAddress")}</p>
+              <p className="authFieldNote">{LL.auth_verifyingAddress()}</p>
             )}
             {!form.isCheckingCommunityAddress && form.communityAddressStatus.message && (
               <p className={`authFieldNote authFieldNote-${form.communityAddressStatus.type}`}>
@@ -233,7 +233,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
       {form.phase === Phase.Admin && (
         <>
           <label className="authField">
-            <span>{t("auth.adminFirstName")}</span>
+            <span>{LL.auth_adminFirstName()}</span>
             <input
               className="authInput"
               id="admin-first-name"
@@ -246,7 +246,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
           </label>
 
           <label className="authField">
-            <span>{t("auth.adminLastName")}</span>
+            <span>{LL.auth_adminLastName()}</span>
             <input
               className="authInput"
               id="admin-last-name"
@@ -272,7 +272,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
 
       {form.phase !== Phase.Community && (
         <label className="authField">
-          <span>{t("auth.email")}</span>
+          <span>{LL.auth_email()}</span>
           <input
             className="authInput"
             id="email"
@@ -290,7 +290,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
       {form.phase === Phase.OTP && (
         <>
           <label className="authField">
-            <span>{t("auth.otpCode")}</span>
+            <span>{LL.auth_otpCode()}</span>
             <input
               className="authInput authInputCode"
               id="otp"
@@ -342,7 +342,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
           </div>
 
           <label className="authField">
-            <span>{t("resident.authCode")}</span>
+            <span>{LL.resident_authCode()}</span>
             <input
               className="authInput authInputCode"
               id="mfa"
@@ -361,7 +361,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
       {form.phase === Phase.Password && (
         <>
           <label className="authField">
-            <span>{t("auth.password")}</span>
+            <span>{LL.auth_password()}</span>
             <div className="authPasswordInputWrap">
               <input
                 className="authInput authInputWithAction"
@@ -405,7 +405,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
           </div>
 
           <label className="authField">
-            <span>{t("auth.passwordConfirm")}</span>
+            <span>{LL.auth_passwordConfirm()}</span>
             <div className="authPasswordInputWrap">
               <input
                 className="authInput authInputWithAction"

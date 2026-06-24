@@ -14,9 +14,10 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18nContext } from "@/i18n/i18n-react";
 
 export function UpdatePasswordForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
-  const { language, t } = useI18n();
+  const { LL } = useI18nContext();
   const [password, setPassword] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [mfaFactorId, setMfaFactorId] = useState("");
@@ -175,15 +176,15 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">{t("auth.resetPassword")}</CardTitle>
-          <CardDescription>{t("auth.updatePasswordDescription")}</CardDescription>
+          <CardTitle className="text-2xl">{LL.auth_resetPassword()}</CardTitle>
+          <CardDescription>{LL.auth_updatePasswordDescription()}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleForgotPassword}>
             <div className="flex flex-col gap-6">
               {!isMfaVerified && (
                 <div className="grid gap-2">
-                  <Label htmlFor="mfa">{t("resident.authCode")}</Label>
+                  <Label htmlFor="mfa">{LL.resident_authCode()}</Label>
                   <Input
                     id="mfa"
                     inputMode="numeric"
@@ -198,11 +199,11 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                 </div>
               )}
               <div className="grid gap-2">
-                <Label htmlFor="password">{t("auth.newPassword")}</Label>
+                <Label htmlFor="password">{LL.auth_newPassword()}</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder={t("auth.newPassword")}
+                  placeholder={LL.auth_newPassword()}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -215,10 +216,9 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                 disabled={isLoading || isPreparingMfa}
               >
                 {isLoading
-                  ? t("resident.saving")
+                  ? LL.resident_saving()
                   : isMfaVerified
-                    ? t("auth.saveNewPassword")
-                    : t("auth.verifyAndSave")}
+                    ? LL.auth_saveNewPassword() : LL.auth_verifyAndSave()}
               </Button>
             </div>
           </form>

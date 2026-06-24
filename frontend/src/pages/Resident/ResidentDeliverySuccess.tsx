@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useI18n } from "../../lib/i18n";
 import type { ParcelItem } from "../../types/home";
@@ -10,7 +11,7 @@ type DeliverySuccessState = {
 };
 
 export default function ResidentDeliverySuccess() {
-  const { t } = useI18n();
+  const { LL } = useI18nContext();
   const navigate = useNavigate();
   const location = useLocation();
   const parcel = (location.state as DeliverySuccessState | null)?.parcel;
@@ -31,16 +32,16 @@ export default function ResidentDeliverySuccess() {
           </div>
         </div>
         <div className="deliverySuccessContent">
-          <p className="deliverySuccessEyebrow">{t("resident.successEyebrow")}</p>
-          <h1>{t("resident.successTitle")}</h1>
-          <p className="deliverySuccessText">{t("resident.successText")}</p>
+          <p className="deliverySuccessEyebrow">{LL.resident_successEyebrow()}</p>
+          <h1>{LL.resident_successTitle()}</h1>
+          <p className="deliverySuccessText">{LL.resident_successText()}</p>
           <strong className="deliverySuccessParcel">{parcel.id}</strong>
           <button
             type="button"
             className="deliverySuccessButton"
             onClick={() => navigate("/dashboard?view=claimed", { replace: true })}
           >
-            {t("resident.successDetails")}
+            {LL.resident_successDetails()}
           </button>
         </div>
       </section>

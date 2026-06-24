@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { useState } from "react";
 import "./PackageRow.css";
 import { useI18n } from "../../lib/i18n";
@@ -9,7 +10,6 @@ import type {
 } from "../../types/home";
 import {
   formatParcelDate,
-  formatParcelStatus,
   formatParcelTime,
   getParcelDate,
 } from "../../utils/packageUtils";
@@ -63,8 +63,7 @@ function buildWhatsappUrl(item: ParcelItem, contact: ContactTarget) {
   return `https://api.whatsapp.com/send/?${params.toString()}`;
 }
 
-export default function PackageRow({
-  item,
+export default function PackageRow({item,
   activeView,
   senderEmail,
   qrAccessEnabled,
@@ -75,7 +74,7 @@ export default function PackageRow({
   onEdit,
   onDelete,
 }: PackageRowProps) {
-  const { t, language } = useI18n();
+  const { LL } = useI18nContext();
   const [showDepartmentContacts, setShowDepartmentContacts] = useState(false);
   const [emailTarget, setEmailTarget] = useState<EmailDraftTarget | null>(null);
   const [emailSubject, setEmailSubject] = useState("");
@@ -150,16 +149,18 @@ export default function PackageRow({
         </div>
         <div className="packageTopActions">
           <div className="statusField">
-            <span>{t("admin.status")}</span>
+            <span>{LL.admin_status()}</span>
             <p
               className={`statusValue ${
                 item.parcel_status === "pending" ? "statusValueRecepcion" : "statusValueRetiro"
               }`}
             >
-              {formatParcelStatus(item.parcel_status, language)}
+              {item.parcel_status === "pending"
+                ? LL.resident_receivedStatus()
+                : LL.admin_withdrawal()}
             </p>
             {item.parcel_status === "pending" && item.resident_claim_confirmed_at ? (
-              <p className="statusValue statusValueRetiro">{t("admin.residentConfirmed")}</p>
+              <p className="statusValue statusValueRetiro">{LL.admin_residentConfirmed()}</p>
             ) : null}
           </div>
 
@@ -169,8 +170,8 @@ export default function PackageRow({
                 type="button"
                 className="rowActionButton qrButton"
                 onClick={() => onShowQr(item)}
-                aria-label={`${t("qr.showPackageQr")} ${item.id}`}
-                title={t("qr.showQr")}
+                aria-label={LL.qr_packageTitle({ id: item.id })}
+                title={LL.qr_packageTitle({ id: item.id })}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="actionIcon">
                   <path
@@ -196,8 +197,8 @@ export default function PackageRow({
                 type="button"
                 className="rowActionButton qrButton"
                 onClick={() => onShowPin(item)}
-                aria-label={`${t("admin.validatePinPackage")} ${item.id}`}
-                title={t("admin.validatePin")}
+                aria-label={`${LL.admin_pinTitle()} ${LL.resident_package()} ${item.id}`}
+                title={LL.admin_pinTitle()}
               >
                 PIN
               </button>
@@ -208,8 +209,8 @@ export default function PackageRow({
                 href={packageWhatsappUrl}
                 target="_blank"
                 rel="noreferrer"
-                aria-label={`Contactar por WhatsApp a ${item.resident_name}`}
-                title={t("admin.packageWhatsapp")}
+                aria-label={`${LL.admin_contactWhatsapp()} ${item.resident_name}`}
+                title={LL.admin_contactWhatsapp()}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="actionIcon">
                   <path
@@ -231,8 +232,8 @@ export default function PackageRow({
               type="button"
               className="rowActionButton"
               onClick={() => onEdit(activeView, item.id)}
-              aria-label={`${t("resident.edit")} ${t("resident.package")} ${item.id}`}
-              title={t("resident.edit")}
+              aria-label={`${LL.admin_editPackage()} ${item.id}`}
+              title={LL.resident_edit()}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true" className="actionIcon">
                 <path
@@ -256,8 +257,8 @@ export default function PackageRow({
               type="button"
               className="rowActionButton dangerButton"
               onClick={() => onDelete(activeView, [item.id])}
-              aria-label={`${t("admin.delete")} ${t("resident.package")} ${item.id}`}
-              title={t("admin.delete")}
+              aria-label={`${LL.admin_delete()} ${LL.resident_package()} ${item.id}`}
+              title={LL.admin_delete()}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true" className="actionIcon">
                 <path
@@ -298,7 +299,7 @@ export default function PackageRow({
 
       <dl className="packageDetails">
         <div>
-          <dt>{t("admin.department")}</dt>
+          <dt>{LL.admin_department()}</dt>
           <dd>
             <button
               type="button"
@@ -311,47 +312,47 @@ export default function PackageRow({
           </dd>
         </div>
         <div>
-          <dt>{t("admin.name")}</dt>
+          <dt>{LL.admin_name()}</dt>
           <dd>{item.resident_name}</dd>
         </div>
         <div>
-          <dt>{t("admin.company")}</dt>
+          <dt>{LL.admin_company()}</dt>
           <dd>{item.business_name}</dd>
         </div>
         <div>
-          <dt>{t("admin.phone")}</dt>
+          <dt>{LL.admin_phone()}</dt>
           <dd>
             {item.user_phone_number ? (
               <a className="contactLink" href={`tel:${getPhoneHref(item.user_phone_number)}`}>
                 {item.user_phone_number}
               </a>
             ) : (
-              t("admin.noNumber")
+              LL.admin_noNumber()
             )}
           </dd>
         </div>
         <div>
-          <dt>{t("admin.concierge")}</dt>
+          <dt>{LL.admin_concierge()}</dt>
           <dd>{item.concierge_name}</dd>
         </div>
         {item.parcel_status === "claimed" ? (
           <div>
-            <dt>{t("admin.withdrawnBy")}</dt>
+            <dt>{LL.admin_withdrawnBy()}</dt>
             <dd>{item.claimed_by_name || item.resident_name}</dd>
           </div>
         ) : null}
         {item.parcel_status === "pending" && item.resident_claimed_by_name ? (
           <div>
-            <dt>{t("admin.confirmedBy")}</dt>
+            <dt>{LL.admin_confirmedBy()}</dt>
             <dd>{item.resident_claimed_by_name}</dd>
           </div>
         ) : null}
         <div>
-          <dt>{t("admin.time")}</dt>
+          <dt>{LL.admin_time()}</dt>
           <dd>{formatParcelTime(parcelDate)}</dd>
         </div>
         <div>
-          <dt>{t("admin.date")}</dt>
+          <dt>{LL.admin_date()}</dt>
           <dd>{formatParcelDate(parcelDate)}</dd>
         </div>
       </dl>
@@ -359,15 +360,15 @@ export default function PackageRow({
       {showDepartmentContacts ? (
         <div className="departmentContactsPanel">
           <div className="departmentContactsHeader">
-            <strong>{t("admin.departmentContacts")} {item.department_address}</strong>
+            <strong>{LL.admin_departmentContacts()} {item.department_address}</strong>
             <span>
               {hasDepartmentContacts
                 ? `${departmentResidents.length} ${
                     departmentResidents.length === 1
-                      ? t("admin.residentSingular")
-                      : t("admin.residents")
+                      ? LL.admin_residentSingular()
+                      : LL.admin_residents()
                   }`
-                : t("admin.noResidents")}
+                : LL.admin_noResidents()}
             </span>
           </div>
 
@@ -406,7 +407,7 @@ export default function PackageRow({
                           <span>{resident.email}</span>
                         </button>
                       ) : (
-                        <span>{t("admin.noEmailShort")}</span>
+                        <span>{LL.admin_noEmailShort()}</span>
                       )}
                       {whatsappUrl ? (
                         <a
@@ -432,7 +433,7 @@ export default function PackageRow({
                           <span>{resident.user_phone_number}</span>
                         </a>
                       ) : (
-                        <span>{t("admin.noNumber")}</span>
+                        <span>{LL.admin_noNumber()}</span>
                       )}
                     </div>
                   </li>
@@ -441,7 +442,7 @@ export default function PackageRow({
             </ul>
           ) : (
             <p className="departmentContactsEmpty">
-              {t("admin.noContacts")}
+              {LL.admin_noContacts()}
             </p>
           )}
         </div>
@@ -457,12 +458,12 @@ export default function PackageRow({
             aria-labelledby="emailModalTitle"
           >
             <div className="emailModalHeader">
-              <h3 id="emailModalTitle">{t("admin.sendEmail")}</h3>
+              <h3 id="emailModalTitle">{LL.admin_sendEmail()}</h3>
               <button
                 type="button"
                 className="emailModalClose"
                 onClick={closeEmailModal}
-                aria-label="Cerrar"
+                aria-label={LL.settings_close()}
               >
                 X
               </button>
@@ -477,17 +478,17 @@ export default function PackageRow({
             >
               <div className="emailFormRow">
                 <label className="emailField">
-                  <span>{t("admin.to")}</span>
+                  <span>{LL.admin_to()}</span>
                   <input type="email" value={emailTarget.email} readOnly />
                 </label>
                 <label className="emailField">
-                  <span>{t("admin.from")}</span>
+                  <span>{LL.admin_from()}</span>
                   <input type="text" value={senderEmail || "LobbyPack"} readOnly />
                 </label>
               </div>
 
               <label className="emailField">
-                <span>{t("admin.subject")}</span>
+                <span>{LL.admin_subject()}</span>
                 <input
                   type="text"
                   value={emailSubject}
@@ -497,7 +498,7 @@ export default function PackageRow({
               </label>
 
               <label className="emailField">
-                <span>{t("admin.message")}</span>
+                <span>{LL.admin_message()}</span>
                 <textarea
                   value={emailMessage}
                   onChange={(event) => setEmailMessage(event.target.value)}
@@ -512,7 +513,7 @@ export default function PackageRow({
                     checked={sendBlindCopy}
                     onChange={(event) => setSendBlindCopy(event.target.checked)}
                   />
-                  <span>{t("admin.sendBlindCopy").replace("{email}", senderEmail)}</span>
+                  <span>{LL.admin_sendBlindCopy({ email: senderEmail })}</span>
                 </label>
               ) : null}
 
@@ -527,10 +528,10 @@ export default function PackageRow({
                   onClick={closeEmailModal}
                   disabled={isSendingEmail}
                 >
-                  {t("admin.cancel")}
+                  {LL.admin_cancel()}
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSendingEmail}>
-                  {isSendingEmail ? t("admin.sending") : t("admin.send")}
+                  {isSendingEmail ? LL.admin_sending() : LL.admin_send()}
                 </button>
               </div>
             </form>

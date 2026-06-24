@@ -8,6 +8,7 @@ import { isGoogleSSOUser } from "@/lib/auth-provider";
 import { useI18n } from "@/lib/i18n";
 import { checkAdminEmailRegistration } from "@/services/authRegistrationApi";
 import googleGLogo from "@/assets/google-g.svg";
+import { useI18nContext } from "@/i18n/i18n-react";
 import "./login-form.css";
 
 const Phase = {
@@ -16,7 +17,7 @@ const Phase = {
 } as const;
 
 export function LoginForm() {
-  const { language, t } = useI18n();
+  const { LL } = useI18nContext();
   const location = useLocation();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -307,14 +308,13 @@ export function LoginForm() {
   return (
     <form className="authCard" onSubmit={handleLogin}>
       <div className="authCardHeader">
-        <p className="authEyebrow">{t("auth.access")}</p>
+        <p className="authEyebrow">{LL.auth_access()}</p>
         <h2 className="authTitle">
-          {phase === Phase.MFA ? t("auth.mfaTitle") : t("auth.loginTitle")}
+          {phase === Phase.MFA ? LL.auth_mfaTitle() : LL.auth_loginTitle()}
         </h2>
         <p className="authDescription">
           {phase === Phase.MFA
-            ? t("auth.mfaDescription")
-            : t("auth.loginDescription")}
+            ? LL.auth_mfaDescription() : LL.auth_loginDescription()}
         </p>
       </div>
 
@@ -322,7 +322,7 @@ export function LoginForm() {
         {phase === Phase.Login && (
           <>
             <label className="authField">
-              <span>{t("auth.email")}</span>
+              <span>{LL.auth_email()}</span>
               <input
                 className="authInput"
                 id="email"
@@ -336,7 +336,7 @@ export function LoginForm() {
             </label>
 
             <label className="authField">
-              <span>{t("auth.password")}</span>
+              <span>{LL.auth_password()}</span>
               <input
                 className="authInput"
                 id="password"
@@ -352,7 +352,7 @@ export function LoginForm() {
 
         {phase === Phase.MFA && (
           <label className="authField">
-            <span>{t("auth.mfaTitle")}</span>
+            <span>{LL.resident_authCode()}</span>
             <input
               className="authInput authInputCode"
               id="mfa"
@@ -379,10 +379,9 @@ export function LoginForm() {
           disabled={isLoading || Boolean(supabaseConfigError)}
         >
           {isLoading
-            ? t("common.loading")
+            ? LL.common_loading()
             : phase === Phase.MFA
-              ? t("auth.mfaSubmit")
-              : t("auth.login")}
+              ? LL.auth_mfaSubmit() : LL.auth_login()}
         </button>
 
         {phase === Phase.Login && (
@@ -394,28 +393,22 @@ export function LoginForm() {
           >
             <span className="authGoogleIcon" aria-hidden="true">
               <img src={googleGLogo} alt="" />
-            </span>
-            {t("auth.useGoogle")}
-          </button>
+            </span>{LL.auth_useGoogle()}</button>
         )}
 
         {phase === Phase.MFA && (
-          <button type="button" className="authTextButton" onClick={() => void resetLoginFlow()}>
-            {t("auth.useOtherAccount")}
-          </button>
+          <button type="button" className="authTextButton" onClick={() => void resetLoginFlow()}>{LL.auth_useOtherAccount()}</button>
         )}
 
         {phase === Phase.Login && (
-        <a className="authSecondaryLink" href="/auth/forgot-password">
-          {t("auth.forgotPassword")}
-        </a>
+        <a className="authSecondaryLink" href="/auth/forgot-password">{LL.auth_forgotPassword()}</a>
         )}
       </div>
 
       {phase === Phase.Login && (
       <div className="authFooter">
-        <span>{t("auth.noAccount")}</span>
-        <a href="/auth/sign-up">{t("auth.createAccount")}</a>
+        <span>{LL.auth_noAccount()}</span>
+        <a href="/auth/sign-up">{LL.auth_createAccount()}</a>
       </div>
       )}
     </form>

@@ -1,7 +1,7 @@
 ﻿import jsQR from "jsqr";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useI18n } from "../../lib/i18n";
+import { useI18nContext } from "@/i18n/i18n-react";
 import type {
   DashboardCurrentUser,
   DashboardPreferenceSettings,
@@ -9,8 +9,7 @@ import type {
   ParcelItem,
 } from "../../types/home";
 import {
-  formatIssueStatus,
-  formatParcelStatus,
+  formatParcelDate,
   formatParcelTime,
   getIssueStatusClassName,
   getParcelDate,
@@ -39,7 +38,7 @@ type ResidentDashboardProps = {
 type ResidentView = "scanner" | "pending" | "claimed" | "issues";
 
 function ParcelSummaryCard({ item }: { item: ParcelItem }) {
-  const { t, language } = useI18n();
+  const { LL } = useI18nContext();
   const parcelDate = getParcelDate(item);
 
   return (
@@ -47,17 +46,17 @@ function ParcelSummaryCard({ item }: { item: ParcelItem }) {
       <div className="residentParcelTop">
         <strong>{item.id}</strong>
         <span className={item.parcel_status === "pending" ? "residentPending" : "residentClaimed"}>
-          {item.parcel_status === "pending" ? t("resident.pending") : t("resident.delivered")}
+          {item.parcel_status === "pending" ? LL.resident_pending() : LL.resident_delivered()}
         </span>
       </div>
       <p>{item.business_name}</p>
-      <p>{item.parcel_description || t("resident.emptyDescription")}</p>
+      <p>{item.parcel_description || LL.resident_emptyDescription()}</p>
       <p>
         {item.parcel_status === "pending"
           ? item.resident_claim_confirmed_at
-            ? t("resident.confirmationSent")
-            : `${t("resident.receivedBy")} ${item.concierge_name}`
-          : `${t("resident.withdrawBy")} ${item.claimed_by_name || item.resident_name}`}
+            ? LL.resident_confirmationSent()
+            : `${LL.resident_receivedBy()} ${item.concierge_name}`
+          : `${LL.resident_withdrawBy()} ${item.claimed_by_name || item.resident_name}`}
       </p>
       <p>
         {new Date(parcelDate).toLocaleDateString(language === "es" ? "es-CL" : "en-US", {
@@ -72,12 +71,24 @@ function ParcelSummaryCard({ item }: { item: ParcelItem }) {
 }
 
 function ResidentIssueCard({ item }: { item: IssueItem }) {
-  const { language } = useI18n();
+  const { LL } = useI18nContext();
+  const issueStatusLabel =
+    item.issue_status === "open"
+      ? LL.admin_entered()
+      : item.issue_status === "under_review"
+        ? LL.admin_markReview()
+        : LL.admin_resolved();
+
   return (
     <article className="residentIssueCard">
       <div className="residentIssueMeta">
         <strong>{item.id_parcel}</strong>
         <span>{item.business_name}</span>
+        <span>
+          {item.parcel_status === "pending"
+            ? LL.resident_receivedStatus()
+            : LL.admin_withdrawal()}
+        </span>
         <span>
           {formatParcelStatus(item.parcel_status, language)}
         </span>
@@ -93,7 +104,7 @@ function ResidentIssueCard({ item }: { item: IssueItem }) {
             item.issue_status,
           )}`}
         >
-          {formatIssueStatus(item.issue_status, language)}
+          {issueStatusLabel}
         </span>
       </div>
       <p>{item.issue_description}</p>
@@ -119,7 +130,7 @@ export default function ResidentDashboard({
   issueTone,
   isCreatingIssue,
 }: ResidentDashboardProps) {
-  const { t } = useI18n();
+  const { LL } = useI18nContext();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -146,10 +157,10 @@ export default function ResidentDashboard({
     label: string;
     count?: number;
   }> = [
-    { value: "scanner", label: t("resident.withdrawMenu") },
-    { value: "pending", label: t("resident.pendingPackages"), count: pendingParcels.length },
-    { value: "claimed", label: t("resident.claimed"), count: claimedParcels.length },
-    { value: "issues", label: t("resident.claims"), count: issues.length },
+    { value: "scanner", label: LL.resident_withdrawMenu() },
+    { value: "pending", label: LL.resident_pendingPackages(), count: pendingParcels.length },
+    { value: "claimed", label: LL.resident_claimed(), count: claimedParcels.length },
+    { value: "issues", label: LL.resident_claims(), count: issues.length },
   ];
   const residentMenuItems = qrAccessEnabled
     ? allResidentMenuItems
@@ -184,7 +195,7 @@ export default function ResidentDashboard({
 
     const startScanner = async () => {
       if (!navigator.mediaDevices?.getUserMedia) {
-        setCameraMessage("Tu navegador no permite abrir la cámara. Usa el ingreso manual.");
+        setCameraMessage(LL.resident_cameraNoSupport());
         setIsCameraOpen(false);
         return;
       }
@@ -214,7 +225,7 @@ export default function ResidentDashboard({
 
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
-        setCameraMessage("Apunta la cámara al QR del paquete.");
+        setCameraMessage(LL.resident_cameraPoint());
 
         const scanFrame = async () => {
           if (!isActive || !videoRef.current || !canvasRef.current) {
@@ -256,7 +267,7 @@ export default function ResidentDashboard({
             const context = canvas.getContext("2d", { willReadFrequently: true });
 
             if (!context) {
-              setCameraMessage("No se pudo preparar el lector de la cámara.");
+              setCameraMessage(LL.resident_cameraReaderError());
               setIsCameraOpen(false);
               return;
             }
@@ -270,13 +281,13 @@ export default function ResidentDashboard({
 
             if (qrValue) {
               setManualQrValue(qrValue);
-              setCameraMessage("QR detectado. Validando paquete...");
+              setCameraMessage(LL.resident_cameraDetected());
               await onScan(qrValue);
               setIsCameraOpen(false);
               return;
             }
           } catch {
-            setCameraMessage("No se pudo leer el QR. Intenta acercar la cámara un poco mas.");
+            setCameraMessage(LL.resident_cameraError());
           } finally {
             isDetectingRef.current = false;
           }
@@ -290,7 +301,7 @@ export default function ResidentDashboard({
           void scanFrame();
         });
       } catch {
-        setCameraMessage("No se pudo acceder a la cámara. Revisa permisos o usa el ingreso manual.");
+        setCameraMessage(LL.resident_cameraNoAccess());
         setIsCameraOpen(false);
       }
     };
@@ -307,7 +318,7 @@ export default function ResidentDashboard({
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     };
-  }, [isCameraOpen, onScan]);
+  }, [LL, isCameraOpen, onScan]);
 
   useEffect(() => {
     if (issueParcelOptions.length === 0) {
@@ -325,22 +336,22 @@ export default function ResidentDashboard({
       <div className="residentHero">
         <div>
           <p className="residentEyebrow">
-            {qrAccessEnabled ? t("resident.qrSecure") : t("home.management")}
+            {qrAccessEnabled ? LL.resident_qrSecure() : LL.home_management()}
           </p>
           <h2>{currentUser.display_name}</h2>
           <p className="residentLead">
             {qrAccessEnabled
-              ? t("resident.qrLead")
-              : t("resident.settingsLeadNoQr")}
+              ? LL.resident_qrLead()
+              : LL.resident_settingsLeadNoQr()}
           </p>
         </div>
         <div className="residentDepartmentCard">
-          <span>{t("resident.home")}</span>
-          <strong>{currentUser.department_address ?? t("resident.emptyDepartment")}</strong>
+          <span>{LL.resident_home()}</span>
+          <strong>{currentUser.department_address ?? LL.resident_emptyDepartment()}</strong>
         </div>
       </div>
 
-      <nav className="residentViewMenu" aria-label="Menu de residente">
+      <nav className="residentViewMenu" aria-label={LL.resident_resident()}>
         {residentMenuItems.map((item) => (
           <button
             key={item.value}
@@ -362,19 +373,21 @@ export default function ResidentDashboard({
         <div className="residentScannerPanel">
         {!qrAccessEnabled ? (
           <div className="residentQrDisabled">
-            <h3>{t("resident.qrDisabled")}</h3>
-            <p>{t("resident.qrDisabledText")}</p>
+            <h3>{LL.resident_qrDisabled()}</h3>
+            <p>
+              {LL.resident_qrDisabledText()}
+            </p>
           </div>
         ) : (
         <>
         <div className="residentScannerHeader">
-          <h3>{t("resident.scanQr")}</h3>
+          <h3>{LL.resident_scanQr()}</h3>
           <button
             type="button"
             className="residentScannerButton"
             onClick={() => setIsCameraOpen((current) => !current)}
           >
-            {isCameraOpen ? t("resident.cameraClose") : t("resident.cameraOpen")}
+            {isCameraOpen ? LL.resident_cameraClose() : LL.resident_cameraOpen()}
           </button>
         </div>
 
@@ -394,7 +407,7 @@ export default function ResidentDashboard({
           }}
         >
           <label className="residentManualField">
-            <span>{t("resident.enterManualQr")}</span>
+            <span>{LL.resident_enterManualQr()}</span>
             <input
               type="text"
               value={manualQrValue}
@@ -407,7 +420,7 @@ export default function ResidentDashboard({
             className="residentScannerButton secondary"
             disabled={!manualQrValue.trim() || isProcessing}
           >
-            {t("resident.manualValidate")}
+            {LL.resident_manualValidate()}
           </button>
         </form>
 
@@ -427,7 +440,7 @@ export default function ResidentDashboard({
 
         {scannedParcel ? (
           <div className="residentConfirmationCard">
-            <h3>{t("resident.confirmClaim")}</h3>
+            <h3>{LL.resident_confirmClaim()}</h3>
             <ParcelSummaryCard item={scannedParcel} />
             <div className="residentConfirmationActions">
               <button
@@ -447,7 +460,7 @@ export default function ResidentDashboard({
                   }
                 }}
               >
-                {isProcessing ? t("resident.confirming") : t("resident.confirmClaim")}
+                {isProcessing ? LL.resident_confirming() : LL.resident_confirmClaim()}
               </button>
               <button
                 type="button"
@@ -455,7 +468,7 @@ export default function ResidentDashboard({
                 disabled={isProcessing}
                 onClick={onResetScan}
               >
-                {t("resident.cancel")}
+                {LL.admin_cancel()}
               </button>
             </div>
           </div>
@@ -469,15 +482,15 @@ export default function ResidentDashboard({
         <div className="residentIssuePanel">
         <div className="residentIssueHeader">
           <div>
-            <h3>{t("resident.claims")}</h3>
-            <p>{t("resident.claimsLead")}</p>
+            <h3>{LL.resident_claims()}</h3>
+            <p>{LL.resident_claimsLead()}</p>
           </div>
           <button
             type="button"
             className="residentScannerButton"
             onClick={() => setIsIssueFormOpen((current) => !current)}
           >
-            {isIssueFormOpen ? t("resident.closeForm") : t("resident.createClaim")}
+            {isIssueFormOpen ? LL.resident_closeForm() : LL.resident_createClaim()}
           </button>
         </div>
 
@@ -495,7 +508,7 @@ export default function ResidentDashboard({
           }}
         >
           <label className="residentManualField">
-            <span>{t("resident.package")}</span>
+            <span>{LL.resident_package()}</span>
             <select
               value={issueParcelId}
               onChange={(event) => setIssueParcelId(event.target.value)}
@@ -508,19 +521,19 @@ export default function ResidentDashboard({
                   </option>
                 ))
               ) : (
-                <option value="">{t("resident.noPackages")}</option>
+                <option value="">{LL.resident_noPackages()}</option>
               )}
             </select>
           </label>
 
           <label className="residentManualField">
-            <span>{t("resident.issueDescription")}</span>
+            <span>{LL.resident_issueDescription()}</span>
             <textarea
               value={issueDescription}
               onChange={(event) => setIssueDescription(event.target.value)}
               maxLength={300}
               rows={4}
-              placeholder={t("resident.issuePlaceholder")}
+              placeholder={LL.resident_issuePlaceholder()}
               disabled={isCreatingIssue}
             />
           </label>
@@ -536,7 +549,7 @@ export default function ResidentDashboard({
                 !issueDescription.trim()
               }
             >
-              {isCreatingIssue ? t("resident.reportSending") : t("resident.reportIssue")}
+              {isCreatingIssue ? LL.resident_reportSending() : LL.resident_reportIssue()}
             </button>
           </div>
         </form>
@@ -560,7 +573,7 @@ export default function ResidentDashboard({
           {issues.length > 0 ? (
             issues.map((item) => <ResidentIssueCard key={item.id} item={item} />)
           ) : (
-            <p className="residentEmptyState">{t("resident.claimsEmpty")}</p>
+            <p className="residentEmptyState">{LL.resident_claimsEmpty()}</p>
           )}
         </div>
       </div>
@@ -570,14 +583,14 @@ export default function ResidentDashboard({
         <div className="residentParcelSections">
         <div className="residentParcelSection">
           <div className="residentSectionHeader">
-            <h3>{t("resident.pendingPackages")}</h3>
+            <h3>{LL.resident_pendingPackages()}</h3>
             <span>{pendingParcels.length}</span>
           </div>
           <div className="residentParcelGrid">
             {pendingParcels.length > 0 ? (
               pendingParcels.map((item) => <ParcelSummaryCard key={item.id} item={item} />)
             ) : (
-              <p className="residentEmptyState">{t("resident.pendingEmpty")}</p>
+              <p className="residentEmptyState">{LL.resident_pendingEmpty()}</p>
             )}
           </div>
         </div>
@@ -588,14 +601,14 @@ export default function ResidentDashboard({
         <div className="residentParcelSections">
         <div className="residentParcelSection">
           <div className="residentSectionHeader">
-            <h3>{t("resident.claimed")}</h3>
+            <h3>{LL.resident_claimed()}</h3>
             <span>{claimedParcels.length}</span>
           </div>
           <div className="residentParcelGrid">
             {claimedParcels.length > 0 ? (
               claimedParcels.map((item) => <ParcelSummaryCard key={item.id} item={item} />)
             ) : (
-              <p className="residentEmptyState">{t("resident.claimedEmpty")}</p>
+              <p className="residentEmptyState">{LL.resident_claimedEmpty()}</p>
             )}
           </div>
         </div>

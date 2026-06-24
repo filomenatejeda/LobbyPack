@@ -7,6 +7,26 @@ export const PARCEL_DESCRIPTION_REGEX = /^[\p{L}\p{N} .,:;¡¿?!@#$%^&*()"\-_=+]
 
 export type ParcelFormField = keyof AddPackageFormValues;
 
+export type ParcelValidationMessages = {
+  departmentRequired: string;
+  departmentTooLong: string;
+  departmentRegisteredRequired: string;
+  invalidPhone: string;
+  invalidDescription: string;
+  invalidName: string;
+};
+
+const defaultParcelValidationMessages: ParcelValidationMessages = {
+  departmentRequired: "Selecciona un departamento o unidad.",
+  departmentTooLong: "El departamento o unidad debe tener un maximo de 100 caracteres.",
+  departmentRegisteredRequired: "Selecciona un departamento o unidad registrada.",
+  invalidPhone: "El teléfono debe usar codigo de pais, por ejemplo +56912345678.",
+  invalidDescription:
+    "La descripción solo admite letras, números, tildes, ñ, espacios, puntos y comas, con un máximo de 150 caracteres.",
+  invalidName:
+    "Este campo solo admite letras, números, tildes, ñ y espacios, con un máximo de 30 caracteres.",
+};
+
 export function normalizeParcelText(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
@@ -26,6 +46,7 @@ export function normalizeParcelFormValues(values: AddPackageFormValues): AddPack
 export function validateParcelField(
   field: ParcelFormField,
   value: string | boolean,
+  messages: ParcelValidationMessages = defaultParcelValidationMessages,
 ): string | null {
   if (typeof value === "boolean") {
     return null;
@@ -36,11 +57,11 @@ export function validateParcelField(
 
   if (field === "department_address") {
     if (!normalizedValue) {
-      return "Selecciona un departamento o unidad.";
+      return messages.departmentRequired;
     }
 
     if (normalizedValue.length > 100) {
-      return "El departamento o unidad debe tener un maximo de 100 caracteres.";
+      return messages.departmentTooLong;
     }
 
     return null;
@@ -52,7 +73,7 @@ export function validateParcelField(
     }
 
     if (!isValidInternationalPhone(normalizedValue)) {
-      return "El teléfono debe usar codigo de pais, por ejemplo +56912345678.";
+      return messages.invalidPhone;
     }
 
     return null;
@@ -64,7 +85,7 @@ export function validateParcelField(
     }
 
     if (!PARCEL_DESCRIPTION_REGEX.test(normalizedValue)) {
-      return "La descripción solo admite letras, números, tildes, ñ, espacios, puntos y comas, con un máximo de 150 caracteres.";
+      return messages.invalidDescription;
     }
 
     return null;
@@ -75,7 +96,7 @@ export function validateParcelField(
   }
 
   if (!PARCEL_NAME_REGEX.test(normalizedValue)) {
-    return "Este campo solo admite letras, números, tildes, ñ y espacios, con un máximo de 30 caracteres.";
+    return messages.invalidName;
   }
 
   return null;
@@ -94,6 +115,7 @@ function getCommunityDepartmentOptions(communityStructure: CommunityStructureTow
 export function validateDepartmentAgainstStructure(
   departmentAddress: string,
   communityStructure: CommunityStructureTower[],
+  messages: ParcelValidationMessages = defaultParcelValidationMessages,
 ) {
   if (communityStructure.length === 0) {
     return null;
@@ -107,7 +129,7 @@ export function validateDepartmentAgainstStructure(
       (departmentOption) => normalizeDepartmentLookup(departmentOption) === normalizedDepartment,
     )
   ) {
-    return "Selecciona un departamento o unidad registrada.";
+    return messages.departmentRegisteredRequired;
   }
 
   return null;
@@ -116,6 +138,7 @@ export function validateDepartmentAgainstStructure(
 export function validateParcelForm(
   values: AddPackageFormValues,
   communityStructure: CommunityStructureTower[] = [],
+  messages: ParcelValidationMessages = defaultParcelValidationMessages,
 ) {
   const normalizedValues = normalizeParcelFormValues(values);
   const fields: ParcelFormField[] = [
@@ -127,7 +150,7 @@ export function validateParcelForm(
   ];
 
   for (const field of fields) {
-    const error = validateParcelField(field, normalizedValues[field]);
+    const error = validateParcelField(field, normalizedValues[field], messages);
 
     if (error) {
       return {
@@ -141,6 +164,7 @@ export function validateParcelForm(
   const departmentError = validateDepartmentAgainstStructure(
     normalizedValues.department_address,
     communityStructure,
+    messages,
   );
 
   if (departmentError) {

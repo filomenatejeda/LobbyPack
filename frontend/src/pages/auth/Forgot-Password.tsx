@@ -1,11 +1,10 @@
 import { ForgotPasswordForm } from "@/components/auth";
-import LanguageToggleButton from "@/components/Navbar/LanguageToggleButton";
-import { useI18n } from "@/lib/i18n";
+import { useI18nContext } from "@/i18n/i18n-react";
 import { Link } from "react-router-dom";
 import "./Auth.css";
 
 export default function Forgot_Password() {
-  const { t } = useI18n();
+  const { LL } = useI18nContext();
 
   return (
     <main className="authPage">
@@ -15,11 +14,10 @@ export default function Forgot_Password() {
             LobbyPack
           </Link>
           <div className="authTopLinks">
-            <a href="/#inicio" className="authHomeLink">{t("nav.home")}</a>
-            <a href="/#funciones" className="authHomeLink">{t("landing.features")}</a>
-            <a href="/#como-funciona" className="authHomeLink">{t("landing.flow")}</a>
-            <a href="/#acceso" className="authHomeLink">{t("landing.access")}</a>
-            <LanguageToggleButton />
+            <a href="/#inicio" className="authHomeLink">{LL.nav_home()}</a>
+            <a href="/#funciones" className="authHomeLink">{LL.landing_features()}</a>
+            <a href="/#como-funciona" className="authHomeLink">{LL.landing_flow()}</a>
+            <a href="/#acceso" className="authHomeLink">{LL.landing_access()}</a>
           </div>
         </div>
       </div>
@@ -27,26 +25,26 @@ export default function Forgot_Password() {
         <div className="authMain">
           <div className="authLayout">
             <div className="authShowcase">
-              <p className="eyebrow">{t("auth.recoveryAccess")}</p>
+              <p className="eyebrow">{LL.auth_recoveryAccess()}</p>
               <h1>
                 <span className="titlePrimary">Lobby</span>
                 <span className="titleAccent">Pack</span>
               </h1>
-              <p className="authLead">{t("auth.recoveryLead")}</p>
+              <p className="authLead">{LL.auth_recoveryLead()}</p>
 
               <div className="authHighlights">
                 <div className="authHighlight">
                   <span className="authHighlightIndex">1</span>
                   <div>
-                    <strong>{t("auth.guidedRecovery")}</strong>
-                    <p>{t("auth.guidedRecoveryText")}</p>
+                    <strong>{LL.auth_guidedRecovery()}</strong>
+                    <p>{LL.auth_guidedRecoveryText()}</p>
                   </div>
                 </div>
                 <div className="authHighlight">
                   <span className="authHighlightIndex">2</span>
                   <div>
-                    <strong>{t("auth.secureAccess")}</strong>
-                    <p>{t("auth.secureAccessText")}</p>
+                    <strong>{LL.auth_secureAccess()}</strong>
+                    <p>{LL.auth_secureAccessText()}</p>
                   </div>
                 </div>
               </div>

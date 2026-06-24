@@ -15,6 +15,7 @@ import UpdatePassword from "./pages/auth/Update-Password";
 import { useState, useEffect } from "react";
 import { navigatorDetector } from "typesafe-i18n/detectors";
 import TypesafeI18n from "./i18n/i18n-react";
+import { useI18nContext } from "./i18n/i18n-react";
 import { detectLocale } from "./i18n/i18n-util";
 import { loadLocale } from "./i18n/i18n-util.sync";
 
@@ -22,11 +23,12 @@ function ProtectedLayout() {
   const { t } = useI18n();
 
   const isCheckingAuth = checkIfAuth();
+  const { LL } = useI18nContext();
 
   if (isCheckingAuth) {
     return (
       <main className="authLoadingState">
-        <p>{t("common.loading")}</p>
+        <p>{LL.common_loading()}</p>
       </main>
     );
   }
@@ -36,8 +38,8 @@ function ProtectedLayout() {
       <Header />
       <Outlet />
       <footer className="siteFooter">
-        <p>&copy; 2026 LobbyPack. {t("footer.rights")}</p>
-        <span>{t("footer.copy")}</span>
+        <p>&copy; 2026 LobbyPack. {LL.footer_rights()}</p>
+        <span>{LL.footer_copy()}</span>
       </footer>
     </div>
   );

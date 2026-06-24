@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { type ComponentType } from "react";
 import QRCodeImport from "react-qr-code";
 import "./QrModal.css";
@@ -24,14 +25,13 @@ type QrModalProps = {
   qrScanMessage: string;
 };
 
-export default function QrModal({
-  qrPackage,
+export default function QrModal({qrPackage,
   qrAccessEnabled,
   onClose,
   onConfirm,
   qrScanMessage,
 }: QrModalProps) {
-  const { t } = useI18n();
+  const { LL } = useI18nContext();
   const qrValue = qrPackage.qr_code_url ?? `LobbyPack:claim:${qrPackage.id}:demo`;
   const residentConfirmedClaim = Boolean(qrPackage.resident_claim_confirmed_at);
 
@@ -39,12 +39,12 @@ export default function QrModal({
     <div className="qrModalOverlay" onClick={onClose}>
       <div className="qrModal" onClick={(event) => event.stopPropagation()}>
         <div className="qrModalHeader">
-          <h3>{t("qr.packageTitle").replace("{id}", String(qrPackage.id))}</h3>
+          <h3>{LL.qr_packageTitle({ id: qrPackage.id })}</h3>
           <button
             type="button"
             className="closeModalButton"
             onClick={onClose}
-            aria-label={t("qr.close")}
+            aria-label={LL.qr_close()}
           >
             x
           </button>
@@ -56,16 +56,16 @@ export default function QrModal({
           ) : (
             <p className="qrFallback">
               {qrAccessEnabled
-                ? t("qr.componentError")
-                : t("qr.disabled")}
+                ? LL.qr_componentError()
+                : LL.qr_disabled()}
             </p>
           )}
         </div>
 
         <p className="qrHint">
           {qrAccessEnabled
-            ? t("qr.enabledHint")
-            : t("qr.disabledHint")}
+            ? LL.qr_enabledHint()
+            : LL.qr_disabledHint()}
         </p>
 
         {qrAccessEnabled && residentConfirmedClaim ? (
@@ -74,11 +74,11 @@ export default function QrModal({
             className="simulateScanButton"
             onClick={() => onConfirm(qrValue)}
           >
-            {t("qr.markWithdrawn")}
+            {LL.qr_markWithdrawn()}
           </button>
         ) : qrAccessEnabled ? (
           <p className="qrHint">
-            {t("qr.waitResident")}
+            {LL.qr_waitResident()}
           </p>
         ) : (
           null

@@ -1,11 +1,10 @@
 import { SignUpForm } from "@/components/auth";
-import LanguageToggleButton from "@/components/Navbar/LanguageToggleButton";
-import { useI18n } from "@/lib/i18n";
+import { useI18nContext } from "@/i18n/i18n-react";
 import { Link } from "react-router-dom";
 import "./Auth.css";
 
 export default function Sign_Up() {
-  const { t } = useI18n();
+  const { LL } = useI18nContext();
 
   return (
     <main className="authPage">
@@ -15,11 +14,10 @@ export default function Sign_Up() {
             LobbyPack
           </Link>
           <div className="authTopLinks">
-            <a href="/#inicio" className="authHomeLink">{t("nav.home")}</a>
-            <a href="/#funciones" className="authHomeLink">{t("landing.features")}</a>
-            <a href="/#como-funciona" className="authHomeLink">{t("landing.flow")}</a>
-            <a href="/#acceso" className="authHomeLink">{t("landing.access")}</a>
-            <LanguageToggleButton />
+            <a href="/#inicio" className="authHomeLink">{LL.nav_home()}</a>
+            <a href="/#funciones" className="authHomeLink">{LL.landing_features()}</a>
+            <a href="/#como-funciona" className="authHomeLink">{LL.landing_flow()}</a>
+            <a href="/#acceso" className="authHomeLink">{LL.landing_access()}</a>
           </div>
         </div>
       </div>
@@ -27,26 +25,26 @@ export default function Sign_Up() {
         <div className="authMain">
           <div className="authLayout">
             <div className="authShowcase">
-              <p className="eyebrow">{t("auth.createUser")}</p>
+              <p className="eyebrow">{LL.auth_createUser()}</p>
               <h1>
                 <span className="titlePrimary">Lobby</span>
                 <span className="titleAccent">Pack</span>
               </h1>
-              <p className="authLead">{t("auth.signUpLead")}</p>
+              <p className="authLead">{LL.auth_signUpLead()}</p>
 
               <div className="authHighlights">
                 <div className="authHighlight">
                   <span className="authHighlightIndex">1</span>
                   <div>
-                    <strong>{t("auth.verificationByEmail")}</strong>
-                    <p>{t("auth.verificationByEmailText")}</p>
+                    <strong>{LL.auth_verificationByEmail()}</strong>
+                    <p>{LL.auth_verificationByEmailText()}</p>
                   </div>
                 </div>
                 <div className="authHighlight">
                   <span className="authHighlightIndex">2</span>
                   <div>
-                    <strong>{t("auth.orderlyAccess")}</strong>
-                    <p>{t("auth.orderlyAccessText")}</p>
+                    <strong>{LL.auth_orderlyAccess()}</strong>
+                    <p>{LL.auth_orderlyAccessText()}</p>
                   </div>
                 </div>
               </div>

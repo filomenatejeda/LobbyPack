@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { useEffect, useState } from "react";
 import { fetchDashboard } from "../../services/homeApi";
 import type { DashboardCurrentUser } from "../../types/home";
@@ -10,8 +11,8 @@ type SettingsProps = {
   adminSection?: "general" | "structure" | "team";
 };
 
-export default function Settings({ adminSection = "general" }: SettingsProps) {
-  const { t } = useI18n();
+export default function Settings({adminSection = "general" }: SettingsProps) {
+  const { LL } = useI18nContext();
   const [currentUser, setCurrentUser] = useState<DashboardCurrentUser | null>(null);
   const [packageCounts, setPackageCounts] = useState({
     pending: 0,
@@ -52,8 +53,8 @@ export default function Settings({ adminSection = "general" }: SettingsProps) {
     return (
       <main className="settingsPage">
         <section className="settingsHero">
-          <p className="settingsEyebrow">{t("nav.config")}</p>
-          <h1>{t("settings.accountLoadError")}</h1>
+          <p className="settingsEyebrow">{LL.nav_config()}</p>
+          <h1>{LL.settings_accountLoadError()}</h1>
           {statusMessage ? <p className="settingsLead">{statusMessage}</p> : null}
         </section>
       </main>

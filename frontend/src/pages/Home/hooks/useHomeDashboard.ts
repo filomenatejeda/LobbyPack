@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { useCallback, useEffect, useState } from "react";
 import type { AddPackageFormValues } from "../../../components/Home/packageFormTypes";
 import {
@@ -22,16 +23,12 @@ import type {
   ParcelItem,
   ServiceView,
 } from "../../../types/home";
-import {
-  formatIssueStatus,
-  normalizeSearchText,
-} from "../../../utils/packageUtils";
-import { useI18n } from "../../../lib/i18n";
+import { normalizeSearchText } from "../../../utils/packageUtils";
 
 type FeedbackTone = "neutral" | "success" | "error";
 
 export function useHomeDashboard() {
-  const { t, language } = useI18n();
+  const { LL } = useI18nContext();
   const [currentUser, setCurrentUser] = useState<DashboardCurrentUser | null>(null);
   const [activeView, setActiveView] = useState<ServiceView>("received");
   const [pendingParcels, setPendingParcels] = useState<ParcelItem[]>([]);
@@ -104,14 +101,14 @@ export function useHomeDashboard() {
       });
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : t("home.loadError"),
+        error instanceof Error ? error.message : LL.home_loadError(),
       );
     } finally {
       if (showLoading) {
         setIsLoading(false);
       }
     }
-  }, []);
+  }, [LL]);
 
   useEffect(() => {
     void loadDashboard(true);
@@ -136,10 +133,6 @@ export function useHomeDashboard() {
     activeView === "complaints"
       ? null
       : {
-          title:
-            activeView === "received"
-              ? t("home.receivedPackages")
-              : t("home.withdrawnPackages"),
           parcels: activeView === "received" ? pendingParcels : claimedParcels,
         };
 
@@ -154,7 +147,7 @@ export function useHomeDashboard() {
         item.issue_description,
         item.created_at,
         item.issue_status,
-        formatIssueStatus(item.issue_status, language),
+        item.issue_status,
       ].join(" "),
     );
 
@@ -341,7 +334,7 @@ export function useHomeDashboard() {
 
   const openQrModal = (item: ParcelItem) => {
     if (!preferenceSettings.qr_access) {
-      setQrScanMessage(t("home.qrDisabled"));
+      setQrScanMessage(LL.home_qrDisabled());
       return;
     }
 
@@ -379,11 +372,11 @@ export function useHomeDashboard() {
         received: current.received.filter((selectedId) => selectedId !== movedParcel.id),
         pickedUp: current.pickedUp,
       }));
-      setPinClaimMessage(t("home.packageWithdrawn").replace("{id}", String(movedParcel.id)));
+      setPinClaimMessage(LL.home_packageWithdrawn({ id: movedParcel.id }));
       window.setTimeout(closePinModal, 900);
     } catch (error) {
       setPinClaimMessage(
-        error instanceof Error ? error.message : t("home.pinError"),
+        error instanceof Error ? error.message : LL.home_pinError(),
       );
     } finally {
       setIsPinClaimProcessing(false);
@@ -392,7 +385,7 @@ export function useHomeDashboard() {
 
   const handleQrScan = async (decodedText: string) => {
     if (!preferenceSettings.qr_access) {
-      setQrScanMessage(t("home.qrDisabled"));
+      setQrScanMessage(LL.home_qrDisabled());
       return;
     }
 
@@ -403,7 +396,7 @@ export function useHomeDashboard() {
     const existsInPickedUp = claimedParcels.some((item) => item.id === packageId);
 
     if (!existsInReceived && !existsInPickedUp) {
-      setQrScanMessage(t("home.qrNotFound"));
+      setQrScanMessage(LL.home_qrNotFound());
       return;
     }
 
@@ -411,7 +404,7 @@ export function useHomeDashboard() {
       const movedParcel = await claimParcel(packageId);
 
       if (!movedParcel) {
-        setQrScanMessage(t("home.packageStatusError"));
+        setQrScanMessage(LL.home_packageStatusError());
         return;
       }
 
@@ -424,19 +417,19 @@ export function useHomeDashboard() {
         received: current.received.filter((selectedId) => selectedId !== packageId),
         pickedUp: current.pickedUp,
       }));
-      setQrScanMessage(t("home.packageMoved").replace("{id}", packageId));
+      setQrScanMessage(LL.home_packageMoved({ id: packageId }));
       activateView("pickedUp");
       window.setTimeout(closeQrModal, 900);
     } catch (error) {
       setQrScanMessage(
-        error instanceof Error ? error.message : t("home.withdrawError"),
+        error instanceof Error ? error.message : LL.home_withdrawError(),
       );
     }
   };
 
   const handleResidentScan = async (qrValue: string) => {
     setResidentFeedbackTone("neutral");
-    setResidentFeedbackMessage(t("home.qrValidating"));
+    setResidentFeedbackMessage(LL.home_qrValidating());
     setIsResidentProcessing(true);
 
     try {
@@ -445,14 +438,14 @@ export function useHomeDashboard() {
       setResidentScannedParcel(response.parcel);
       setResidentFeedbackTone("success");
       setResidentFeedbackMessage(
-        t("home.qrMatchesPackage").replace("{id}", String(response.parcel.id)),
+        LL.home_qrMatchesPackage({ id: response.parcel.id }),
       );
       setErrorMessage("");
     } catch (error) {
       resetResidentClaimFlow();
       setResidentFeedbackTone("error");
       setResidentFeedbackMessage(
-        error instanceof Error ? error.message : t("home.qrScanError"),
+        error instanceof Error ? error.message : LL.home_qrScanError(),
       );
     } finally {
       setIsResidentProcessing(false);
@@ -474,7 +467,7 @@ export function useHomeDashboard() {
       const confirmedParcel = response.parcel;
 
       if (!confirmedParcel) {
-        throw new Error(t("home.confirmWithdrawError"));
+        throw new Error(LL.home_confirmWithdrawError());
       }
 
       setPendingParcels((current) =>
@@ -482,7 +475,7 @@ export function useHomeDashboard() {
       );
       setResidentFeedbackTone("success");
       setResidentFeedbackMessage(
-        t("home.residentConfirmed").replace("{id}", String(confirmedParcel.id)),
+        LL.home_residentConfirmed({ id: confirmedParcel.id }),
       );
       resetResidentClaimFlow();
       await loadDashboard(false);
@@ -492,7 +485,7 @@ export function useHomeDashboard() {
       setResidentFeedbackMessage(
         error instanceof Error
           ? error.message
-          : t("home.confirmWithdrawError"),
+          : LL.home_confirmWithdrawError(),
       );
       return false;
     } finally {
@@ -508,24 +501,24 @@ export function useHomeDashboard() {
 
     if (!parcelId || !normalizedDescription) {
       setResidentIssueTone("error");
-      setResidentIssueMessage(t("home.issueRequired"));
+      setResidentIssueMessage(LL.home_issueRequired());
       return false;
     }
 
     setIsCreatingResidentIssue(true);
     setResidentIssueTone("neutral");
-    setResidentIssueMessage(t("home.issueSending"));
+    setResidentIssueMessage(LL.home_issueSending());
 
     try {
       const createdIssue = await createResidentIssue(parcelId, normalizedDescription);
       setIssues((current) => [createdIssue, ...current]);
       setResidentIssueTone("success");
-      setResidentIssueMessage(t("home.issueSent"));
+      setResidentIssueMessage(LL.home_issueSent());
       return true;
     } catch (error) {
       setResidentIssueTone("error");
       setResidentIssueMessage(
-        error instanceof Error ? error.message : t("home.issueCreateError"),
+        error instanceof Error ? error.message : LL.home_issueCreateError(),
       );
       return false;
     } finally {
@@ -548,7 +541,7 @@ export function useHomeDashboard() {
       setErrorMessage("");
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : t("home.packageCreateError"),
+        error instanceof Error ? error.message : LL.home_packageCreateError(),
       );
       throw error;
     }
@@ -576,7 +569,7 @@ export function useHomeDashboard() {
       setErrorMessage("");
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : t("home.packageUpdateError"),
+        error instanceof Error ? error.message : LL.home_packageUpdateError(),
       );
     }
   };
@@ -613,7 +606,7 @@ export function useHomeDashboard() {
       );
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : t("home.issueUpdateError"),
+        error instanceof Error ? error.message : LL.home_issueUpdateError(),
       );
     } finally {
       setUpdatingIssueId(null);
@@ -652,7 +645,7 @@ export function useHomeDashboard() {
       );
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : t("home.issuesUpdateError"),
+        error instanceof Error ? error.message : LL.home_issuesUpdateError(),
       );
     } finally {
       setUpdatingIssueId(null);

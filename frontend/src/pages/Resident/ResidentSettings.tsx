@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   updateResidentPhoneNumber,
@@ -21,12 +22,11 @@ type ResidentSettingsProps = {
   statusMessage?: string;
 };
 
-export default function ResidentSettings({
-  currentUser,
+export default function ResidentSettings({currentUser,
   packageCounts,
   statusMessage = "",
 }: ResidentSettingsProps) {
-  const { t } = useI18n();
+  const { LL } = useI18nContext();
   const [phoneNumber, setPhoneNumber] = useState(currentUser.user_phone_number);
   const [savedPhoneNumber, setSavedPhoneNumber] = useState(currentUser.user_phone_number);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
@@ -51,12 +51,12 @@ export default function ResidentSettings({
     const normalizedPhoneNumber = normalizeInternationalPhone(phoneNumber);
 
     if (!normalizedPhoneNumber) {
-      setPhoneMessage(t("resident.phoneRequired"));
+      setPhoneMessage(LL.resident_phoneRequired());
       return;
     }
 
     if (!isValidInternationalPhone(normalizedPhoneNumber)) {
-      setPhoneMessage(t("resident.phoneInvalid"));
+      setPhoneMessage(LL.resident_phoneInvalid());
       return;
     }
 
@@ -68,10 +68,10 @@ export default function ResidentSettings({
       setPhoneNumber(updatedResident.user_phone_number);
       setSavedPhoneNumber(updatedResident.user_phone_number);
       setIsEditingPhone(false);
-      setPhoneMessage(t("resident.phoneUpdated"));
+      setPhoneMessage(LL.resident_phoneUpdated());
     } catch (error) {
       setPhoneMessage(
-        error instanceof Error ? error.message : t("resident.phoneUpdateError"),
+        error instanceof Error ? error.message : LL.resident_phoneUpdateError(),
       );
     } finally {
       setIsSavingPhone(false);
@@ -88,12 +88,12 @@ export default function ResidentSettings({
     event.preventDefault();
 
     if (!/^\d{4,6}$/.test(withdrawalPin)) {
-      setPinMessage(t("resident.pinInvalid"));
+      setPinMessage(LL.resident_pinInvalid());
       return;
     }
 
     if (withdrawalPin !== withdrawalPinConfirmation) {
-      setPinMessage("Los PIN no coinciden.");
+      setPinMessage(LL.resident_pinMismatch());
       return;
     }
 
@@ -105,9 +105,9 @@ export default function ResidentSettings({
       setWithdrawalPin("");
       setWithdrawalPinConfirmation("");
       setIsPinConfigured(true);
-      setPinMessage("PIN de retiro actualizado correctamente.");
+      setPinMessage(LL.resident_pinUpdated());
     } catch (error) {
-      setPinMessage(error instanceof Error ? error.message : "No se pudo guardar el PIN.");
+      setPinMessage(error instanceof Error ? error.message : LL.resident_pinSaveError());
     } finally {
       setIsSavingPin(false);
     }
@@ -116,9 +116,11 @@ export default function ResidentSettings({
   return (
     <main className="settingsPage residentSettingsPage">
       <section className="settingsHero residentSettingsHero">
-        <p className="settingsEyebrow">{t("resident.personalAccount")}</p>
-        <h1>{t("resident.myInfo")}</h1>
-        <p className="settingsLead">{t("resident.personalLead")}</p>
+        <p className="settingsEyebrow">{LL.resident_personalAccount()}</p>
+        <h1>{LL.resident_myInfo()}</h1>
+        <p className="settingsLead">
+          {LL.resident_personalLead()}
+        </p>
       </section>
 
       {statusMessage ? <p className="settingsLead">{statusMessage}</p> : null}
@@ -127,23 +129,23 @@ export default function ResidentSettings({
         <article className="settingsCard residentProfileCard">
           <div className="settingsCardHeader">
             <div>
-              <p className="settingsLabel">{t("resident.profile")}</p>
+              <p className="settingsLabel">{LL.resident_profile()}</p>
               <h2>{currentUser.display_name}</h2>
             </div>
-            <span className="settingsRole">{t("resident.resident")}</span>
+            <span className="settingsRole">{LL.resident_resident()}</span>
           </div>
 
           <dl className="settingsReadOnlyGrid residentSettingsDetails">
             <div className="settingsReadOnlyItem">
-              <dt>{t("resident.email")}</dt>
+              <dt>{LL.resident_email()}</dt>
               <dd>{currentUser.email}</dd>
             </div>
             <div className="settingsReadOnlyItem">
-              <dt>{t("resident.department")}</dt>
-              <dd>{currentUser.department_address ?? t("resident.emptyDepartment")}</dd>
+              <dt>{LL.admin_department()}</dt>
+              <dd>{currentUser.department_address ?? LL.resident_emptyDepartment()}</dd>
             </div>
             <div className="settingsReadOnlyItem">
-              <dt>{t("resident.phone")}</dt>
+              <dt>{LL.resident_phone()}</dt>
               <dd>
                 {isEditingPhone ? (
                   <form className="residentPhoneForm" onSubmit={handlePhoneSubmit}>
@@ -151,13 +153,13 @@ export default function ResidentSettings({
                       type="tel"
                       value={phoneNumber}
                       onChange={(event) => setPhoneNumber(event.target.value)}
-                      placeholder="Ej: +56912345678"
+                      placeholder={LL.admin_phoneExample()}
                       maxLength={16}
                       required
                     />
                     <div className="residentPhoneActions">
                       <button type="submit" className="primaryButton" disabled={isSavingPhone}>
-                        {isSavingPhone ? t("resident.saving") : t("resident.save")}
+                        {isSavingPhone ? LL.resident_saving() : LL.resident_save()}
                       </button>
                       <button
                         type="button"
@@ -165,19 +167,19 @@ export default function ResidentSettings({
                         onClick={handleCancelPhoneEdit}
                         disabled={isSavingPhone}
                       >
-                        {t("resident.cancel")}
+                        {LL.admin_cancel()}
                       </button>
                     </div>
                   </form>
                 ) : (
                   <div className="residentPhoneRead">
-                    <span>{savedPhoneNumber || t("resident.phoneEmpty")}</span>
+                    <span>{savedPhoneNumber || LL.resident_phoneEmpty()}</span>
                     <button
                       type="button"
                       className="secondaryButton"
                       onClick={() => setIsEditingPhone(true)}
                     >
-                      {t("resident.edit")}
+                      {LL.resident_edit()}
                     </button>
                   </div>
                 )}
@@ -190,27 +192,27 @@ export default function ResidentSettings({
         <article className="settingsCard residentAccessCard">
           <div className="settingsCardHeader">
             <div>
-              <p className="settingsLabel">{t("resident.security")}</p>
-              <h2>{t("resident.accountAccess")}</h2>
+              <p className="settingsLabel">{LL.resident_security()}</p>
+              <h2>{LL.resident_accountAccess()}</h2>
             </div>
           </div>
           <div className="residentSettingsList">
             <div>
-              <strong>{t("admin.pinLabel")}</strong>
+              <strong>{LL.admin_pinLabel()}</strong>
               <span>
                 {isPinConfigured
-                  ? t("resident.configuredPin")
-                  : t("resident.configurePin")}
+                  ? LL.resident_configuredPin()
+                  : LL.resident_configurePin()}
               </span>
             </div>
             <div>
-              <strong>{t("resident.sessionProtected")}</strong>
-              <span>{t("resident.sessionProtectedText")}</span>
+              <strong>{LL.resident_sessionProtected()}</strong>
+              <span>{LL.resident_sessionProtectedText()}</span>
             </div>
           </div>
           <form className="residentPinForm" onSubmit={handlePinSubmit}>
             <label className="settingsField">
-              <span>{t("resident.newPin")}</span>
+              <span>{LL.resident_newPin()}</span>
               <input
                 type="text"
                 name="lobbypack-withdrawal-pin"
@@ -226,11 +228,11 @@ export default function ResidentSettings({
                 onChange={(event) =>
                   setWithdrawalPin(event.target.value.replace(/\D/g, "").slice(0, 6))
                 }
-                placeholder={t("admin.pinDigits")}
+                placeholder={LL.admin_pinDigits()}
               />
             </label>
             <label className="settingsField">
-              <span>{t("resident.confirmPin")}</span>
+              <span>{LL.resident_confirmPin()}</span>
               <input
                 type="text"
                 name="lobbypack-withdrawal-pin-confirmation"
@@ -248,7 +250,7 @@ export default function ResidentSettings({
                     event.target.value.replace(/\D/g, "").slice(0, 6),
                   )
                 }
-                placeholder={t("resident.confirmPin")}
+                placeholder={LL.admin_pinRepeat()}
               />
             </label>
             <button
@@ -257,10 +259,10 @@ export default function ResidentSettings({
               disabled={isSavingPin || !withdrawalPin || !withdrawalPinConfirmation}
             >
               {isSavingPin
-                ? t("resident.saving")
+                ? LL.resident_saving()
                 : isPinConfigured
-                  ? t("resident.changePin")
-                  : t("resident.savePin")}
+                  ? LL.resident_changePin()
+                  : LL.resident_savePin()}
             </button>
             {pinMessage ? <p className="residentPhoneMessage">{pinMessage}</p> : null}
           </form>
@@ -269,18 +271,18 @@ export default function ResidentSettings({
         <article className="settingsCard settingsCardWide residentPackageStatusCard">
           <div className="settingsCardHeader">
             <div>
-              <p className="settingsLabel">{t("resident.myPackages")}</p>
-              <h2>{t("resident.withdrawStatus")}</h2>
+              <p className="settingsLabel">{LL.resident_myPackages()}</p>
+              <h2>{LL.resident_withdrawStatus()}</h2>
             </div>
           </div>
           <div className="settingsStats residentSettingsStats">
             <div className="settingsStat">
               <strong>{packageCounts.pending}</strong>
-              <span>{t("resident.pendingPackages")}</span>
+              <span>{LL.resident_pending()}</span>
             </div>
             <div className="settingsStat">
               <strong>{packageCounts.claimed}</strong>
-              <span>{t("resident.claimed")}</span>
+              <span>{LL.resident_delivered()}</span>
             </div>
           </div>
         </article>

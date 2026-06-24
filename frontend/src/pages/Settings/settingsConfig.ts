@@ -1,5 +1,5 @@
-﻿import type { GeneralSettings, PreferenceSettings } from "../../types/settings";
-import type { AppLanguage } from "../../lib/i18n";
+import type { GeneralSettings, PreferenceSettings } from "../../types/settings";
+import type { TranslationFunctions } from "../../i18n/i18n-types";
 
 export type StructureLabels = {
   title: string;
@@ -42,7 +42,7 @@ export const getCommunityTypeOptions = (language: AppLanguage) =>
 
 export const getStructureLabels = (
   communityType: string,
-  language: AppLanguage = "es",
+  LL: TranslationFunctions,
 ): StructureLabels => {
   const normalizedType = communityType
     .normalize("NFD")
@@ -50,120 +50,60 @@ export const getStructureLabels = (
     .toLowerCase();
 
   if (normalizedType.includes("condominio") || normalizedType.includes("residencial")) {
-    return language === "en"
-      ? {
-          title: "Sectors, stages, and homes",
-          addGroup: "Add sector",
-          groupSingular: "Sector",
-          groupPlural: "Sectors",
-          groupName: "Sector name",
-          levelSingular: "Stage",
-          levelPlural: "Stages",
-          levelCount: "Number of stages",
-          unitSingular: "home",
-          unitPlural: "homes",
-          totalUnits: "Registered homes",
-          unitsByLevel: "Homes per stage",
-          sectionLead:
-            "Each sector appears as a fixed card. To change names, stages, or homes, edit that sector.",
-          previewText: "Select a stage to view only its homes.",
-          addUnit: "Add home",
-        }
-      : {
-          title: "Sectores, etapas y viviendas",
-          addGroup: "Agregar sector",
-          groupSingular: "Sector",
-          groupPlural: "Sectores",
-          groupName: "Nombre del sector",
-          levelSingular: "Etapa",
-          levelPlural: "Etapas",
-          levelCount: "Cantidad de etapas",
-          unitSingular: "vivienda",
-          unitPlural: "viviendas",
-          totalUnits: "Viviendas registradas",
-          unitsByLevel: "Viviendas por etapa",
-          sectionLead:
-            "Cada sector queda visible como ficha fija. Si necesitas cambiar nombre, etapas o viviendas, entra a editar ese sector.",
-          previewText: "Selecciona una etapa para ver solo sus viviendas.",
-          addUnit: "Agregar vivienda",
-        };
+    return {
+      title: LL.settings_structureCondoTitle(),
+      addGroup: LL.settings_addSector(),
+      groupSingular: LL.settings_sector(),
+      groupPlural: LL.settings_sectors(),
+      groupName: LL.settings_sectorName(),
+      levelSingular: LL.settings_stage(),
+      levelPlural: LL.settings_stages(),
+      levelCount: LL.settings_stageCount(),
+      unitSingular: LL.settings_homeUnit(),
+      unitPlural: LL.settings_homeUnits(),
+      totalUnits: LL.settings_homesRegistered(),
+      unitsByLevel: LL.settings_homesByStage(),
+      sectionLead: LL.settings_sectorLead(),
+      previewText: LL.settings_stagePreview(),
+      addUnit: LL.settings_addHome(),
+    };
   }
 
   if (normalizedType.includes("otro")) {
-    return language === "en"
-      ? {
-          title: "Areas, levels, and units",
-          addGroup: "Add area",
-          groupSingular: "Área",
-          groupPlural: "Áreas",
-          groupName: "Area name",
-          levelSingular: "Level",
-          levelPlural: "Levels",
-          levelCount: "Number of levels",
-          unitSingular: "unit",
-          unitPlural: "units",
-          totalUnits: "Registered units",
-          unitsByLevel: "Units per level",
-          sectionLead:
-            "Each area appears as a fixed card. To change names, levels, or units, edit that area.",
-          previewText: "Select a level to view only its units.",
-          addUnit: "Add unit",
-        }
-      : {
-          title: "Áreas, niveles y unidades",
-          addGroup: "Agregar área",
-          groupSingular: "Área",
-          groupPlural: "Áreas",
-          groupName: "Nombre del área",
-          levelSingular: "Nivel",
-          levelPlural: "Niveles",
-          levelCount: "Cantidad de niveles",
-          unitSingular: "unidad",
-          unitPlural: "unidades",
-          totalUnits: "Unidades registradas",
-          unitsByLevel: "Unidades por nivel",
-          sectionLead:
-            "Cada área queda visible como ficha fija. Si necesitas cambiar nombre, niveles o unidades, entra a editar esa área.",
-          previewText: "Selecciona un nivel para ver solo sus unidades.",
-          addUnit: "Agregar unidad",
-        };
+    return {
+      title: LL.settings_structureOtherTitle(),
+      addGroup: LL.settings_addArea(),
+      groupSingular: LL.settings_area(),
+      groupPlural: LL.settings_areas(),
+      groupName: LL.settings_areaName(),
+      levelSingular: LL.settings_level(),
+      levelPlural: LL.settings_levels(),
+      levelCount: LL.settings_levelCount(),
+      unitSingular: LL.settings_unit(),
+      unitPlural: LL.settings_units(),
+      totalUnits: LL.settings_unitsRegistered(),
+      unitsByLevel: LL.settings_unitsByLevel(),
+      sectionLead: LL.settings_areaLead(),
+      previewText: LL.settings_levelPreview(),
+      addUnit: LL.settings_addUnit(),
+    };
   }
 
-  return language === "en"
-    ? {
-        title: "Towers, floors, and apartments",
-        addGroup: "Add tower",
-        groupSingular: "Tower",
-        groupPlural: "Towers",
-        groupName: "Tower name",
-        levelSingular: "Floor",
-        levelPlural: "Floors",
-        levelCount: "Number of floors",
-        unitSingular: "apartment",
-        unitPlural: "apartments",
-        totalUnits: "Registered apartments",
-        unitsByLevel: "Apartments per floor",
-        sectionLead:
-          "Each tower appears as a fixed card. To change names, floors, or apartments, edit that tower.",
-        previewText: "Select a floor to view only its apartments.",
-        addUnit: "Add apartment",
-      }
-    : {
-        title: "Torres, pisos y departamentos",
-        addGroup: "Agregar torre",
-        groupSingular: "Torre",
-        groupPlural: "Torres",
-        groupName: "Nombre de la torre",
-        levelSingular: "Piso",
-        levelPlural: "Pisos",
-        levelCount: "Cantidad de pisos",
-        unitSingular: "departamento",
-        unitPlural: "departamentos",
-        totalUnits: "Departamentos registrados",
-        unitsByLevel: "Departamentos por piso",
-        sectionLead:
-          "Cada torre queda visible como ficha fija. Si necesitas cambiar nombre, pisos o departamentos, entra a editar esa torre.",
-        previewText: "Selecciona un piso para ver solo sus departamentos.",
-        addUnit: "Agregar departamento",
-      };
+  return {
+    title: LL.settings_structureDefaultTitle(),
+    addGroup: LL.settings_addTower(),
+    groupSingular: LL.settings_tower(),
+    groupPlural: LL.settings_towers(),
+    groupName: LL.settings_towerName(),
+    levelSingular: LL.settings_floor(),
+    levelPlural: LL.settings_floors(),
+    levelCount: LL.settings_floorCount(),
+    unitSingular: LL.settings_apartment(),
+    unitPlural: LL.settings_apartments(),
+    totalUnits: LL.settings_apartmentsRegistered(),
+    unitsByLevel: LL.settings_apartmentsByFloor(),
+    sectionLead: LL.settings_towerLead(),
+    previewText: LL.settings_floorPreview(),
+    addUnit: LL.settings_addApartment(),
+  };
 };
