@@ -89,17 +89,17 @@ export default function ApartmentResidentsModal({apartmentName,
 
     try {
       if (!residentSupabase) {
-        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
       }
 
       const normalizedPhoneNumber = normalizeInternationalPhone(phoneNumber);
 
       if (!normalizedPhoneNumber) {
-        throw new Error("El telefono del residente es obligatorio.");
+        throw new Error(LL.resident_phoneRequired());
       }
 
       if (!isValidInternationalPhone(normalizedPhoneNumber)) {
-        throw new Error("El telefono debe usar codigo de pais, por ejemplo +56912345678.");
+        throw new Error(LL.resident_phoneInvalid());
       }
 
       const signedUp = await residentSupabase.auth.signUp({
@@ -121,7 +121,7 @@ export default function ApartmentResidentsModal({apartmentName,
       setVerificationCode("");
       setAccountPhase(ResidentAccountPhase.Code);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "No se pudo crear la cuenta.");
+      setFormError(error instanceof Error ? error.message : LL.resident_createError());
     }
   };
 
@@ -136,7 +136,7 @@ export default function ApartmentResidentsModal({apartmentName,
 
     try {
       if (!residentSupabase) {
-        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
       }
 
       const verifiedOtp = await residentSupabase.auth.verifyOtp({
@@ -167,7 +167,7 @@ export default function ApartmentResidentsModal({apartmentName,
       setMfaCode("");
       setAccountPhase(ResidentAccountPhase.Mfa);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Codigo invalido.");
+      setFormError(error instanceof Error ? error.message : LL.settings_codeInvalid());
     }
   };
 
@@ -182,11 +182,11 @@ export default function ApartmentResidentsModal({apartmentName,
 
     try {
       if (!residentSupabase) {
-        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
       }
 
       if (!mfaFactorId) {
-        throw new Error("No se encontro el autenticador pendiente de configuracion.");
+        throw new Error(LL.resident_authenticatorMissing());
       }
 
       const challenge = await residentSupabase.auth.mfa.challenge({ factorId: mfaFactorId });
@@ -209,7 +209,7 @@ export default function ApartmentResidentsModal({apartmentName,
       await residentSupabase.auth.signOut();
       setAccountPhase(ResidentAccountPhase.Done);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Codigo del autenticador invalido.");
+      setFormError(error instanceof Error ? error.message : LL.resident_authenticatorInvalid());
     }
   };
 
@@ -240,7 +240,7 @@ export default function ApartmentResidentsModal({apartmentName,
       await onDeleteResident(residentToDelete.user_id);
       setResidentToDelete(null);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "No se pudo eliminar el residente.");
+      setFormError(error instanceof Error ? error.message : LL.resident_deleteError());
     }
   };
 
@@ -261,7 +261,7 @@ export default function ApartmentResidentsModal({apartmentName,
             type="button"
             className="residentModalClose"
             onClick={onClose}
-            aria-label="Cerrar"
+            aria-label={LL.settings_close()}
           >
             <X size={18} aria-hidden="true" />
           </button>
@@ -277,7 +277,7 @@ export default function ApartmentResidentsModal({apartmentName,
                   <div>
                     <strong>{resident.resident_name}</strong>
                     <span>{resident.email}</span>
-                    <span>{resident.user_phone_number || "Sin telefono registrado"}</span>
+                    <span>{resident.user_phone_number || LL.resident_phoneEmpty()}</span>
                     <span>
                       {resident.email_verified && resident.mfa_enabled
                         ? LL.resident_authenticatorActive()
@@ -303,7 +303,7 @@ export default function ApartmentResidentsModal({apartmentName,
 
           {!isLoading && residents.length === 0 && !isAdding ? (
             <p className="residentEmptyText">
-              No hay cuentas residentes registradas en este {unitSingular}.
+              {LL.resident_noAccounts({ unit: unitSingular })}
             </p>
           ) : null}
 
@@ -469,7 +469,7 @@ export default function ApartmentResidentsModal({apartmentName,
           >
             <p className="settingsLabel">{LL.resident_confirmDelete()}</p>
             <h4 id="residentDeleteTitle">
-              Estas seguro de querer eliminar al residente {residentToDelete.resident_name}
+              {LL.resident_deleteConfirm({ name: residentToDelete.resident_name })}
             </h4>
             <div className="residentActions">
               <button
@@ -478,7 +478,7 @@ export default function ApartmentResidentsModal({apartmentName,
                 onClick={() => setResidentToDelete(null)}
                 disabled={isSaving}
               >
-                No
+                {LL.common_no()}
               </button>
               <button
                 type="button"
@@ -486,7 +486,7 @@ export default function ApartmentResidentsModal({apartmentName,
                 onClick={() => void handleDeleteResident()}
                 disabled={isSaving}
               >
-                {isSaving ? "Eliminando..." : "Si"}
+                {isSaving ? LL.resident_deleting() : LL.common_yes()}
               </button>
             </div>
           </section>

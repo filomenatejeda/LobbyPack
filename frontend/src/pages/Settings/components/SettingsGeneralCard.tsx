@@ -1,5 +1,6 @@
 import { useI18nContext } from "@/i18n/i18n-react";
 import type { GeneralSettings } from "../../../types/settings";
+import { getCommunityTypeLabel } from "../settingsConfig";
 
 type SettingsGeneralCardProps = {
   communityTypeOptions: string[];
@@ -55,7 +56,7 @@ export default function SettingsGeneralCard({communityTypeOptions,
               >
                 {communityTypeOptions.map((option) => (
                   <option key={option} value={option}>
-                    {option}
+                    {getCommunityTypeLabel(option, LL)}
                   </option>
                 ))}
               </select>
@@ -106,7 +107,7 @@ export default function SettingsGeneralCard({communityTypeOptions,
             </div>
             <div className="settingsReadOnlyItem">
               <dt>{LL.settings_communityType()}</dt>
-              <dd>{generalSettings.community_type || "Edificio"}</dd>
+              <dd>{getCommunityTypeLabel(generalSettings.community_type || "Edificio", LL)}</dd>
             </div>
             <div className="settingsReadOnlyItem">
               <dt>{LL.settings_receptionHours()}</dt>

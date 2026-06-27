@@ -26,7 +26,7 @@ export default function AdminDashboard({dashboard }: AdminDashboardProps) {
 
   return (
     <>
-      <section className="adminOverview" aria-label="Resumen operativo">
+      <section className="adminOverview" aria-label={LL.admin_operationalSummary()}>
         <button
           type="button"
           className={
@@ -233,7 +233,7 @@ export default function AdminDashboard({dashboard }: AdminDashboardProps) {
                 onClick={dashboard.closePinModal}
                 aria-label={LL.admin_pinClose()}
               >
-                x
+                {LL.settings_close()}
               </button>
             </div>
 

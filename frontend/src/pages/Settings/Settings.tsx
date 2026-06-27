@@ -34,7 +34,7 @@ export default function Settings({adminSection = "general" }: SettingsProps) {
         });
       } catch (error) {
         setStatusMessage(
-          error instanceof Error ? error.message : "No se pudo cargar la configuracion.",
+          error instanceof Error ? error.message : LL.settings_generalLoadError(),
         );
       } finally {
         setIsLoading(false);

@@ -70,7 +70,7 @@ export default function ConciergeInviteModal({isSaving,
 
     try {
       if (!conciergeSupabase) {
-        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
       }
 
       const signedUp = await conciergeSupabase.auth.signUp({
@@ -91,7 +91,7 @@ export default function ConciergeInviteModal({isSaving,
       setVerificationCode("");
       setAccountPhase(ConciergeAccountPhase.Code);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "No se pudo crear la cuenta.");
+      setFormError(error instanceof Error ? error.message : LL.resident_createError());
     }
   };
 
@@ -106,7 +106,7 @@ export default function ConciergeInviteModal({isSaving,
 
     try {
       if (!conciergeSupabase) {
-        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
       }
 
       const verifiedOtp = await conciergeSupabase.auth.verifyOtp({
@@ -137,7 +137,7 @@ export default function ConciergeInviteModal({isSaving,
       setMfaCode("");
       setAccountPhase(ConciergeAccountPhase.Mfa);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Codigo invalido.");
+      setFormError(error instanceof Error ? error.message : LL.settings_codeInvalid());
     }
   };
 
@@ -152,11 +152,11 @@ export default function ConciergeInviteModal({isSaving,
 
     try {
       if (!conciergeSupabase) {
-        throw new Error(supabaseConfigError ?? "No se pudo preparar Supabase.");
+        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
       }
 
       if (!mfaFactorId) {
-        throw new Error("No se encontro el autenticador pendiente de configuracion.");
+        throw new Error(LL.resident_authenticatorMissing());
       }
 
       const challenge = await conciergeSupabase.auth.mfa.challenge({ factorId: mfaFactorId });
@@ -179,7 +179,7 @@ export default function ConciergeInviteModal({isSaving,
       await conciergeSupabase.auth.signOut();
       setAccountPhase(ConciergeAccountPhase.Done);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Codigo del autenticador invalido.");
+      setFormError(error instanceof Error ? error.message : LL.resident_authenticatorInvalid());
     }
   };
 
@@ -216,7 +216,7 @@ export default function ConciergeInviteModal({isSaving,
             type="button"
             className="residentModalClose"
             onClick={onClose}
-            aria-label="Cerrar"
+            aria-label={LL.settings_close()}
           >
             <X size={18} aria-hidden="true" />
           </button>

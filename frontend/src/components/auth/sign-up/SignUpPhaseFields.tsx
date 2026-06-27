@@ -3,6 +3,7 @@ import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Eye, EyeOff } from "lucide-react";
 import { COMMUNITY_TYPE_OPTIONS, geoapifyApiKey, Phase } from "./constants";
 import type { UseSignUpFormResult } from "./useSignUpForm";
+import { getCommunityTypeLabel } from "../../../pages/Settings/settingsConfig";
 
 type SignUpPhaseFieldsProps = {
   form: UseSignUpFormResult;
@@ -39,7 +40,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
             >
               {COMMUNITY_TYPE_OPTIONS.map((type) => (
                 <option key={type} value={type}>
-                  {type}
+                  {getCommunityTypeLabel(type, LL)}
                 </option>
               ))}
             </select>
@@ -91,8 +92,8 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               disabled={!form.communityCountry.trim()}
               placeholder={
                 form.communityCountry.trim()
-                  ? "Ingresa tu ciudad"
-                  : "Primero selecciona un pais"
+                  ? LL.auth_cityPlaceholder()
+                  : LL.auth_selectCountryFirst()
               }
               value={form.communityLocation}
               onBlur={() => window.setTimeout(() => form.setFocusedAutocomplete(null), 120)}
@@ -108,15 +109,13 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               }}
             />
             {!form.communityCountry.trim() && (
-              <p className="authFieldNote">
-                Selecciona primero un pais para habilitar la ciudad.
-              </p>
+              <p className="authFieldNote">{LL.auth_cityEnable()}</p>
             )}
             {form.focusedAutocomplete === "location" && form.communityCountry.trim() && (
               <div className="authSuggestions">
                 {!geoapifyApiKey && (
                   <div className="authSuggestionStatus">
-                    Falta configurar VITE_GEOAPIFY_API_KEY para buscar ciudades.
+                    {LL.auth_geoapifyCityMissing()}
                   </div>
                 )}
                 {form.isLoadingLocations && (
@@ -141,7 +140,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                   form.communityLocation.trim().length >= 2 &&
                   form.locationSuggestions.length === 0 && (
                     <div className="authSuggestionStatus">
-                      Sin resultados, puedes escribirlo manualmente.
+                      {LL.auth_noManualResultsCity()}
                     </div>
                   )}
               </div>
@@ -159,8 +158,8 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               disabled={!form.communityCountry.trim() || !form.communityLocation.trim()}
               placeholder={
                 form.communityCountry.trim() && form.communityLocation.trim()
-                  ? "Ingresa tu direccion"
-                  : "Primero selecciona pais y ciudad"
+                  ? LL.auth_addressPlaceholder()
+                  : LL.auth_addressRequiredFirst()
               }
               value={form.communityAddress}
               onBlur={() => window.setTimeout(() => form.setFocusedAutocomplete(null), 120)}
@@ -176,9 +175,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               }}
             />
             {(!form.communityCountry.trim() || !form.communityLocation.trim()) && (
-              <p className="authFieldNote">
-                Selecciona pais y ciudad para habilitar la direccion.
-              </p>
+              <p className="authFieldNote">{LL.auth_addressEnable()}</p>
             )}
             {form.focusedAutocomplete === "address" &&
             form.communityLocation.trim() &&
@@ -186,7 +183,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               <div className="authSuggestions">
                 {!geoapifyApiKey && (
                   <div className="authSuggestionStatus">
-                    Falta configurar VITE_GEOAPIFY_API_KEY para buscar direcciones.
+                    {LL.auth_geoapifyAddressMissing()}
                   </div>
                 )}
                 {form.isLoadingAddresses && (
@@ -211,7 +208,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                   form.communityAddress.trim().length >= 3 &&
                   form.addressSuggestions.length === 0 && (
                     <div className="authSuggestionStatus">
-                      Sin resultados, puedes escribirla manualmente.
+                      {LL.auth_noManualResultsAddress()}
                     </div>
                   )}
               </div>
@@ -262,7 +259,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               className="authTextButton"
               onClick={() => form.goToPreviousStep()}
             >
-              Volver a comunidad
+              {LL.auth_backToCommunity()}
             </button>
           </div>
         </>
@@ -307,14 +304,14 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               className="authTextButton"
               onClick={() => void form.resendEmail()}
             >
-              Reenviar codigo
+              {LL.auth_resendCode()}
             </button>
             <button
               type="button"
               className="authTextButton"
               onClick={() => form.resetToEmailStep()}
             >
-              Cambiar correo
+              {LL.auth_changeEmail()}
             </button>
           </div>
         </>
@@ -329,11 +326,11 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
 
             <div className="authMfaInfo">
               <p className="authMfaText">
-                Vincula esta cuenta con tu autenticador escaneando el QR.
+                {LL.auth_totpLink()}
               </p>
               {form.mfaSecret ? (
                 <p className="authMfaSecret">
-                  Tambien puedes usar esta clave manual: <strong>{form.mfaSecret}</strong>
+                  {LL.auth_totpManual()} <strong>{form.mfaSecret}</strong>
                 </p>
               ) : null}
             </div>
@@ -375,7 +372,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                 type="button"
                 className="authInputIconButton"
                 aria-label={
-                  form.showPassword ? "Ocultar contrasena" : "Mostrar contrasena"
+                  form.showPassword ? LL.auth_hidePassword() : LL.auth_showPassword()
                 }
                 onClick={() => form.setShowPassword((current) => !current)}
               >
@@ -418,7 +415,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                 type="button"
                 className="authInputIconButton"
                 aria-label={
-                  form.showRepeatPassword ? "Ocultar contrasena" : "Mostrar contrasena"
+                  form.showRepeatPassword ? LL.auth_hidePassword() : LL.auth_showPassword()
                 }
                 onClick={() => form.setShowRepeatPassword((current) => !current)}
               >

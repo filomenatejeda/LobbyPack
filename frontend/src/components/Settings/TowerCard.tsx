@@ -93,7 +93,7 @@ export default function TowerCard({
           <div>
             <p className="towerPreviewTitle">{labels.unitPlural}</p>
             <p className="towerPreviewText">
-              {selectedFloor.apartments.length} en {labels.levelSingular.toLowerCase()}{" "}
+              {selectedFloor.apartments.length} {LL.settings_in()} {labels.levelSingular.toLowerCase()}{" "}
               {selectedFloorNumber}
             </p>
           </div>
@@ -145,7 +145,7 @@ export default function TowerCard({
 
             <div className="floorEditorHeader">
               <strong>
-                {labels.unitPlural} del {labels.levelSingular.toLowerCase()}{" "}
+                {labels.unitPlural} {LL.settings_fromLevel()} {labels.levelSingular.toLowerCase()}{" "}
                 {selectedFloorNumber}
               </strong>
               <button

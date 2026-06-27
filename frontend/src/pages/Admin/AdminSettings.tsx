@@ -88,7 +88,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
       setIsEditingGeneralSettings(false);
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo cargar la configuracion.",
+        error instanceof Error ? error.message : LL.settings_generalLoadError(),
       );
     } finally {
       setIsLoading(false);
@@ -150,12 +150,12 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
 
     try {
       await savePreferenceSettings(nextPreferences, adminEmail);
-      setStatusMessage("Preferencias de automatizacion guardadas.");
+      setStatusMessage(LL.settings_automationSaved());
     } catch (error) {
       setStatusMessage(
         error instanceof Error
           ? error.message
-          : "No se pudieron guardar las preferencias.",
+          : LL.settings_preferencesSaveError(),
       );
       await loadSettings();
     } finally {
@@ -177,12 +177,12 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
 
       setStatusMessage(
         sentCount > 0
-          ? `Resumen diario enviado a ${sentCount} de ${recipientCount} destinatarios.`
-          : response.results[0]?.reason ?? "No se envio el resumen diario.",
+          ? LL.settings_dailySummarySent({ sent: sentCount, total: recipientCount })
+          : response.results[0]?.reason ?? LL.settings_dailySummaryNoSend(),
       );
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo enviar el resumen diario.",
+        error instanceof Error ? error.message : LL.settings_reportSendError(),
       );
     } finally {
       setIsSendingDailySummary(false);
@@ -203,10 +203,10 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      setStatusMessage("PDF del resumen diario descargado.");
+      setStatusMessage(LL.settings_dailySummaryDownloaded());
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo descargar el PDF.",
+        error instanceof Error ? error.message : LL.settings_reportDownloadError(),
       );
     } finally {
       setIsDownloadingDailySummary(false);
@@ -388,7 +388,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
       setStatusMessage(
         error instanceof Error
           ? error.message
-          : "No se pudo guardar la informacion del lobby.",
+          : LL.settings_generalSaveError(),
       );
     } finally {
       setIsSaving(false);
@@ -406,11 +406,11 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
 
     try {
       await saveTowers(towers, adminEmail);
-      setStatusMessage("Estructura guardada correctamente.");
+      setStatusMessage(LL.settings_structureSaved());
       await loadSettings();
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo guardar la estructura.",
+        error instanceof Error ? error.message : LL.settings_structureSaveError(),
       );
     } finally {
       setIsSaving(false);
@@ -432,12 +432,12 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
 
     try {
       const createdConcierge = await inviteConcierge(values);
-      setStatusMessage("Cuenta conserje creada. Verifica el codigo para activar MFA.");
+      setStatusMessage(LL.settings_conciergeCreated());
       await loadSettings();
       return createdConcierge;
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo invitar al conserje.",
+        error instanceof Error ? error.message : LL.settings_conciergeInviteError(),
       );
       throw error;
     } finally {
@@ -454,7 +454,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
       await loadSettings();
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo verificar el codigo.",
+        error instanceof Error ? error.message : LL.settings_verifyCodeError(),
       );
       throw error;
     } finally {
@@ -468,11 +468,11 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
 
     try {
       await verifyConciergeMfa(conciergeId, mfaCode);
-      setStatusMessage("Cuenta conserje verificada correctamente.");
+      setStatusMessage(LL.settings_conciergeVerified());
       await loadSettings();
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "No se pudo verificar el autenticador.",
+        error instanceof Error ? error.message : LL.settings_mfaVerifyError(),
       );
       throw error;
     } finally {
@@ -584,12 +584,12 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
                 className="secondaryButton"
                 onClick={() => setIsDailySummaryModalOpen(false)}
               >
-                Cerrar
+                {LL.settings_close()}
               </button>
             </div>
 
             <p className="settingsSectionLead">
-              Elige una fecha para descargar el PDF o enviarlo por correo al equipo.
+              {LL.settings_dailySummaryLead()}
             </p>
 
             <label className="settingsField">
@@ -608,7 +608,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
                 disabled={isDownloadingDailySummary || !dailySummaryDate}
                 onClick={() => void handleDownloadDailySummaryPdf()}
               >
-                {isDownloadingDailySummary ? "Descargando..." : "Descargar PDF"}
+                {isDownloadingDailySummary ? LL.settings_downloading() : LL.settings_downloadPdf()}
               </button>
               <button
                 type="button"
@@ -616,7 +616,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
                 disabled={isSendingDailySummary || !dailySummaryDate}
                 onClick={() => void handleSendDailySummaryNow()}
               >
-                {isSendingDailySummary ? "Enviando..." : "Enviar por correo"}
+                {isSendingDailySummary ? LL.admin_sending() : LL.settings_sendByEmail()}
               </button>
             </div>
           </section>

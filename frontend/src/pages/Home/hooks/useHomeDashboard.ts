@@ -291,8 +291,8 @@ export function useHomeDashboard() {
 
     const confirmed = window.confirm(
       ids.length === 1
-        ? "Quieres borrar este paquete?"
-        : `Quieres borrar ${ids.length} paquetes?`,
+        ? LL.home_deletePackageConfirm()
+        : LL.home_deletePackagesConfirm({ count: ids.length }),
     );
 
     if (!confirmed) {
@@ -314,7 +314,7 @@ export function useHomeDashboard() {
       }));
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "No se pudieron borrar los paquetes.",
+        error instanceof Error ? error.message : LL.home_deletePackagesError(),
       );
     }
   };
@@ -659,8 +659,8 @@ export function useHomeDashboard() {
 
     const confirmed = window.confirm(
       issueIds.length === 1
-        ? "Quieres eliminar este reclamo?"
-        : `Quieres eliminar ${issueIds.length} reclamos?`,
+        ? LL.home_deleteIssueConfirm()
+        : LL.home_deleteIssuesConfirm({ count: issueIds.length }),
     );
 
     if (!confirmed) {
@@ -678,7 +678,7 @@ export function useHomeDashboard() {
       );
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "No se pudieron eliminar los reclamos.",
+        error instanceof Error ? error.message : LL.home_issuesUpdateError(),
       );
     } finally {
       setUpdatingIssueId(null);

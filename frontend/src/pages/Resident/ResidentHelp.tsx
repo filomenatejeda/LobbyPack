@@ -57,7 +57,7 @@ export default function ResidentHelp() {
     };
 
     void loadResident();
-  }, []);
+  }, [LL]);
 
   if (isLoading && !currentUser) {
     return <main className="pageTransitionBlank" aria-hidden="true" />;

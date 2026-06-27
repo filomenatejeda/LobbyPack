@@ -340,6 +340,122 @@ type RootTranslation = {
 	 */
 	auth_orderlyAccessText: string
 	/**
+	 * S​e​l​e​c​c​i​o​n​a​ ​p​a​í​s​ ​y​ ​c​i​u​d​a​d​ ​p​a​r​a​ ​h​a​b​i​l​i​t​a​r​ ​l​a​ ​d​i​r​e​c​c​i​ó​n​.
+	 */
+	auth_addressEnable: string
+	/**
+	 * S​e​l​e​c​c​i​o​n​a​ ​p​r​i​m​e​r​o​ ​u​n​ ​p​a​í​s​ ​p​a​r​a​ ​h​a​b​i​l​i​t​a​r​ ​l​a​ ​c​i​u​d​a​d​.
+	 */
+	auth_cityEnable: string
+	/**
+	 * C​o​n​t​i​n​u​a​r​ ​a​ ​c​o​n​t​r​a​s​e​ñ​a
+	 */
+	auth_continuePassword: string
+	/**
+	 * E​r​r​o​r​:​ ​c​o​r​r​e​o​ ​i​n​v​á​l​i​d​o​.
+	 */
+	auth_emailInvalid: string
+	/**
+	 * E​r​r​o​r​:​ ​l​í​m​i​t​e​ ​d​e​ ​c​o​r​r​e​o​s​ ​e​n​v​i​a​d​o​s​ ​a​l​c​a​n​z​a​d​o​,​ ​v​u​e​l​v​e​ ​a​ ​i​n​t​e​n​t​a​r​l​o​ ​m​á​s​ ​t​a​r​d​e​.
+	 */
+	auth_emailRateLimit: string
+	/**
+	 * C​o​m​p​l​e​t​a​ ​l​o​s​ ​d​a​t​o​s​ ​d​e​ ​l​a​ ​p​e​r​s​o​n​a​ ​a​d​m​i​n​i​s​t​r​a​d​o​r​a​ ​p​a​r​a​ ​c​r​e​a​r​ ​l​a​ ​c​u​e​n​t​a​ ​c​o​n​ ​G​o​o​g​l​e​.
+	 */
+	auth_googleAdminDescription: string
+	/**
+	 * E​r​r​o​r​:​ ​e​l​ ​c​ó​d​i​g​o​ ​d​e​l​ ​a​u​t​e​n​t​i​c​a​d​o​r​ ​n​o​ ​e​s​ ​v​á​l​i​d​o​.
+	 */
+	auth_invalidAuthenticator: string
+	/**
+	 * E​r​r​o​r​:​ ​e​l​ ​c​ó​d​i​g​o​ ​e​x​p​i​r​ó​ ​o​ ​n​o​ ​e​s​ ​v​á​l​i​d​o​.
+	 */
+	auth_invalidOrExpiredCode: string
+	/**
+	 * E​r​r​o​r​:​ ​d​e​b​e​s​ ​v​e​r​i​f​i​c​a​r​ ​e​l​ ​c​ó​d​i​g​o​ ​d​e​l​ ​a​u​t​e​n​t​i​c​a​d​o​r​ ​a​n​t​e​s​ ​d​e​ ​a​c​t​u​a​l​i​z​a​r​ ​l​a​ ​c​o​n​t​r​a​s​e​ñ​a​.
+	 */
+	auth_mfaBeforePassword: string
+	/**
+	 * E​r​r​o​r​:​ ​l​a​ ​s​e​s​i​ó​n​ ​h​a​ ​e​x​p​i​r​a​d​o​.
+	 */
+	auth_missingSession: string
+	/**
+	 * L​a​s​ ​c​o​n​t​r​a​s​e​ñ​a​s​ ​n​o​ ​c​o​i​n​c​i​d​e​n​.
+	 */
+	auth_passwordMismatch: string
+	/**
+	 * M​í​n​i​m​o​ ​8​ ​c​a​r​a​c​t​e​r​e​s
+	 */
+	auth_passwordRequirementLength: string
+	/**
+	 * U​n​a​ ​l​e​t​r​a​ ​m​i​n​ú​s​c​u​l​a
+	 */
+	auth_passwordRequirementLower: string
+	/**
+	 * U​n​ ​n​ú​m​e​r​o
+	 */
+	auth_passwordRequirementNumber: string
+	/**
+	 * U​n​ ​s​í​m​b​o​l​o
+	 */
+	auth_passwordRequirementSymbol: string
+	/**
+	 * U​n​a​ ​l​e​t​r​a​ ​m​a​y​ú​s​c​u​l​a
+	 */
+	auth_passwordRequirementUpper: string
+	/**
+	 * L​a​ ​c​o​n​t​r​a​s​e​ñ​a​ ​n​o​ ​c​u​m​p​l​e​ ​l​o​s​ ​r​e​q​u​i​s​i​t​o​s​ ​d​e​ ​s​e​g​u​r​i​d​a​d​.
+	 */
+	auth_passwordRequirementsError: string
+	/**
+	 * I​n​g​r​e​s​a​ ​l​o​s​ ​d​a​t​o​s​ ​d​e​ ​l​a​ ​p​e​r​s​o​n​a​ ​a​d​m​i​n​i​s​t​r​a​d​o​r​a​ ​y​ ​e​l​ ​c​o​r​r​e​o​ ​p​a​r​a​ ​r​e​c​i​b​i​r​ ​e​l​ ​c​ó​d​i​g​o​ ​O​T​P​.
+	 */
+	auth_phaseAdminDescription: string
+	/**
+	 * C​o​m​p​l​e​t​a​ ​l​o​s​ ​d​a​t​o​s​ ​d​e​ ​l​a​ ​c​o​m​u​n​i​d​a​d​ ​a​n​t​e​s​ ​d​e​ ​r​e​g​i​s​t​r​a​r​ ​a​ ​l​a​ ​p​e​r​s​o​n​a​ ​a​d​m​i​n​i​s​t​r​a​d​o​r​a​.
+	 */
+	auth_phaseCommunityDescription: string
+	/**
+	 * I​n​g​r​e​s​a​ ​e​l​ ​c​ó​d​i​g​o​ ​d​e​ ​6​ ​d​í​g​i​t​o​s​ ​d​e​ ​t​u​ ​a​u​t​e​n​t​i​c​a​d​o​r​ ​p​a​r​a​ ​c​o​n​t​i​n​u​a​r​.
+	 */
+	auth_phaseMfaCodeDescription: string
+	/**
+	 * E​s​c​a​n​e​a​ ​e​l​ ​Q​R​ ​d​e​l​ ​T​O​T​P​ ​y​ ​e​s​c​r​i​b​e​ ​e​l​ ​c​ó​d​i​g​o​ ​d​e​ ​6​ ​d​í​g​i​t​o​s​ ​d​e​l​ ​a​u​t​e​n​t​i​c​a​d​o​r​.
+	 */
+	auth_phaseMfaQrDescription: string
+	/**
+	 * E​s​c​r​i​b​e​ ​e​l​ ​c​ó​d​i​g​o​ ​q​u​e​ ​l​l​e​g​ó​ ​a​ ​t​u​ ​c​o​r​r​e​o​ ​p​a​r​a​ ​v​e​r​i​f​i​c​a​r​ ​l​a​ ​c​u​e​n​t​a​.
+	 */
+	auth_phaseOtpDescription: string
+	/**
+	 * D​e​f​i​n​e​ ​t​u​ ​c​o​n​t​r​a​s​e​ñ​a​ ​y​ ​s​u​ ​c​o​n​f​i​r​m​a​c​i​ó​n​ ​p​a​r​a​ ​a​c​t​u​a​l​i​z​a​r​l​a​ ​e​n​ ​S​u​p​a​b​a​s​e​.
+	 */
+	auth_phasePasswordDescription: string
+	/**
+	 * E​r​r​o​r​:​ ​i​n​g​r​e​s​a​ ​e​l​ ​c​ó​d​i​g​o​ ​d​e​ ​v​e​r​i​f​i​c​a​c​i​ó​n​.
+	 */
+	auth_resendCodeError: string
+	/**
+	 * G​u​a​r​d​a​r​ ​c​o​n​t​r​a​s​e​ñ​a
+	 */
+	auth_savePassword: string
+	/**
+	 * P​r​i​m​e​r​o​ ​s​e​l​e​c​c​i​o​n​a​ ​u​n​ ​p​a​í​s
+	 */
+	auth_selectCountryFirst: string
+	/**
+	 * N​o​ ​s​e​ ​e​n​c​o​n​t​r​ó​ ​e​l​ ​a​u​t​e​n​t​i​c​a​d​o​r​ ​p​e​n​d​i​e​n​t​e​ ​d​e​ ​c​o​n​f​i​g​u​r​a​c​i​ó​n​.
+	 */
+	auth_totpMissing: string
+	/**
+	 * O​c​u​r​r​i​ó​ ​u​n​ ​e​r​r​o​r​.
+	 */
+	auth_unknownError: string
+	/**
+	 * E​r​r​o​r​:​ ​e​l​ ​u​s​u​a​r​i​o​ ​y​a​ ​e​s​t​á​ ​r​e​g​i​s​t​r​a​d​o​.
+	 */
+	auth_userRegistered: string
+	/**
 	 * C​a​r​g​a​n​d​o​.​.​.
 	 */
 	common_loading: string
@@ -379,6 +495,10 @@ type RootTranslation = {
 	 * N​o​m​b​r​e​ ​d​e​l​ ​e​d​i​f​i​c​i​o
 	 */
 	settings_buildingName: string
+	/**
+	 * E​d​i​f​i​c​i​o
+	 */
+	settings_building: string
 	/**
 	 * C​e​r​r​a​r
 	 */
@@ -607,6 +727,14 @@ type RootTranslation = {
 	 */
 	settings_reportDownloadError: string
 	/**
+	 * C​o​m​u​n​i​d​a​d​ ​r​e​s​i​d​e​n​c​i​a​l
+	 */
+	settings_residentialCommunity: string
+	/**
+	 * O​t​r​o
+	 */
+	settings_otherCommunity: string
+	/**
 	 * C​u​e​n​t​a​ ​c​o​n​s​e​r​j​e
 	 */
 	settings_conciergeAccount: string
@@ -823,6 +951,30 @@ type RootTranslation = {
 	 */
 	settings_verifyCodeError: string
 	/**
+	 * C​u​e​n​t​a​ ​c​o​n​s​e​r​j​e​ ​c​r​e​a​d​a​.​ ​V​e​r​i​f​i​c​a​ ​e​l​ ​c​ó​d​i​g​o​ ​p​a​r​a​ ​a​c​t​i​v​a​r​ ​M​F​A​.
+	 */
+	settings_conciergeCreated: string
+	/**
+	 * N​o​ ​s​e​ ​p​u​d​o​ ​i​n​v​i​t​a​r​ ​a​l​ ​c​o​n​s​e​r​j​e​.
+	 */
+	settings_conciergeInviteError: string
+	/**
+	 * C​u​e​n​t​a​ ​c​o​n​s​e​r​j​e​ ​v​e​r​i​f​i​c​a​d​a​ ​c​o​r​r​e​c​t​a​m​e​n​t​e​.
+	 */
+	settings_conciergeVerified: string
+	/**
+	 * N​o​ ​s​e​ ​p​u​d​o​ ​v​e​r​i​f​i​c​a​r​ ​e​l​ ​a​u​t​e​n​t​i​c​a​d​o​r​.
+	 */
+	settings_mfaVerifyError: string
+	/**
+	 * N​o​ ​s​e​ ​p​u​d​i​e​r​o​n​ ​g​u​a​r​d​a​r​ ​l​a​s​ ​p​r​e​f​e​r​e​n​c​i​a​s​.
+	 */
+	settings_preferencesSaveError: string
+	/**
+	 * S​e​l​e​c​c​i​o​n​a​ ​u​n​ ​d​e​p​a​r​t​a​m​e​n​t​o​.
+	 */
+	settings_selectDepartment: string
+	/**
 	 * G​e​s​t​i​ó​n​ ​d​e​ ​r​e​c​e​p​c​i​ó​n​ ​y​ ​r​e​t​i​r​o​ ​d​e​ ​p​a​q​u​e​t​e​s​.
 	 */
 	footer_copy: string
@@ -976,6 +1128,10 @@ type RootTranslation = {
 	 * +​ ​A​g​r​e​g​a​r​ ​p​a​q​u​e​t​e
 	 */
 	admin_addPackage: string
+	/**
+	 * R​e​s​u​m​e​n​ ​o​p​e​r​a​t​i​v​o
+	 */
+	admin_operationalSummary: string
 	/**
 	 * C​a​n​c​e​l​a​r
 	 */
@@ -1265,6 +1421,31 @@ type RootTranslation = {
 	 * N​o​ ​s​e​ ​p​u​d​o​ ​e​n​v​i​a​r​ ​e​l​ ​c​o​r​r​e​o​.
 	 */
 	admin_emailError: string
+	/**
+	 * H​o​l​a​ ​{​n​a​m​e​}​,​ ​t​e​ ​e​s​c​r​i​b​i​m​o​s​ ​p​o​r​ ​t​u​ ​r​e​c​l​a​m​o​ ​{​i​d​}
+	 * @param {unknown} id
+	 * @param {unknown} name
+	 */
+	admin_claimEmailSubject: RequiredParams<'id' | 'name'>
+	/**
+	 * H​o​l​a​ ​{​n​a​m​e​}​,​ ​t​e​ ​e​s​c​r​i​b​i​m​o​s​ ​p​o​r​ ​t​u​ ​r​e​c​l​a​m​o​ ​a​s​o​c​i​a​d​o​ ​a​l​ ​p​a​q​u​e​t​e​ ​{​p​a​r​c​e​l​I​d​}​ ​e​n​ ​L​o​b​b​y​P​a​c​k​.
+	 * @param {unknown} name
+	 * @param {unknown} parcelId
+	 */
+	admin_claimWhatsappMessage: RequiredParams<'name' | 'parcelId'>
+	/**
+	 * H​o​l​a​ ​{​n​a​m​e​}​,​ ​t​e​ ​e​s​c​r​i​b​i​m​o​s​ ​p​o​r​ ​t​u​ ​p​a​q​u​e​t​e​ ​{​i​d​}
+	 * @param {unknown} id
+	 * @param {unknown} name
+	 */
+	admin_packageEmailSubject: RequiredParams<'id' | 'name'>
+	/**
+	 * H​o​l​a​ ​{​n​a​m​e​}​,​ ​t​e​ ​e​s​c​r​i​b​o​ ​e​n​ ​r​e​l​a​c​i​ó​n​ ​a​l​ ​p​a​q​u​e​t​e​ ​{​i​d​}​ ​d​e​l​ ​d​e​p​a​r​t​a​m​e​n​t​o​ ​{​u​n​i​t​}​ ​e​n​ ​L​o​b​b​y​P​a​c​k​.
+	 * @param {unknown} id
+	 * @param {unknown} name
+	 * @param {unknown} unit
+	 */
+	admin_packageWhatsappMessage: RequiredParams<'id' | 'name' | 'unit'>
 	/**
 	 * D​e​p​a​r​t​a​m​e​n​t​o
 	 */
@@ -1589,6 +1770,18 @@ type RootTranslation = {
 	 * R​e​t​i​r​a​d​o​s
 	 */
 	landing_withdrawnTitle: string
+	/**
+	 * T​o​r​r​e​ ​B​ ​·​ ​1​2​0​4
+	 */
+	landing_mockUnit1: string
+	/**
+	 * C​o​n​d​o​m​i​n​i​o​ ​N​o​r​t​e​ ​·​ ​3​0​2
+	 */
+	landing_mockUnit2: string
+	/**
+	 * E​d​i​f​i​c​i​o​ ​C​e​n​t​r​a​l​ ​·​ ​9​0​8
+	 */
+	landing_mockUnit3: string
 	/**
 	 * E​S
 	 */
@@ -2550,6 +2743,122 @@ export type TranslationFunctions = {
 	 */
 	auth_orderlyAccessText: () => LocalizedString
 	/**
+	 * Selecciona país y ciudad para habilitar la dirección.
+	 */
+	auth_addressEnable: () => LocalizedString
+	/**
+	 * Selecciona primero un país para habilitar la ciudad.
+	 */
+	auth_cityEnable: () => LocalizedString
+	/**
+	 * Continuar a contraseña
+	 */
+	auth_continuePassword: () => LocalizedString
+	/**
+	 * Error: correo inválido.
+	 */
+	auth_emailInvalid: () => LocalizedString
+	/**
+	 * Error: límite de correos enviados alcanzado, vuelve a intentarlo más tarde.
+	 */
+	auth_emailRateLimit: () => LocalizedString
+	/**
+	 * Completa los datos de la persona administradora para crear la cuenta con Google.
+	 */
+	auth_googleAdminDescription: () => LocalizedString
+	/**
+	 * Error: el código del autenticador no es válido.
+	 */
+	auth_invalidAuthenticator: () => LocalizedString
+	/**
+	 * Error: el código expiró o no es válido.
+	 */
+	auth_invalidOrExpiredCode: () => LocalizedString
+	/**
+	 * Error: debes verificar el código del autenticador antes de actualizar la contraseña.
+	 */
+	auth_mfaBeforePassword: () => LocalizedString
+	/**
+	 * Error: la sesión ha expirado.
+	 */
+	auth_missingSession: () => LocalizedString
+	/**
+	 * Las contraseñas no coinciden.
+	 */
+	auth_passwordMismatch: () => LocalizedString
+	/**
+	 * Mínimo 8 caracteres
+	 */
+	auth_passwordRequirementLength: () => LocalizedString
+	/**
+	 * Una letra minúscula
+	 */
+	auth_passwordRequirementLower: () => LocalizedString
+	/**
+	 * Un número
+	 */
+	auth_passwordRequirementNumber: () => LocalizedString
+	/**
+	 * Un símbolo
+	 */
+	auth_passwordRequirementSymbol: () => LocalizedString
+	/**
+	 * Una letra mayúscula
+	 */
+	auth_passwordRequirementUpper: () => LocalizedString
+	/**
+	 * La contraseña no cumple los requisitos de seguridad.
+	 */
+	auth_passwordRequirementsError: () => LocalizedString
+	/**
+	 * Ingresa los datos de la persona administradora y el correo para recibir el código OTP.
+	 */
+	auth_phaseAdminDescription: () => LocalizedString
+	/**
+	 * Completa los datos de la comunidad antes de registrar a la persona administradora.
+	 */
+	auth_phaseCommunityDescription: () => LocalizedString
+	/**
+	 * Ingresa el código de 6 dígitos de tu autenticador para continuar.
+	 */
+	auth_phaseMfaCodeDescription: () => LocalizedString
+	/**
+	 * Escanea el QR del TOTP y escribe el código de 6 dígitos del autenticador.
+	 */
+	auth_phaseMfaQrDescription: () => LocalizedString
+	/**
+	 * Escribe el código que llegó a tu correo para verificar la cuenta.
+	 */
+	auth_phaseOtpDescription: () => LocalizedString
+	/**
+	 * Define tu contraseña y su confirmación para actualizarla en Supabase.
+	 */
+	auth_phasePasswordDescription: () => LocalizedString
+	/**
+	 * Error: ingresa el código de verificación.
+	 */
+	auth_resendCodeError: () => LocalizedString
+	/**
+	 * Guardar contraseña
+	 */
+	auth_savePassword: () => LocalizedString
+	/**
+	 * Primero selecciona un país
+	 */
+	auth_selectCountryFirst: () => LocalizedString
+	/**
+	 * No se encontró el autenticador pendiente de configuración.
+	 */
+	auth_totpMissing: () => LocalizedString
+	/**
+	 * Ocurrió un error.
+	 */
+	auth_unknownError: () => LocalizedString
+	/**
+	 * Error: el usuario ya está registrado.
+	 */
+	auth_userRegistered: () => LocalizedString
+	/**
 	 * Cargando...
 	 */
 	common_loading: () => LocalizedString
@@ -2589,6 +2898,10 @@ export type TranslationFunctions = {
 	 * Nombre del edificio
 	 */
 	settings_buildingName: () => LocalizedString
+	/**
+	 * Edificio
+	 */
+	settings_building: () => LocalizedString
 	/**
 	 * Cerrar
 	 */
@@ -2814,6 +3127,14 @@ export type TranslationFunctions = {
 	 */
 	settings_reportDownloadError: () => LocalizedString
 	/**
+	 * Comunidad residencial
+	 */
+	settings_residentialCommunity: () => LocalizedString
+	/**
+	 * Otro
+	 */
+	settings_otherCommunity: () => LocalizedString
+	/**
 	 * Cuenta conserje
 	 */
 	settings_conciergeAccount: () => LocalizedString
@@ -3030,6 +3351,30 @@ export type TranslationFunctions = {
 	 */
 	settings_verifyCodeError: () => LocalizedString
 	/**
+	 * Cuenta conserje creada. Verifica el código para activar MFA.
+	 */
+	settings_conciergeCreated: () => LocalizedString
+	/**
+	 * No se pudo invitar al conserje.
+	 */
+	settings_conciergeInviteError: () => LocalizedString
+	/**
+	 * Cuenta conserje verificada correctamente.
+	 */
+	settings_conciergeVerified: () => LocalizedString
+	/**
+	 * No se pudo verificar el autenticador.
+	 */
+	settings_mfaVerifyError: () => LocalizedString
+	/**
+	 * No se pudieron guardar las preferencias.
+	 */
+	settings_preferencesSaveError: () => LocalizedString
+	/**
+	 * Selecciona un departamento.
+	 */
+	settings_selectDepartment: () => LocalizedString
+	/**
 	 * Gestión de recepción y retiro de paquetes.
 	 */
 	footer_copy: () => LocalizedString
@@ -3177,6 +3522,10 @@ export type TranslationFunctions = {
 	 * + Agregar paquete
 	 */
 	admin_addPackage: () => LocalizedString
+	/**
+	 * Resumen operativo
+	 */
+	admin_operationalSummary: () => LocalizedString
 	/**
 	 * Cancelar
 	 */
@@ -3465,6 +3814,22 @@ export type TranslationFunctions = {
 	 * No se pudo enviar el correo.
 	 */
 	admin_emailError: () => LocalizedString
+	/**
+	 * Hola {name}, te escribimos por tu reclamo {id}
+	 */
+	admin_claimEmailSubject: (arg: { id: unknown, name: unknown }) => LocalizedString
+	/**
+	 * Hola {name}, te escribimos por tu reclamo asociado al paquete {parcelId} en LobbyPack.
+	 */
+	admin_claimWhatsappMessage: (arg: { name: unknown, parcelId: unknown }) => LocalizedString
+	/**
+	 * Hola {name}, te escribimos por tu paquete {id}
+	 */
+	admin_packageEmailSubject: (arg: { id: unknown, name: unknown }) => LocalizedString
+	/**
+	 * Hola {name}, te escribo en relación al paquete {id} del departamento {unit} en LobbyPack.
+	 */
+	admin_packageWhatsappMessage: (arg: { id: unknown, name: unknown, unit: unknown }) => LocalizedString
 	/**
 	 * Departamento
 	 */
@@ -3789,6 +4154,18 @@ export type TranslationFunctions = {
 	 * Retirados
 	 */
 	landing_withdrawnTitle: () => LocalizedString
+	/**
+	 * Torre B · 1204
+	 */
+	landing_mockUnit1: () => LocalizedString
+	/**
+	 * Condominio Norte · 302
+	 */
+	landing_mockUnit2: () => LocalizedString
+	/**
+	 * Edificio Central · 908
+	 */
+	landing_mockUnit3: () => LocalizedString
 	/**
 	 * ES
 	 */

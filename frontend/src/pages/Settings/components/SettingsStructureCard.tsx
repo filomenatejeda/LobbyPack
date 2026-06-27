@@ -94,11 +94,11 @@ export default function SettingsStructureCard({canEdit,
       <div className="settingsStats">
         <div className="settingsStat">
           <strong>{towers.length}</strong>
-          <span>{labels.groupPlural} registrados</span>
+          <span>{labels.groupPlural} {LL.settings_registered()}</span>
         </div>
         <div className="settingsStat">
           <strong>{totalFloors}</strong>
-          <span>{labels.levelPlural} en total</span>
+          <span>{labels.levelPlural} {LL.settings_total()}</span>
         </div>
         <div className="settingsStat">
           <strong>{totalUnits}</strong>
@@ -111,7 +111,7 @@ export default function SettingsStructureCard({canEdit,
           <div className="settingsEmptyState">
             <strong>{LL.settings_emptyStructure()}</strong>
             <p>
-              Agrega {labels.groupPlural.toLowerCase()} para comenzar a ordenar la comunidad.
+              {LL.settings_emptyStructureText({ groups: labels.groupPlural.toLowerCase() })}
             </p>
           </div>
         ) : null}
