@@ -16,7 +16,7 @@ const Phase = {
 } as const;
 
 export function LoginForm() {
-  const { LL } = useI18nContext();
+  const { LL, locale } = useI18nContext();
   const location = useLocation();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -68,7 +68,7 @@ export function LoginForm() {
 
         if (!userEmail) {
           setError(
-            language === "en"
+            locale === "en"
               ? "Google did not provide a valid email to continue."
               : "Google no entrego un correo valido para continuar.",
           );
@@ -102,7 +102,7 @@ export function LoginForm() {
           setError(
             challengeError instanceof Error
               ? handleError(challengeError.message)
-              : language === "en"
+              : locale === "en"
                 ? "An error occurred."
                 : "Ocurrio un error.",
           );
@@ -125,7 +125,7 @@ export function LoginForm() {
         setError(
           challengeError instanceof Error
             ? handleError(challengeError.message)
-            : language === "en"
+            : locale === "en"
               ? "An error occurred."
               : "Ocurrio un error.",
         );
@@ -144,7 +144,7 @@ export function LoginForm() {
 
     if (reason === "missing_mfa") {
       setError(
-        language === "en"
+        locale === "en"
           ? "You must complete two-factor authentication to enter the dashboard."
           : "Debes completar el doble factor de autenticación para entrar al dashboard.",
       );
@@ -153,7 +153,7 @@ export function LoginForm() {
 
     if (reason === "missing_session") {
       setError(
-        language === "en"
+        locale === "en"
           ? "You must log in to continue."
           : "Debes iniciar sesión para continuar.",
       );
@@ -162,7 +162,7 @@ export function LoginForm() {
 
     if (reason === "session_check_failed") {
       setError(
-        language === "en"
+        locale === "en"
           ? "Could not verify the session. Try logging in again."
           : "No se pudo verificar la sesión. Intenta iniciar sesión nuevamente.",
       );
@@ -212,7 +212,7 @@ export function LoginForm() {
       setError(
         caughtError instanceof Error
           ? handleError(caughtError.message)
-          : language === "en"
+          : locale === "en"
             ? "An error occurred."
             : "Ocurrio un error.",
       );
@@ -246,7 +246,7 @@ export function LoginForm() {
       setError(
         caughtError instanceof Error
           ? handleError(caughtError.message)
-          : language === "en"
+          : locale === "en"
             ? "An error occurred."
             : "Ocurrio un error.",
       );
@@ -274,23 +274,23 @@ export function LoginForm() {
   function handleError(message: string) {
     switch (message) {
       case "Invalid login credentials":
-        return language === "en"
+        return locale === "en"
           ? "Error: invalid email or password."
           : "Error: correo o contraseña inválidos.";
       case "Code needs to be non-empty":
-        return language === "en"
+        return locale === "en"
           ? "Error: enter the verification code."
           : "Error: ingresa el código de verificación.";
       case "Invalid TOTP code entered":
-        return language === "en"
+        return locale === "en"
           ? "Error: the authenticator code is invalid."
           : "Error: el código del autenticador no es valido.";
       case "Auth session missing!":
-        return language === "en"
+        return locale === "en"
           ? "Error: the session has expired."
           : "Error: la sesión ha expirado.";
       case "AAL2 session is required to update email or password when MFA is enabled.":
-        return language === "en"
+        return locale === "en"
           ? "Error: verify the authenticator code before updating the password."
           : "Error: debes verificar el código del autenticador antes de actualizar la contraseña.";
       default:
@@ -298,7 +298,7 @@ export function LoginForm() {
     }
 
     if (message.startsWith("Email address ")) {
-      return language === "en" ? "Error: invalid email." : "Error: correo inválido.";
+      return locale === "en" ? "Error: invalid email." : "Error: correo inválido.";
     }
 
     return message;

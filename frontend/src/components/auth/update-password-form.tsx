@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { useI18nContext } from "@/i18n/i18n-react";
 
 export function UpdatePasswordForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
-  const { LL } = useI18nContext();
+  const { LL, locale } = useI18nContext();
   const [password, setPassword] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [mfaFactorId, setMfaFactorId] = useState("");
@@ -54,7 +54,7 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
 
         if (!factorId) {
           throw new Error(
-            language === "en"
+            locale === "en"
               ? "No authenticator configured for this account was found."
               : "No se encontró un autenticador configurado para esta cuenta.",
           );
@@ -77,7 +77,7 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
         setError(
           caughtError instanceof Error
             ? handleError(caughtError.message)
-            : language === "en"
+            : locale === "en"
               ? "An error occurred."
               : "Ocurrio un error.",
         );
@@ -129,7 +129,7 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
       setError(
         caughtError instanceof Error
           ? handleError(caughtError.message)
-          : language === "en"
+          : locale === "en"
             ? "An error occurred."
             : "Ocurrio un error.",
       );
@@ -141,23 +141,23 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
   function handleError(message: string) {
     switch (message) {
       case "email rate limit exceeded":
-        return language === "en"
+        return locale === "en"
           ? "Error: wait 1 minute before trying again."
           : "Error: espera 1 minuto antes de volver a intentarlo.";
       case "Code needs to be non-empty":
-        return language === "en"
+        return locale === "en"
           ? "Error: enter the authenticator code."
           : "Error: ingresa el código del autenticador.";
       case "Invalid TOTP code entered":
-        return language === "en"
+        return locale === "en"
           ? "Error: the authenticator code is invalid."
           : "Error: el código del autenticador no es valido.";
       case "Auth session missing!":
-        return language === "en"
+        return locale === "en"
           ? "Error: the recovery session expired. Request a new link."
           : "Error: la sesión de recuperacion expiró. Solicita un nuevo enlace.";
       case "AAL2 session is required to update email or password when MFA is enabled.":
-        return language === "en"
+        return locale === "en"
           ? "Error: verify the authenticator code before updating the password."
           : "Error: debes verificar el código del autenticador antes de actualizar la contraseña.";
       default:
@@ -165,7 +165,7 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
     }
 
     if (message.startsWith("Email address ")) {
-      return language === "en" ? "Error: invalid email." : "Error: correo inválido.";
+      return locale === "en" ? "Error: invalid email." : "Error: correo inválido.";
     }
 
     return message;

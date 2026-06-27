@@ -6,7 +6,7 @@ import { useI18nContext } from "@/i18n/i18n-react";
 import "./login-form.css";
 
 export function ForgotPasswordForm() {
-  const { LL } = useI18nContext();
+  const { LL, locale } = useI18nContext();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -32,7 +32,7 @@ export function ForgotPasswordForm() {
       setError(
         caughtError instanceof Error
           ? handleError(caughtError.message)
-          : language === "en"
+          : locale === "en"
             ? "An error occurred."
             : "Ocurrio un error.",
       );
@@ -44,7 +44,7 @@ export function ForgotPasswordForm() {
   const handleError = (message: string) => {
     switch (message) {
       case "email rate limit exceeded":
-        return language === "en"
+        return locale === "en"
           ? "Error: wait 1 minute before trying again."
           : "Error: espera 1 minuto antes de volver a intentarlo.";
       default:
@@ -52,7 +52,7 @@ export function ForgotPasswordForm() {
     }
 
     if (message.startsWith("Email address ")) {
-      return language === "en" ? "Error: invalid email." : "Error: correo inválido.";
+      return locale === "en" ? "Error: invalid email." : "Error: correo inválido.";
     }
 
     return message;

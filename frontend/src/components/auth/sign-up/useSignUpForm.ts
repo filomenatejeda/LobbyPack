@@ -12,6 +12,7 @@ import {
   COMMUNITY_TYPE_OPTIONS,
   COUNTRY_OPTIONS,
   geoapifyApiKey,
+  PASSWORD_REQUIREMENTS,
   type GeoapifyResponse,
   normalizeSearchText,
   Phase,
@@ -273,11 +274,7 @@ export function useSignUpForm(): UseSignUpFormResult {
     });
 
     if (signedIn.error || !signedIn.data.session) {
-      throw new Error(
-        language === "en"
-          ? "Supabase is requiring email confirmation before MFA. Disable email confirmation in Supabase Auth to continue directly to the QR."
-          : "Supabase esta exigiendo confirmar el correo antes del MFA. Desactiva la confirmacion por correo en Supabase Auth para pasar directo al QR.",
-      );
+      throw new Error(LL.resident_supabaseNeedsEmailConfirm());
     }
   };
 

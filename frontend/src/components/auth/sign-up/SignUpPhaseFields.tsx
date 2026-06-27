@@ -1,7 +1,7 @@
 import { useI18nContext } from "@/i18n/i18n-react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Eye, EyeOff } from "lucide-react";
-import { geoapifyApiKey, Phase } from "./constants";
+import { COMMUNITY_TYPE_OPTIONS, geoapifyApiKey, Phase } from "./constants";
 import type { UseSignUpFormResult } from "./useSignUpForm";
 import { getCommunityTypeLabel } from "../../../pages/Settings/settingsConfig";
 
@@ -38,7 +38,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               value={form.communityType}
               onChange={(event) => form.setCommunityType(event.target.value)}
             >
-              {communityTypeOptions.map((type) => (
+              {COMMUNITY_TYPE_OPTIONS.map((type) => (
                 <option key={type} value={type}>
                   {getCommunityTypeLabel(type, LL)}
                 </option>

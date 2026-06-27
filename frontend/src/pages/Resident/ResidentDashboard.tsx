@@ -9,7 +9,7 @@ import type {
   ParcelItem,
 } from "../../types/home";
 import {
-  formatParcelDate,
+  formatParcelStatus,
   formatParcelTime,
   getIssueStatusClassName,
   getParcelDate,
@@ -38,8 +38,9 @@ type ResidentDashboardProps = {
 type ResidentView = "scanner" | "pending" | "claimed" | "issues";
 
 function ParcelSummaryCard({ item }: { item: ParcelItem }) {
-  const { LL } = useI18nContext();
+  const { LL, locale } = useI18nContext();
   const parcelDate = getParcelDate(item);
+  const dateLocale = locale === "es" ? "es-CL" : "en-US";
 
   return (
     <article className="residentParcelCard">
@@ -59,19 +60,20 @@ function ParcelSummaryCard({ item }: { item: ParcelItem }) {
           : `${LL.resident_withdrawBy()} ${item.claimed_by_name || item.resident_name}`}
       </p>
       <p>
-        {new Date(parcelDate).toLocaleDateString(language === "es" ? "es-CL" : "en-US", {
+        {new Date(parcelDate).toLocaleDateString(dateLocale, {
           day: "2-digit",
           month: "short",
           year: "numeric",
         })}{" "}
-        {language === "es" ? "a las" : "at"} {formatParcelTime(parcelDate)}
+        {locale === "es" ? "a las" : "at"} {formatParcelTime(parcelDate)}
       </p>
     </article>
   );
 }
 
 function ResidentIssueCard({ item }: { item: IssueItem }) {
-  const { LL } = useI18nContext();
+  const { LL, locale } = useI18nContext();
+  const dateLocale = locale === "es" ? "es-CL" : "en-US";
   const issueStatusLabel =
     item.issue_status === "open"
       ? LL.admin_entered()
@@ -90,10 +92,10 @@ function ResidentIssueCard({ item }: { item: IssueItem }) {
             : LL.admin_withdrawal()}
         </span>
         <span>
-          {formatParcelStatus(item.parcel_status, language)}
+          {formatParcelStatus(item.parcel_status, locale)}
         </span>
         <span>
-          {new Date(item.created_at).toLocaleDateString(language === "es" ? "es-CL" : "en-US", {
+          {new Date(item.created_at).toLocaleDateString(dateLocale, {
             day: "2-digit",
             month: "short",
             year: "numeric",
