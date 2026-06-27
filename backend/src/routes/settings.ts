@@ -252,7 +252,7 @@ export const settingsRoutes = new Elysia()
       try {
         await connection.beginTransaction();
 
-        const { conciergeId, verificationCode } = await createConciergeAccount(
+        const { conciergeId } = await createConciergeAccount(
           connection,
           body.concierge_email,
           body.concierge_name,
@@ -270,7 +270,6 @@ export const settingsRoutes = new Elysia()
 
         return {
           ...concierge,
-          verification_code: verificationCode,
         };
       } catch (error) {
         await connection.rollback();

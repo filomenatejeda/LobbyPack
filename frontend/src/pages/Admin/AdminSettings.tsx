@@ -10,7 +10,6 @@ import {
   savePreferenceSettings,
   sendDailySummaryNow,
   saveTowers,
-  verifyConciergeEmail,
   verifyConciergeMfa,
 } from "../../services/settingsApi";
 import { supabase } from "../../lib/client";
@@ -445,23 +444,6 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
     }
   };
 
-  const handleVerifyConciergeEmail = async (conciergeId: string, verificationCode: string) => {
-    setIsSavingConcierge(true);
-    setStatusMessage("");
-
-    try {
-      await verifyConciergeEmail(conciergeId, verificationCode);
-      await loadSettings();
-    } catch (error) {
-      setStatusMessage(
-        error instanceof Error ? error.message : LL.settings_verifyCodeError(),
-      );
-      throw error;
-    } finally {
-      setIsSavingConcierge(false);
-    }
-  };
-
   const handleVerifyConciergeMfa = async (conciergeId: string, mfaCode: string) => {
     setIsSavingConcierge(true);
     setStatusMessage("");
@@ -559,7 +541,6 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
           isSaving={isSavingConcierge}
           onClose={() => setIsInvitingConcierge(false)}
           onInviteConcierge={handleInviteConcierge}
-          onVerifyEmail={handleVerifyConciergeEmail}
           onVerifyMfa={handleVerifyConciergeMfa}
           onDone={loadSettings}
         />

@@ -22,7 +22,6 @@ const QRCodeComponent =
 
 const ConciergeAccountPhase = {
   Form: "form",
-  Code: "code",
   Mfa: "mfa",
   Done: "done",
 } as const;
@@ -35,7 +34,6 @@ type ConciergeInviteModalProps = {
     concierge_name: string;
     concierge_password: string;
   }) => Promise<ConciergeAccountCreationResponse>;
-  onVerifyEmail: (conciergeId: string, verificationCode: string) => Promise<void>;
   onVerifyMfa: (conciergeId: string, mfaCode: string) => Promise<void>;
   onDone: () => Promise<void>;
 };
@@ -43,7 +41,6 @@ type ConciergeInviteModalProps = {
 export default function ConciergeInviteModal({isSaving,
   onClose,
   onInviteConcierge,
-  onVerifyEmail,
   onVerifyMfa,
   onDone,
 }: ConciergeInviteModalProps) {
@@ -56,7 +53,6 @@ export default function ConciergeInviteModal({isSaving,
   const [conciergeEmail, setConciergeEmail] = useState("");
   const [conciergeName, setConciergeName] = useState("");
   const [conciergePassword, setConciergePassword] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [formError, setFormError] = useState("");
   const conciergeSupabase = useMemo(
@@ -99,49 +95,16 @@ export default function ConciergeInviteModal({isSaving,
         concierge_password: conciergePassword,
       });
       setCreatedConcierge(concierge);
-      setVerificationCode("");
-      setAccountPhase(ConciergeAccountPhase.Code);
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : LL.resident_createError());
-    }
-  };
-
-  const handleVerifyEmail = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!createdConcierge) {
-      return;
-    }
-
-    setFormError("");
-
-    try {
-      if (!conciergeSupabase) {
-        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
-      }
-
-      const verifiedOtp = await conciergeSupabase.auth.verifyOtp({
-        email: createdConcierge.email,
-        token: verificationCode,
-        type: "signup",
-      });
-
-      if (verifiedOtp.error) {
-        throw verifiedOtp.error;
-      }
-
-      await onVerifyEmail(createdConcierge.user_id, verificationCode);
 
       const enrolledFactor = await conciergeSupabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: `LobbyPack ${createdConcierge.email}`,
+        friendlyName: `LobbyPack ${concierge.email}`,
       });
 
       if (enrolledFactor.error) {
         throw enrolledFactor.error;
       }
 
-      setCreatedConcierge(createdConcierge);
       setMfaFactorId(enrolledFactor.data.id);
       setTotpSetup({
         totp_secret: enrolledFactor.data.totp.secret,
@@ -200,7 +163,6 @@ export default function ConciergeInviteModal({isSaving,
     setConciergeEmail("");
     setConciergeName("");
     setConciergePassword("");
-    setVerificationCode("");
     setMfaCode("");
     setCreatedConcierge(null);
     setTotpSetup(null);
@@ -277,35 +239,6 @@ export default function ConciergeInviteModal({isSaving,
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
                   {isSaving ? LL.resident_creating() : LL.auth_createAccount()}
-                </button>
-              </div>
-              {formError ? <p className="residentError">{formError}</p> : null}
-            </form>
-          ) : null}
-
-          {accountPhase === ConciergeAccountPhase.Code && createdConcierge ? (
-            <form className="residentForm" onSubmit={handleVerifyEmail}>
-              <div className="residentVerificationBox">
-                <strong>{LL.auth_emailCodeTitle()}</strong>
-                <p>{LL.auth_emailCodeHelp({ email: createdConcierge.email })}</p>
-              </div>
-              <label className="settingsField">
-                <span>{LL.settings_code()}</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={8}
-                  value={verificationCode}
-                  onChange={(event) => setVerificationCode(event.target.value)}
-                  required
-                />
-              </label>
-              <div className="residentActions">
-                <button type="button" className="secondaryButton" onClick={resetCreateFlow}>
-                  {LL.admin_cancel()}
-                </button>
-                <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? LL.settings_verifying() : LL.settings_verifyCode()}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}
