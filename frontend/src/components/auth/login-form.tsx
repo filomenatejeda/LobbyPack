@@ -5,7 +5,6 @@ import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { supabase, supabaseConfigError } from "@/lib/client";
 import { getSupabaseRedirectUrl } from "@/lib/authRedirect";
 import { isGoogleSSOUser } from "@/lib/auth-provider";
-import { useI18n } from "@/lib/i18n";
 import { checkAdminEmailRegistration } from "@/services/authRegistrationApi";
 import googleGLogo from "@/assets/google-g.svg";
 import { useI18nContext } from "@/i18n/i18n-react";

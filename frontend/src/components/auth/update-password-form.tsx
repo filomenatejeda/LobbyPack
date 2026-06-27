@@ -3,7 +3,6 @@ import { REGEXP_ONLY_DIGITS } from "input-otp";
 
 import { cn } from "@/lib/utils";
 import { supabase, supabaseConfigError } from "@/lib/client";
-import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import {
   Card,

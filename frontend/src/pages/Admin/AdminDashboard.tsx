@@ -4,7 +4,6 @@ import AddPackageModal from "../../components/Home/AddPackageModal";
 import ComplaintPanel from "../../components/Home/ComplaintPanel";
 import PackagePanel from "../../components/Home/PackagePanel";
 import QrModal from "../../components/Home/QrModal";
-import { useI18n } from "../../lib/i18n";
 import { pageSizeOptions } from "../../utils/packageUtils";
 import type { useHomeDashboard } from "../Home/hooks/useHomeDashboard";
 import "./AdminDashboard.css";

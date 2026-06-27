@@ -3,7 +3,6 @@ import { useEffect, useState, type FormEvent } from "react";
 import AddPackageFormSection from "./AddPackageFormSection";
 import type { AddPackageFormValues } from "./packageFormTypes";
 import type { CommunityStructureTower } from "../../types/home";
-import { useI18n } from "../../lib/i18n";
 import { validateParcelForm } from "../../utils/parcelValidation";
 import "./AddPackageModal.css";
 

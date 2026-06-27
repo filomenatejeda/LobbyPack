@@ -1,7 +1,6 @@
 import { useI18nContext } from "@/i18n/i18n-react";
 import AdminDashboard from "../Admin/AdminDashboard";
 import ResidentDashboard from "../Resident/ResidentDashboard";
-import { useI18n } from "../../lib/i18n";
 import { useHomeDashboard } from "./hooks/useHomeDashboard";
 import "./Home.css";
 

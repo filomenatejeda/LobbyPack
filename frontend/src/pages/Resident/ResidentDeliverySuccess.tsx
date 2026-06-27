@@ -1,6 +1,5 @@
 import { useI18nContext } from "@/i18n/i18n-react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { useI18n } from "../../lib/i18n";
 import type { ParcelItem } from "../../types/home";
 import "./ResidentDeliverySuccess.css";
 

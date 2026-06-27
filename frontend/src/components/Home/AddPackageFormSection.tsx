@@ -1,6 +1,5 @@
 import { useI18nContext } from "@/i18n/i18n-react";
 import { useMemo, useState, type FormEvent } from "react";
-import { useI18n } from "../../lib/i18n";
 import type { AddPackageFormValues } from "./packageFormTypes";
 import type { CommunityStructureTower } from "../../types/home";
 

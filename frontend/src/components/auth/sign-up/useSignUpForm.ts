@@ -2,7 +2,6 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { isGoogleSSOUser } from "@/lib/auth-provider";
 import { supabase, supabaseConfigError } from "@/lib/client";
-import { useI18n } from "@/lib/i18n";
 import {
   checkCommunityAddressAvailability,
   reserveCommunityRegistration,
@@ -94,7 +93,6 @@ export type UseSignUpFormResult = {
 };
 
 export function useSignUpForm(): UseSignUpFormResult {
-  const { language, t } = useI18n();
   const navigate = useNavigate();
   const [communityName, setCommunityNameState] = useState("");
   const [communityType, setCommunityTypeState] = useState(COMMUNITY_TYPE_OPTIONS[0]);

@@ -1,7 +1,6 @@
 ﻿import { useI18nContext } from "@/i18n/i18n-react";
 import "./PackagePanel.css";
 import PackageRow from "./PackageRow";
-import { useI18n } from "../../lib/i18n";
 import type { PackageServiceView, ParcelItem } from "../../types/home";
 
 const SEARCH_MAX_LENGTH = 50;

@@ -3,7 +3,6 @@ import { type ComponentType } from "react";
 import QRCodeImport from "react-qr-code";
 import "./QrModal.css";
 import type { ParcelItem } from "../../types/home";
-import { useI18n } from "../../lib/i18n";
 
 type QRCodeModule = {
   default?: ComponentType<{ value: string; size?: number }>;

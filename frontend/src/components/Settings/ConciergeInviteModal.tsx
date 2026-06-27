@@ -3,7 +3,6 @@ import { useMemo, useState, type ComponentType, type FormEvent } from "react";
 import { X } from "lucide-react";
 import QRCodeImport from "react-qr-code";
 import { createIsolatedSupabaseClient, supabaseConfigError } from "../../lib/client";
-import { useI18n } from "../../lib/i18n";
 import type {
   ConciergeAccountCreationResponse,
   ResidentTotpSetup,

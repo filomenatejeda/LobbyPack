@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import logo from "../../assets/Logo1.png";
 import { useI18nContext } from "../../i18n/i18n-react";
 import LanguageToggleButton from "../../components/Navbar/LanguageToggleButton";
-import { useI18n } from "../../lib/i18n";
 import "./Landing.css";
 
 export default function Landing() {

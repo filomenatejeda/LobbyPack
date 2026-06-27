@@ -13,7 +13,6 @@ import {
   verifyConciergeMfa,
 } from "../../services/settingsApi";
 import { supabase } from "../../lib/client";
-import { useI18n } from "../../lib/i18n";
 import type {
   ConciergeAccountCreationResponse,
   GeneralSettings,

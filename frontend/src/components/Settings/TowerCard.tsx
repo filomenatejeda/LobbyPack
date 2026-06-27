@@ -1,6 +1,5 @@
 import { useI18nContext } from "@/i18n/i18n-react";
 import type { TowerConfig } from "../../types/settings";
-import { useI18n } from "../../lib/i18n";
 
 type TowerCardProps = {
   tower: TowerConfig;

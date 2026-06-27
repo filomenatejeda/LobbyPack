@@ -1,7 +1,6 @@
 import { useI18nContext } from "@/i18n/i18n-react";
 import { useState } from "react";
 import "./ComplaintPanel.css";
-import { useI18n } from "../../lib/i18n";
 import { sendContactEmail } from "../../services/homeApi";
 import type { IssueItem, IssueStatus } from "../../types/home";
 import { getIssueStatusClassName } from "../../utils/packageUtils";

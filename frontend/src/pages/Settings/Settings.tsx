@@ -4,7 +4,6 @@ import { fetchDashboard } from "../../services/homeApi";
 import type { DashboardCurrentUser } from "../../types/home";
 import ResidentSettings from "../Resident/ResidentSettings";
 import AdminSettings from "../Admin/AdminSettings";
-import { useI18n } from "../../lib/i18n";
 import "./Settings.css";
 
 type SettingsProps = {

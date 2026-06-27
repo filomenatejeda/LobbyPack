@@ -2,7 +2,6 @@ import { useI18nContext } from "@/i18n/i18n-react";
 import { ArrowRight, Camera, Home, MessageCircle, PackageSearch } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { useI18n } from "../../lib/i18n";
 import { fetchDashboard } from "../../services/homeApi";
 import type { DashboardCurrentUser } from "../../types/home";
 import "../Settings/Settings.css";

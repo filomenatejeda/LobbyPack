@@ -7,7 +7,6 @@ import {
   verifyResidentMfa,
 } from "../../../services/settingsApi";
 import type { ResidentItem } from "../../../types/settings";
-import { useI18n } from "../../../lib/i18n";
 
 type UseApartmentResidentsOptions = {
   onStatusMessage: (message: string) => void;
@@ -16,7 +15,6 @@ type UseApartmentResidentsOptions = {
 export function useApartmentResidents({
   onStatusMessage,
 }: UseApartmentResidentsOptions) {
-  const { t } = useI18n();
   const [selectedApartment, setSelectedApartment] = useState<string | null>(null);
   const [apartmentResidents, setApartmentResidents] = useState<ResidentItem[]>([]);
   const [isLoadingResidents, setIsLoadingResidents] = useState(false);

@@ -3,8 +3,7 @@ import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Eye, EyeOff } from "lucide-react";
 import { geoapifyApiKey, Phase } from "./constants";
 import type { UseSignUpFormResult } from "./useSignUpForm";
-import { useI18n } from "@/lib/i18n";
-import { getCommunityTypeOptions } from "@/pages/Settings/settingsConfig";
+// import { getCommunityTypeOptions } from "@/pages/Settings/settingsConfig";
 
 type SignUpPhaseFieldsProps = {
   form: UseSignUpFormResult;

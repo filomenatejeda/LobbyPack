@@ -3,7 +3,6 @@ import { useMemo, useState, type ComponentType, type FormEvent } from "react";
 import { Trash2, X } from "lucide-react";
 import QRCodeImport from "react-qr-code";
 import { createIsolatedSupabaseClient, supabaseConfigError } from "../../lib/client";
-import { useI18n } from "../../lib/i18n";
 import {
   isValidInternationalPhone,
   normalizeInternationalPhone,

@@ -2,7 +2,6 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom
 import "./App.css";
 import Header from "./components/Header/Header";
 import checkIfAuth from "./lib/checkAuth";
-import { useI18n } from "./lib/i18n";
 import Home from "./pages/Home/Home";
 import Landing from "./pages/Landing/Landing";
 import ResidentDeliverySuccess from "./pages/Resident/ResidentDeliverySuccess";
@@ -20,8 +19,6 @@ import { detectLocale } from "./i18n/i18n-util";
 import { loadLocale } from "./i18n/i18n-util.sync";
 
 function ProtectedLayout() {
-  const { t } = useI18n();
-
   const isCheckingAuth = checkIfAuth();
   const { LL } = useI18nContext();
 

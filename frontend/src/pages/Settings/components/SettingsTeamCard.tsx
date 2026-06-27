@@ -1,6 +1,5 @@
 import { useI18nContext } from "@/i18n/i18n-react";
 import type { TeamItem } from "../../../types/settings";
-import { useI18n } from "../../../lib/i18n";
 
 type SettingsTeamCardProps = {
   team: TeamItem[];

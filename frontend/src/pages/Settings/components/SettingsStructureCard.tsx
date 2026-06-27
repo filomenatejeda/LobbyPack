@@ -1,6 +1,5 @@
 import { useI18nContext } from "@/i18n/i18n-react";
 import TowerCard from "../../../components/Settings/TowerCard";
-import { useI18n } from "../../../lib/i18n";
 import type { TowerConfig } from "../../../types/settings";
 import type { StructureLabels } from "../settingsConfig";
 
