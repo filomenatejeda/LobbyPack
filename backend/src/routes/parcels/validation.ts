@@ -3,7 +3,7 @@ import { isValidInternationalPhone, normalizeInternationalPhone } from "../../ut
 import { normalizeTextInput } from "../../utils/textEncoding";
 
 const NAME_REGEX = /^[\p{L}\p{N} ]{1,30}$/u;
-const DEFAULT_BUSINESS_NAME = "Sin compania";
+const DEFAULT_BUSINESS_NAME = "No company";
 const DESCRIPTION_REGEX = /^[\p{L}\p{N} .,:;¡¿?!@#$%^&*()"\-_=+]{1,150}$/u;
 
 type ParcelPayloadInput = {

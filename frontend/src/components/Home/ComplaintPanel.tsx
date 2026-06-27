@@ -44,6 +44,15 @@ function formatComplaintDate(value: string) {
   });
 }
 
+function formatBusinessName(value: string, fallback: string) {
+  const normalizedValue = value.trim().toLowerCase();
+  return normalizedValue === "sin compañía" ||
+    normalizedValue === "sin compania" ||
+    normalizedValue === "no company"
+    ? fallback
+    : value;
+}
+
 function buildWhatsappUrl(item: IssueItem, message: string) {
   const phone = getPhoneDigitsForWhatsapp(item.user_phone_number);
 
@@ -281,7 +290,8 @@ export default function ComplaintPanel({title,
                     </button>
                     <p>{item.issue_description}</p>
                     <span>
-                      {item.id_parcel} · {item.department_address} · {item.business_name}
+                      {item.id_parcel} · {item.department_address} ·{" "}
+                      {formatBusinessName(item.business_name, LL.admin_noCompany())}
                     </span>
                   </td>
                   <td className="complaintDateCell">{formatComplaintDate(item.created_at)}</td>

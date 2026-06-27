@@ -37,6 +37,15 @@ type ResidentDashboardProps = {
 
 type ResidentView = "scanner" | "pending" | "claimed" | "issues";
 
+function formatBusinessName(value: string, fallback: string) {
+  const normalizedValue = value.trim().toLowerCase();
+  return normalizedValue === "sin compañía" ||
+    normalizedValue === "sin compania" ||
+    normalizedValue === "no company"
+    ? fallback
+    : value;
+}
+
 function ParcelSummaryCard({ item }: { item: ParcelItem }) {
   const { LL, locale } = useI18nContext();
   const parcelDate = getParcelDate(item);
@@ -50,7 +59,7 @@ function ParcelSummaryCard({ item }: { item: ParcelItem }) {
           {item.parcel_status === "pending" ? LL.resident_pending() : LL.resident_delivered()}
         </span>
       </div>
-      <p>{item.business_name}</p>
+      <p>{formatBusinessName(item.business_name, LL.admin_noCompany())}</p>
       <p>{item.parcel_description || LL.resident_emptyDescription()}</p>
       <p>
         {item.parcel_status === "pending"
@@ -85,7 +94,7 @@ function ResidentIssueCard({ item }: { item: IssueItem }) {
     <article className="residentIssueCard">
       <div className="residentIssueMeta">
         <strong>{item.id_parcel}</strong>
-        <span>{item.business_name}</span>
+        <span>{formatBusinessName(item.business_name, LL.admin_noCompany())}</span>
         <span>
           {item.parcel_status === "pending"
             ? LL.resident_receivedStatus()
@@ -519,7 +528,7 @@ export default function ResidentDashboard({
               {issueParcelOptions.length > 0 ? (
                 issueParcelOptions.map((item) => (
                   <option key={item.id} value={item.id}>
-                    {item.id} - {item.business_name}
+                    {item.id} - {formatBusinessName(item.business_name, LL.admin_noCompany())}
                   </option>
                 ))
               ) : (

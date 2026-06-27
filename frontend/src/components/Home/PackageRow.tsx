@@ -44,6 +44,15 @@ function getWhatsappPhone(phoneNumber: string) {
   return digits;
 }
 
+function formatBusinessName(value: string, fallback: string) {
+  const normalizedValue = value.trim().toLowerCase();
+  return normalizedValue === "sin compañía" ||
+    normalizedValue === "sin compania" ||
+    normalizedValue === "no company"
+    ? fallback
+    : value;
+}
+
 function buildWhatsappUrl(contact: ContactTarget, message: string) {
   const phone = getWhatsappPhone(contact.user_phone_number);
 
@@ -322,7 +331,7 @@ export default function PackageRow({item,
         </div>
         <div>
           <dt>{LL.admin_company()}</dt>
-          <dd>{item.business_name}</dd>
+          <dd>{formatBusinessName(item.business_name, LL.admin_noCompany())}</dd>
         </div>
         <div>
           <dt>{LL.admin_phone()}</dt>
