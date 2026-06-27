@@ -128,7 +128,7 @@ export default function PackageRow({item,
         message: emailMessage,
         bcc_sender: sendBlindCopy,
       });
-      setEmailStatusMessage(t("admin.emailSent"));
+      setEmailStatusMessage(LL.admin_emailSent());
       window.setTimeout(closeEmailModal, 900);
     } catch (error) {
       setEmailStatusMessage(

@@ -141,7 +141,7 @@ export default function ComplaintPanel({title,
         message: emailMessage,
         bcc_sender: sendBlindCopy,
       });
-      setEmailStatusMessage(t("admin.emailSent"));
+      setEmailStatusMessage(LL.admin_emailSent());
       window.setTimeout(closeEmailModal, 900);
     } catch (error) {
       setEmailStatusMessage(

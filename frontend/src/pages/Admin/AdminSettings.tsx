@@ -10,6 +10,7 @@ import {
   savePreferenceSettings,
   sendDailySummaryNow,
   saveTowers,
+  verifyConciergeEmail,
   verifyConciergeMfa,
 } from "../../services/settingsApi";
 import { supabase } from "../../lib/client";
@@ -46,7 +47,7 @@ type AdminSettingsProps = {
 };
 
 export default function AdminSettings({ currentUser, section = "general" }: AdminSettingsProps) {
-  const { LL } = useI18nContext();
+  const { LL, locale } = useI18nContext();
   const [generalSettings, setGeneralSettings] =
     useState<GeneralSettings>(emptyGeneralSettings);
   const [preferenceSettings, setPreferenceSettings] =
@@ -482,27 +483,9 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
   return (
     <main className="settingsPage">
       <section className="settingsHero">
-        <p className="settingsEyebrow">
-          {section === "general"
-            ? t("settings.info")
-            : section === "team"
-              ? t("settings.team")
-              : t("nav.community")}
-        </p>
-        <h1>
-          {section === "general"
-            ? t("settings.lobbyInfo")
-            : section === "team"
-              ? t("settings.teamTitle")
-              : t("settings.unitManagementTitle")}
-        </h1>
-        <p className="settingsLead">
-          {section === "general"
-            ? t("settings.lobbyLead")
-            : section === "team"
-              ? t("settings.teamLead")
-              : t("settings.unitManagementLead")}
-        </p>
+        <p className="settingsEyebrow">{currentSectionContent.eyebrow}</p>
+        <h1>{currentSectionContent.title}</h1>
+        <p className="settingsLead">{currentSectionContent.lead}</p>
       </section>
 
       {statusMessage ? <p className="settingsLead">{statusMessage}</p> : null}
@@ -512,7 +495,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
         {section === "general" ? (
           <>
             <SettingsGeneralCard
-              communityTypeOptions={getCommunityTypeOptions(language)}
+              communityTypeOptions={getCommunityTypeOptions(locale)}
               generalSettings={generalSettings}
               isEditing={isEditingGeneralSettings}
               isSaving={isSaving}
@@ -576,6 +559,7 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
           isSaving={isSavingConcierge}
           onClose={() => setIsInvitingConcierge(false)}
           onInviteConcierge={handleInviteConcierge}
+          onVerifyEmail={handleVerifyConciergeEmail}
           onVerifyMfa={handleVerifyConciergeMfa}
           onDone={loadSettings}
         />

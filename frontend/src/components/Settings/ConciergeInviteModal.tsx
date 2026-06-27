@@ -22,6 +22,7 @@ const QRCodeComponent =
 
 const ConciergeAccountPhase = {
   Form: "form",
+  Code: "code",
   Mfa: "mfa",
   Done: "done",
 } as const;
@@ -34,6 +35,7 @@ type ConciergeInviteModalProps = {
     concierge_name: string;
     concierge_password: string;
   }) => Promise<ConciergeAccountCreationResponse>;
+  onVerifyEmail: (conciergeId: string, verificationCode: string) => Promise<void>;
   onVerifyMfa: (conciergeId: string, mfaCode: string) => Promise<void>;
   onDone: () => Promise<void>;
 };
@@ -41,6 +43,7 @@ type ConciergeInviteModalProps = {
 export default function ConciergeInviteModal({isSaving,
   onClose,
   onInviteConcierge,
+  onVerifyEmail,
   onVerifyMfa,
   onDone,
 }: ConciergeInviteModalProps) {
@@ -53,6 +56,7 @@ export default function ConciergeInviteModal({isSaving,
   const [conciergeEmail, setConciergeEmail] = useState("");
   const [conciergeName, setConciergeName] = useState("");
   const [conciergePassword, setConciergePassword] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [formError, setFormError] = useState("");
   const conciergeSupabase = useMemo(
@@ -85,7 +89,7 @@ export default function ConciergeInviteModal({isSaving,
         });
 
         if (signedIn.error || !signedIn.data.session) {
-          throw new Error(t("resident.supabaseNeedsEmailConfirm"));
+          throw new Error(LL.resident_supabaseNeedsEmailConfirm());
         }
       }
 
@@ -126,16 +130,18 @@ export default function ConciergeInviteModal({isSaving,
         throw verifiedOtp.error;
       }
 
+      await onVerifyEmail(createdConcierge.user_id, verificationCode);
+
       const enrolledFactor = await conciergeSupabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: `LobbyPack ${concierge.email}`,
+        friendlyName: `LobbyPack ${createdConcierge.email}`,
       });
 
       if (enrolledFactor.error) {
         throw enrolledFactor.error;
       }
 
-      setCreatedConcierge(concierge);
+      setCreatedConcierge(createdConcierge);
       setMfaFactorId(enrolledFactor.data.id);
       setTotpSetup({
         totp_secret: enrolledFactor.data.totp.secret,
@@ -194,6 +200,7 @@ export default function ConciergeInviteModal({isSaving,
     setConciergeEmail("");
     setConciergeName("");
     setConciergePassword("");
+    setVerificationCode("");
     setMfaCode("");
     setCreatedConcierge(null);
     setTotpSetup(null);

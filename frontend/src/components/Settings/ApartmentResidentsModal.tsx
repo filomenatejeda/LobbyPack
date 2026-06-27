@@ -27,6 +27,7 @@ const QRCodeComponent =
 
 const ResidentAccountPhase = {
   Form: "form",
+  Code: "code",
   Mfa: "mfa",
   Done: "done",
 } as const;
@@ -59,6 +60,7 @@ export default function ApartmentResidentsModal({apartmentName,
   onClose,
   onAddResident,
   onDeleteResident,
+  onVerifyEmail,
   onVerifyMfa,
 }: ApartmentResidentsModalProps) {
   const { LL } = useI18nContext();
@@ -72,6 +74,7 @@ export default function ApartmentResidentsModal({apartmentName,
   const [residentName, setResidentName] = useState("");
   const [residentPassword, setResidentPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [formError, setFormError] = useState("");
   const [residentToDelete, setResidentToDelete] = useState<ResidentItem | null>(null);
@@ -115,7 +118,7 @@ export default function ApartmentResidentsModal({apartmentName,
         });
 
         if (signedIn.error || !signedIn.data.session) {
-          throw new Error(t("resident.supabaseNeedsEmailConfirm"));
+          throw new Error(LL.resident_supabaseNeedsEmailConfirm());
         }
       }
 
@@ -157,16 +160,18 @@ export default function ApartmentResidentsModal({apartmentName,
         throw verifiedOtp.error;
       }
 
+      await onVerifyEmail(createdResident.user_id, verificationCode);
+
       const enrolledFactor = await residentSupabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: `LobbyPack ${resident.email}`,
+        friendlyName: `LobbyPack ${createdResident.email}`,
       });
 
       if (enrolledFactor.error) {
         throw enrolledFactor.error;
       }
 
-      setCreatedResident(resident);
+      setCreatedResident(createdResident);
       setMfaFactorId(enrolledFactor.data.id);
       setTotpSetup({
         totp_secret: enrolledFactor.data.totp.secret,
@@ -226,6 +231,7 @@ export default function ApartmentResidentsModal({apartmentName,
     setResidentName("");
     setResidentPassword("");
     setPhoneNumber("");
+    setVerificationCode("");
     setMfaCode("");
     setCreatedResident(null);
     setTotpSetup(null);

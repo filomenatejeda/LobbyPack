@@ -8,8 +8,8 @@ import "../Settings/Settings.css";
 import "./ResidentHelp.css";
 
 type HelpItem = {
-  titleKey: string;
-  descriptionKey: string;
+  title: string;
+  description: string;
   icon: typeof Camera;
 };
 
@@ -93,13 +93,13 @@ export default function ResidentHelp() {
           const Icon = item.icon;
 
           return (
-            <article key={item.titleKey} className="residentHelpCard">
+            <article key={item.title} className="residentHelpCard">
               <div className="residentHelpIcon">
                 <Icon size={22} aria-hidden="true" />
               </div>
               <div>
-                <h2>{t(item.titleKey)}</h2>
-                <p>{t(item.descriptionKey)}</p>
+                <h2>{item.title}</h2>
+                <p>{item.description}</p>
               </div>
             </article>
           );

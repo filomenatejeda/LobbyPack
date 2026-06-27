@@ -1,5 +1,6 @@
 import type { GeneralSettings, PreferenceSettings } from "../../types/settings";
 import type { TranslationFunctions } from "../../i18n/i18n-types";
+import type { AppLanguage } from "../../lib/i18n";
 
 export type StructureLabels = {
   title: string;

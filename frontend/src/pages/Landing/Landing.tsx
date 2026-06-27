@@ -111,15 +111,15 @@ export default function Landing() {
           </div>
 
           <div className="landingFeatureFlow">
-            {featureKeys.map((feature, index) => (
+            {features.map((feature, index) => (
               <article
                 key={feature.title}
                 className={`landingFeatureBand landingFeatureBand${index + 1}`}
               >
                 <span className="landingFeatureIndex">0{index + 1}</span>
                 <div>
-                  <h3>{t(feature.title)}</h3>
-                  <p>{t(feature.description)}</p>
+                  <h3>{feature.title}</h3>
+                  <p>{feature.description}</p>
                 </div>
               </article>
             ))}
