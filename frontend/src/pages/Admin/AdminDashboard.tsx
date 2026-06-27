@@ -233,7 +233,7 @@ export default function AdminDashboard({ dashboard }: AdminDashboardProps) {
                 onClick={dashboard.closePinModal}
                 aria-label={LL.admin_pinClose()}
               >
-                {LL.settings_close()}
+                X
               </button>
             </div>
 
