@@ -4,7 +4,6 @@ import {
   addResidentToDepartment,
   deleteResidentFromDepartment,
   fetchResidentsByDepartment,
-  verifyResidentEmail,
   verifyResidentMfa,
 } from "../../../services/settingsApi";
 import type { ResidentItem } from "../../../types/settings";
@@ -77,28 +76,6 @@ export function useApartmentResidents({
     }
   };
 
-  const handleVerifyResidentEmail = async (
-    residentId: string,
-    verificationCode: string,
-  ): Promise<void> => {
-    setIsSavingResident(true);
-    onStatusMessage("");
-
-    try {
-      await verifyResidentEmail(residentId, verificationCode);
-      if (selectedApartment) {
-        setApartmentResidents(await fetchResidentsByDepartment(selectedApartment));
-      }
-    } catch (error) {
-      onStatusMessage(
-        error instanceof Error ? error.message : LL.settings_verifyCodeError(),
-      );
-      throw error;
-    } finally {
-      setIsSavingResident(false);
-    }
-  };
-
   const handleVerifyResidentMfa = async (residentId: string, mfaCode: string) => {
     setIsSavingResident(true);
     onStatusMessage("");
@@ -146,7 +123,6 @@ export function useApartmentResidents({
     closeApartmentResidents,
     handleAddResident,
     handleDeleteResident,
-    handleVerifyResidentEmail,
     handleVerifyResidentMfa,
     isLoadingResidents,
     isSavingResident,
@@ -154,4 +130,3 @@ export function useApartmentResidents({
     selectedApartment,
   };
 }
-

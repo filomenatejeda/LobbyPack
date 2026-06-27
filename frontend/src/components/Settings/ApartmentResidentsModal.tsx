@@ -27,7 +27,6 @@ const QRCodeComponent =
 
 const ResidentAccountPhase = {
   Form: "form",
-  Code: "code",
   Mfa: "mfa",
   Done: "done",
 } as const;
@@ -47,7 +46,6 @@ type ApartmentResidentsModalProps = {
     user_phone_number: string;
   }) => Promise<ResidentAccountCreationResponse>;
   onDeleteResident: (residentId: string) => Promise<void>;
-  onVerifyEmail: (residentId: string, verificationCode: string) => Promise<void>;
   onVerifyMfa: (residentId: string, mfaCode: string) => Promise<void>;
 };
 
@@ -60,7 +58,6 @@ export default function ApartmentResidentsModal({apartmentName,
   onClose,
   onAddResident,
   onDeleteResident,
-  onVerifyEmail,
   onVerifyMfa,
 }: ApartmentResidentsModalProps) {
   const { LL } = useI18nContext();
@@ -74,7 +71,6 @@ export default function ApartmentResidentsModal({apartmentName,
   const [residentName, setResidentName] = useState("");
   const [residentPassword, setResidentPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [formError, setFormError] = useState("");
   const [residentToDelete, setResidentToDelete] = useState<ResidentItem | null>(null);
@@ -129,49 +125,16 @@ export default function ApartmentResidentsModal({apartmentName,
         user_phone_number: normalizedPhoneNumber,
       });
       setCreatedResident(resident);
-      setVerificationCode("");
-      setAccountPhase(ResidentAccountPhase.Code);
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : LL.resident_createError());
-    }
-  };
-
-  const handleVerifyEmail = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!createdResident) {
-      return;
-    }
-
-    setFormError("");
-
-    try {
-      if (!residentSupabase) {
-        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
-      }
-
-      const verifiedOtp = await residentSupabase.auth.verifyOtp({
-        email: createdResident.email,
-        token: verificationCode,
-        type: "signup",
-      });
-
-      if (verifiedOtp.error) {
-        throw verifiedOtp.error;
-      }
-
-      await onVerifyEmail(createdResident.user_id, verificationCode);
 
       const enrolledFactor = await residentSupabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: `LobbyPack ${createdResident.email}`,
+        friendlyName: `LobbyPack ${resident.email}`,
       });
 
       if (enrolledFactor.error) {
         throw enrolledFactor.error;
       }
 
-      setCreatedResident(createdResident);
       setMfaFactorId(enrolledFactor.data.id);
       setTotpSetup({
         totp_secret: enrolledFactor.data.totp.secret,
@@ -231,7 +194,6 @@ export default function ApartmentResidentsModal({apartmentName,
     setResidentName("");
     setResidentPassword("");
     setPhoneNumber("");
-    setVerificationCode("");
     setMfaCode("");
     setCreatedResident(null);
     setTotpSetup(null);
@@ -372,37 +334,6 @@ export default function ApartmentResidentsModal({apartmentName,
                 </button>
                 <button type="submit" className="primaryButton" disabled={isSaving}>
                   {isSaving ? LL.resident_creating() : LL.auth_createAccount()}
-                </button>
-              </div>
-              {formError ? <p className="residentError">{formError}</p> : null}
-            </form>
-          ) : null}
-
-          {isAdding && accountPhase === ResidentAccountPhase.Code && createdResident ? (
-            <form className="residentForm" onSubmit={handleVerifyEmail}>
-              <div className="residentVerificationBox">
-                <strong>{LL.auth_emailCodeTitle()}</strong>
-                <p>
-                  {LL.auth_emailCodeHelp({ email: createdResident.email })}
-                </p>
-              </div>
-              <label className="settingsField">
-                <span>{LL.settings_code()}</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={8}
-                  value={verificationCode}
-                  onChange={(event) => setVerificationCode(event.target.value)}
-                  required
-                />
-              </label>
-              <div className="residentActions">
-                <button type="button" className="secondaryButton" onClick={resetCreateFlow}>
-                  {LL.admin_cancel()}
-                </button>
-                <button type="submit" className="primaryButton" disabled={isSaving}>
-                  {isSaving ? LL.settings_verifying() : LL.settings_verifyCode()}
                 </button>
               </div>
               {formError ? <p className="residentError">{formError}</p> : null}

@@ -355,7 +355,7 @@ export const settingsRoutes = new Elysia()
       try {
         await connection.beginTransaction();
 
-        const { residentId, verificationCode } = await createResidentAccount(
+        const { residentId } = await createResidentAccount(
           connection,
           body.resident_email,
           body.resident_name,
@@ -375,7 +375,6 @@ export const settingsRoutes = new Elysia()
 
         return {
           ...resident,
-          verification_code: verificationCode,
         };
       } catch (error) {
         await connection.rollback();

@@ -634,7 +634,6 @@ export default function AdminSettings({ currentUser, section = "general" }: Admi
           onClose={apartmentResidents.closeApartmentResidents}
           onAddResident={apartmentResidents.handleAddResident}
           onDeleteResident={apartmentResidents.handleDeleteResident}
-          onVerifyEmail={apartmentResidents.handleVerifyResidentEmail}
           onVerifyMfa={apartmentResidents.handleVerifyResidentMfa}
         />
       ) : null}
