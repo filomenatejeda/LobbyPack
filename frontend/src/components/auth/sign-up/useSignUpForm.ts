@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useI18nContext } from "@/i18n/i18n-react";
 import { isGoogleSSOUser } from "@/lib/auth-provider";
 import { supabase, supabaseConfigError } from "@/lib/client";
 import {
@@ -11,9 +12,6 @@ import {
   COMMUNITY_TYPE_OPTIONS,
   COUNTRY_OPTIONS,
   geoapifyApiKey,
-  getAuthErrorMessage,
-  getPasswordRequirements,
-  getSubmitLabel,
   type GeoapifyResponse,
   normalizeSearchText,
   Phase,
@@ -93,6 +91,7 @@ export type UseSignUpFormResult = {
 };
 
 export function useSignUpForm(): UseSignUpFormResult {
+  const { LL } = useI18nContext();
   const navigate = useNavigate();
   const [communityName, setCommunityNameState] = useState("");
   const [communityType, setCommunityTypeState] = useState(COMMUNITY_TYPE_OPTIONS[0]);
@@ -139,8 +138,16 @@ export function useSignUpForm(): UseSignUpFormResult {
       normalizeSearchText(country.name) === normalizeSearchText(communityCountry),
   )?.code;
 
-  const passwordChecks = getPasswordRequirements(language).map((requirement) => ({
-    label: requirement.label,
+  const passwordRequirementLabels = [
+    LL.auth_passwordRequirementLength(),
+    LL.auth_passwordRequirementUpper(),
+    LL.auth_passwordRequirementLower(),
+    LL.auth_passwordRequirementNumber(),
+    LL.auth_passwordRequirementSymbol(),
+  ];
+
+  const passwordChecks = PASSWORD_REQUIREMENTS.map((requirement, index) => ({
+    label: passwordRequirementLabels[index] ?? requirement.label,
     isValid: requirement.test(password),
   }));
 
@@ -453,16 +460,16 @@ export function useSignUpForm(): UseSignUpFormResult {
 
         setCommunityAddressStatus(
           response.available
-            ? { message: t("auth.addressAvailable"), type: "available" }
+            ? { message: LL.auth_addressAvailable(), type: "available" }
             : {
-                message: response.message || t("auth.addressTaken"),
+                message: response.message || LL.auth_addressTaken(),
                 type: "taken",
               },
         );
       } catch {
         if (isActive) {
           setCommunityAddressStatus({
-            message: t("auth.addressCheckError"),
+            message: LL.auth_addressCheckError(),
             type: "error",
           });
         }
@@ -477,7 +484,7 @@ export function useSignUpForm(): UseSignUpFormResult {
       isActive = false;
       window.clearTimeout(timeout);
     };
-  }, [communityAddress, communityCountry, communityLocation]);
+  }, [LL, communityAddress, communityCountry, communityLocation]);
 
   useEffect(() => {
     let isActive = true;
@@ -575,7 +582,7 @@ export function useSignUpForm(): UseSignUpFormResult {
 
       if (phase === Phase.MFA) {
         if (!mfaFactorId) {
-          throw new Error("No se encontró el autenticador pendiente de configuración.");
+          throw new Error(LL.auth_totpMissing());
         }
 
         const challenge = await supabase.auth.mfa.challenge({ factorId: mfaFactorId });
@@ -599,17 +606,11 @@ export function useSignUpForm(): UseSignUpFormResult {
       }
 
       if (password !== repeatPassword) {
-        throw new Error(
-          language === "en" ? "Passwords do not match." : "Las contraseñas no coinciden.",
-        );
+        throw new Error(LL.auth_passwordMismatch());
       }
 
       if (!isPasswordSecure) {
-        throw new Error(
-          language === "en"
-            ? "The password does not meet the security requirements."
-            : "La contraseña no cumple los requisitos de seguridad.",
-        );
+        throw new Error(LL.auth_passwordRequirementsError());
       }
 
       if (isCompletingGoogleRegistration) {
@@ -643,10 +644,8 @@ export function useSignUpForm(): UseSignUpFormResult {
     } catch (caughtError: unknown) {
       setError(
         caughtError instanceof Error
-          ? getAuthErrorMessage(caughtError.message, language)
-          : language === "en"
-            ? "An error occurred."
-            : "Ocurrio un error.",
+          ? getLocalizedAuthErrorMessage(caughtError.message)
+          : LL.auth_unknownError(),
       );
     } finally {
       setIsLoading(false);
@@ -673,10 +672,8 @@ export function useSignUpForm(): UseSignUpFormResult {
     } catch (caughtError: unknown) {
       setError(
         caughtError instanceof Error
-          ? getAuthErrorMessage(caughtError.message, language)
-          : language === "en"
-            ? "An error occurred."
-            : "Ocurrio un error.",
+          ? getLocalizedAuthErrorMessage(caughtError.message)
+          : LL.auth_unknownError(),
       );
     } finally {
       setIsLoading(false);
@@ -728,12 +725,58 @@ export function useSignUpForm(): UseSignUpFormResult {
     navigate("/auth/login", { replace: true });
   };
 
-  const submitLabel = getSubmitLabel(
-    phase,
-    isLoading,
-    isCompletingGoogleRegistration,
-    language,
-  );
+  const getLocalizedAuthErrorMessage = (message: string) => {
+    switch (message) {
+      case "email rate limit exceeded":
+        return LL.auth_emailRateLimit();
+      case "Code needs to be non-empty":
+        return LL.auth_resendCodeError();
+      case "Invalid TOTP code entered":
+        return LL.auth_invalidAuthenticator();
+      case "Token has expired or is invalid":
+        return LL.auth_invalidOrExpiredCode();
+      case "User already registered":
+        return LL.auth_userRegistered();
+      case "Auth session missing!":
+        return LL.auth_missingSession();
+      case "AAL2 session is required to update email or password when MFA is enabled.":
+        return LL.auth_mfaBeforePassword();
+      default:
+        break;
+    }
+
+    if (message.startsWith("Email address ")) {
+      return LL.auth_emailInvalid();
+    }
+
+    return message;
+  };
+
+  const getLocalizedSubmitLabel = () => {
+    if (isLoading) {
+      return LL.common_loading();
+    }
+
+    if (phase === Phase.Community) {
+      return LL.admin_next();
+    }
+
+    if (phase === Phase.Admin) {
+      return LL.auth_continuePassword();
+    }
+
+    if (phase === Phase.OTP) {
+      return LL.settings_verifyCode();
+    }
+
+    if (phase === Phase.MFA) {
+      return LL.resident_activateAuthenticator();
+    }
+
+    return isCompletingGoogleRegistration ? LL.auth_savePassword() : LL.auth_createAccount();
+  };
+
+  const submitLabel = getLocalizedSubmitLabel();
   const displayError = supabaseConfigError ?? error;
   const isSubmitDisabled =
     isLoading ||

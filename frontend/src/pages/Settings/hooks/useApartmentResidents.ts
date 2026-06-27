@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import { useState } from "react";
 import {
   addResidentToDepartment,
@@ -15,6 +16,7 @@ type UseApartmentResidentsOptions = {
 export function useApartmentResidents({
   onStatusMessage,
 }: UseApartmentResidentsOptions) {
+  const { LL } = useI18nContext();
   const [selectedApartment, setSelectedApartment] = useState<string | null>(null);
   const [apartmentResidents, setApartmentResidents] = useState<ResidentItem[]>([]);
   const [isLoadingResidents, setIsLoadingResidents] = useState(false);
@@ -31,7 +33,7 @@ export function useApartmentResidents({
       setApartmentResidents(residents);
     } catch (error) {
       onStatusMessage(
-        error instanceof Error ? error.message : t("resident.peopleLoadError"),
+        error instanceof Error ? error.message : LL.resident_peopleLoadError(),
       );
     } finally {
       setIsLoadingResidents(false);
@@ -50,7 +52,7 @@ export function useApartmentResidents({
     user_phone_number: string;
   }) => {
     if (!selectedApartment) {
-      throw new Error(t("resident.selectDepartment"));
+      throw new Error(LL.settings_selectDepartment());
     }
 
     setIsSavingResident(true);
@@ -63,11 +65,11 @@ export function useApartmentResidents({
       });
       const residents = await fetchResidentsByDepartment(selectedApartment);
       setApartmentResidents(residents);
-      onStatusMessage(t("resident.residentCreated"));
+      onStatusMessage(LL.resident_residentCreated());
       return createdResident;
     } catch (error) {
       onStatusMessage(
-        error instanceof Error ? error.message : t("resident.residentAddError"),
+        error instanceof Error ? error.message : LL.resident_residentAddError(),
       );
       throw error;
     } finally {
@@ -89,7 +91,7 @@ export function useApartmentResidents({
       }
     } catch (error) {
       onStatusMessage(
-        error instanceof Error ? error.message : t("settings.verifyCodeError"),
+        error instanceof Error ? error.message : LL.settings_verifyCodeError(),
       );
       throw error;
     } finally {
@@ -106,10 +108,10 @@ export function useApartmentResidents({
       if (selectedApartment) {
         setApartmentResidents(await fetchResidentsByDepartment(selectedApartment));
       }
-      onStatusMessage(t("resident.residentVerified"));
+      onStatusMessage(LL.resident_residentVerified());
     } catch (error) {
       onStatusMessage(
-        error instanceof Error ? error.message : t("resident.authenticatorInvalid"),
+        error instanceof Error ? error.message : LL.settings_mfaVerifyError(),
       );
       throw error;
     } finally {
@@ -119,7 +121,7 @@ export function useApartmentResidents({
 
   const handleDeleteResident = async (residentId: string) => {
     if (!selectedApartment) {
-      throw new Error(t("resident.selectDepartment"));
+      throw new Error(LL.settings_selectDepartment());
     }
 
     setIsSavingResident(true);
@@ -128,10 +130,10 @@ export function useApartmentResidents({
     try {
       await deleteResidentFromDepartment(residentId);
       setApartmentResidents(await fetchResidentsByDepartment(selectedApartment));
-      onStatusMessage(t("resident.deleted"));
+      onStatusMessage(LL.resident_deleted());
     } catch (error) {
       onStatusMessage(
-        error instanceof Error ? error.message : t("resident.deleteError"),
+        error instanceof Error ? error.message : LL.resident_deleteError(),
       );
       throw error;
     } finally {
@@ -152,3 +154,4 @@ export function useApartmentResidents({
     selectedApartment,
   };
 }
+

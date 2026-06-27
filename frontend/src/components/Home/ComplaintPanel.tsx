@@ -44,17 +44,16 @@ function formatComplaintDate(value: string) {
   });
 }
 
-function buildWhatsappUrl(item: IssueItem) {
+function buildWhatsappUrl(item: IssueItem, message: string) {
   const phone = getPhoneDigitsForWhatsapp(item.user_phone_number);
 
   if (!phone) {
     return "";
   }
 
-  const text = `Hola ${item.resident_name}, te escribimos por tu reclamo asociado al paquete ${item.id_parcel} en LobbyPack.`;
   const params = new URLSearchParams({
     phone,
-    text,
+    text: message,
     type: "phone_number",
     app_absent: "0",
   });
@@ -111,7 +110,7 @@ export default function ComplaintPanel({title,
 
   const openEmailModal = (item: IssueItem) => {
     setEmailTarget(item);
-    setEmailSubject(`Hola ${item.resident_name}, te escribimos por tu reclamo ${item.id}`);
+    setEmailSubject(LL.admin_claimEmailSubject({ name: item.resident_name, id: item.id }));
     setEmailMessage("");
     setSendBlindCopy(false);
     setEmailStatusMessage("");
@@ -146,7 +145,7 @@ export default function ComplaintPanel({title,
       window.setTimeout(closeEmailModal, 900);
     } catch (error) {
       setEmailStatusMessage(
-        error instanceof Error ? error.message : t("admin.emailError"),
+        error instanceof Error ? error.message : LL.admin_emailError(),
       );
     } finally {
       setIsSendingEmail(false);
@@ -257,7 +256,13 @@ export default function ComplaintPanel({title,
           <tbody>
             {paginatedComplaints.map((item) => {
               const isUpdating = updatingIssueId === item.id;
-              const whatsappUrl = buildWhatsappUrl(item);
+              const whatsappUrl = buildWhatsappUrl(
+                item,
+                LL.admin_claimWhatsappMessage({
+                  name: item.resident_name,
+                  parcelId: item.id_parcel,
+                }),
+              );
               const isSelected = selectedIssueIds.includes(item.id);
 
               return (

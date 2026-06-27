@@ -66,7 +66,7 @@ export default function ConciergeInviteModal({isSaving,
 
     try {
       if (!conciergeSupabase) {
-        throw new Error(supabaseConfigError ?? t("resident.supabasePrepareError"));
+        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
       }
 
       const signedUp = await conciergeSupabase.auth.signUp({
@@ -94,6 +94,37 @@ export default function ConciergeInviteModal({isSaving,
         concierge_name: conciergeName,
         concierge_password: conciergePassword,
       });
+      setCreatedConcierge(concierge);
+      setVerificationCode("");
+      setAccountPhase(ConciergeAccountPhase.Code);
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : LL.resident_createError());
+    }
+  };
+
+  const handleVerifyEmail = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!createdConcierge) {
+      return;
+    }
+
+    setFormError("");
+
+    try {
+      if (!conciergeSupabase) {
+        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
+      }
+
+      const verifiedOtp = await conciergeSupabase.auth.verifyOtp({
+        email: createdConcierge.email,
+        token: verificationCode,
+        type: "signup",
+      });
+
+      if (verifiedOtp.error) {
+        throw verifiedOtp.error;
+      }
 
       const enrolledFactor = await conciergeSupabase.auth.mfa.enroll({
         factorType: "totp",
@@ -113,7 +144,7 @@ export default function ConciergeInviteModal({isSaving,
       setMfaCode("");
       setAccountPhase(ConciergeAccountPhase.Mfa);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : t("resident.createError"));
+      setFormError(error instanceof Error ? error.message : LL.settings_codeInvalid());
     }
   };
 
@@ -128,11 +159,11 @@ export default function ConciergeInviteModal({isSaving,
 
     try {
       if (!conciergeSupabase) {
-        throw new Error(supabaseConfigError ?? t("resident.supabasePrepareError"));
+        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
       }
 
       if (!mfaFactorId) {
-        throw new Error(t("resident.authenticatorMissing"));
+        throw new Error(LL.resident_authenticatorMissing());
       }
 
       const challenge = await conciergeSupabase.auth.mfa.challenge({ factorId: mfaFactorId });
@@ -155,7 +186,7 @@ export default function ConciergeInviteModal({isSaving,
       await conciergeSupabase.auth.signOut();
       setAccountPhase(ConciergeAccountPhase.Done);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : t("resident.authenticatorInvalid"));
+      setFormError(error instanceof Error ? error.message : LL.resident_authenticatorInvalid());
     }
   };
 
@@ -191,7 +222,7 @@ export default function ConciergeInviteModal({isSaving,
             type="button"
             className="residentModalClose"
             onClick={onClose}
-            aria-label={t("settings.close")}
+            aria-label={LL.settings_close()}
           >
             <X size={18} aria-hidden="true" />
           </button>

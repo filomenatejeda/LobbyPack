@@ -86,17 +86,17 @@ export default function ApartmentResidentsModal({apartmentName,
 
     try {
       if (!residentSupabase) {
-        throw new Error(supabaseConfigError ?? t("resident.supabasePrepareError"));
+        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
       }
 
       const normalizedPhoneNumber = normalizeInternationalPhone(phoneNumber);
 
       if (!normalizedPhoneNumber) {
-        throw new Error(t("resident.phoneRequired"));
+        throw new Error(LL.resident_phoneRequired());
       }
 
       if (!isValidInternationalPhone(normalizedPhoneNumber)) {
-        throw new Error(t("resident.phoneInvalid"));
+        throw new Error(LL.resident_phoneInvalid());
       }
 
       const signedUp = await residentSupabase.auth.signUp({
@@ -125,6 +125,37 @@ export default function ApartmentResidentsModal({apartmentName,
         resident_password: residentPassword,
         user_phone_number: normalizedPhoneNumber,
       });
+      setCreatedResident(resident);
+      setVerificationCode("");
+      setAccountPhase(ResidentAccountPhase.Code);
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : LL.resident_createError());
+    }
+  };
+
+  const handleVerifyEmail = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!createdResident) {
+      return;
+    }
+
+    setFormError("");
+
+    try {
+      if (!residentSupabase) {
+        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
+      }
+
+      const verifiedOtp = await residentSupabase.auth.verifyOtp({
+        email: createdResident.email,
+        token: verificationCode,
+        type: "signup",
+      });
+
+      if (verifiedOtp.error) {
+        throw verifiedOtp.error;
+      }
 
       const enrolledFactor = await residentSupabase.auth.mfa.enroll({
         factorType: "totp",
@@ -144,7 +175,7 @@ export default function ApartmentResidentsModal({apartmentName,
       setMfaCode("");
       setAccountPhase(ResidentAccountPhase.Mfa);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : t("resident.createError"));
+      setFormError(error instanceof Error ? error.message : LL.settings_codeInvalid());
     }
   };
 
@@ -159,11 +190,11 @@ export default function ApartmentResidentsModal({apartmentName,
 
     try {
       if (!residentSupabase) {
-        throw new Error(supabaseConfigError ?? t("resident.supabasePrepareError"));
+        throw new Error(supabaseConfigError ?? LL.resident_supabasePrepareError());
       }
 
       if (!mfaFactorId) {
-        throw new Error(t("resident.authenticatorMissing"));
+        throw new Error(LL.resident_authenticatorMissing());
       }
 
       const challenge = await residentSupabase.auth.mfa.challenge({ factorId: mfaFactorId });
@@ -186,7 +217,7 @@ export default function ApartmentResidentsModal({apartmentName,
       await residentSupabase.auth.signOut();
       setAccountPhase(ResidentAccountPhase.Done);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : t("resident.authenticatorInvalid"));
+      setFormError(error instanceof Error ? error.message : LL.resident_authenticatorInvalid());
     }
   };
 
@@ -216,7 +247,7 @@ export default function ApartmentResidentsModal({apartmentName,
       await onDeleteResident(residentToDelete.user_id);
       setResidentToDelete(null);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : t("resident.deleteError"));
+      setFormError(error instanceof Error ? error.message : LL.resident_deleteError());
     }
   };
 
@@ -237,7 +268,7 @@ export default function ApartmentResidentsModal({apartmentName,
             type="button"
             className="residentModalClose"
             onClick={onClose}
-            aria-label={t("settings.close")}
+            aria-label={LL.settings_close()}
           >
             <X size={18} aria-hidden="true" />
           </button>
@@ -253,7 +284,7 @@ export default function ApartmentResidentsModal({apartmentName,
                   <div>
                     <strong>{resident.resident_name}</strong>
                     <span>{resident.email}</span>
-                    <span>{resident.user_phone_number || t("resident.phoneEmpty")}</span>
+                    <span>{resident.user_phone_number || LL.resident_phoneEmpty()}</span>
                     <span>
                       {resident.email_verified && resident.mfa_enabled
                         ? LL.resident_authenticatorActive()
@@ -279,7 +310,7 @@ export default function ApartmentResidentsModal({apartmentName,
 
           {!isLoading && residents.length === 0 && !isAdding ? (
             <p className="residentEmptyText">
-              {t("resident.noAccounts").replace("{unit}", unitSingular)}
+              {LL.resident_noAccounts({ unit: unitSingular })}
             </p>
           ) : null}
 
@@ -445,7 +476,7 @@ export default function ApartmentResidentsModal({apartmentName,
           >
             <p className="settingsLabel">{LL.resident_confirmDelete()}</p>
             <h4 id="residentDeleteTitle">
-              {t("resident.deleteConfirm").replace("{name}", residentToDelete.resident_name)}
+              {LL.resident_deleteConfirm({ name: residentToDelete.resident_name })}
             </h4>
             <div className="residentActions">
               <button
@@ -454,7 +485,7 @@ export default function ApartmentResidentsModal({apartmentName,
                 onClick={() => setResidentToDelete(null)}
                 disabled={isSaving}
               >
-                {t("common.no")}
+                {LL.common_no()}
               </button>
               <button
                 type="button"
@@ -462,7 +493,7 @@ export default function ApartmentResidentsModal({apartmentName,
                 onClick={() => void handleDeleteResident()}
                 disabled={isSaving}
               >
-                {isSaving ? t("resident.deleting") : t("common.yes")}
+                {isSaving ? LL.resident_deleting() : LL.common_yes()}
               </button>
             </div>
           </section>

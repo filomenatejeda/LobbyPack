@@ -44,14 +44,13 @@ function getWhatsappPhone(phoneNumber: string) {
   return digits;
 }
 
-function buildWhatsappUrl(item: ParcelItem, contact: ContactTarget) {
+function buildWhatsappUrl(contact: ContactTarget, message: string) {
   const phone = getWhatsappPhone(contact.user_phone_number);
 
   if (!phone) {
     return "";
   }
 
-  const message = `Hola ${contact.resident_name}, te escribo en relacion al paquete ${item.id} del departamento ${item.department_address} en LobbyPack.`;
   const params = new URLSearchParams({
     phone,
     text: message,
@@ -82,17 +81,24 @@ export default function PackageRow({item,
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [emailStatusMessage, setEmailStatusMessage] = useState("");
   const parcelDate = getParcelDate(item);
-  const packageWhatsappUrl = buildWhatsappUrl(item, {
-    resident_name: item.resident_name,
-    user_phone_number: item.user_phone_number,
-    email: "",
-  });
+  const packageWhatsappUrl = buildWhatsappUrl(
+    {
+      resident_name: item.resident_name,
+      user_phone_number: item.user_phone_number,
+      email: "",
+    },
+    LL.admin_packageWhatsappMessage({
+      name: item.resident_name,
+      id: item.id,
+      unit: item.department_address,
+    }),
+  );
   const departmentResidents = item.department_residents ?? [];
   const hasDepartmentContacts = departmentResidents.length > 0;
 
   const openEmailModal = (resident: EmailDraftTarget) => {
     setEmailTarget(resident);
-    setEmailSubject(`Hola ${resident.resident_name}, te escribimos por tu paquete ${item.id}`);
+    setEmailSubject(LL.admin_packageEmailSubject({ name: resident.resident_name, id: item.id }));
     setEmailMessage("");
     setSendBlindCopy(false);
     setEmailStatusMessage("");
@@ -126,7 +132,7 @@ export default function PackageRow({item,
       window.setTimeout(closeEmailModal, 900);
     } catch (error) {
       setEmailStatusMessage(
-        error instanceof Error ? error.message : t("admin.emailError"),
+        error instanceof Error ? error.message : LL.admin_emailError(),
       );
     } finally {
       setIsSendingEmail(false);
@@ -374,7 +380,14 @@ export default function PackageRow({item,
           {hasDepartmentContacts ? (
             <ul className="departmentContactsList">
               {departmentResidents.map((resident) => {
-                const whatsappUrl = buildWhatsappUrl(item, resident);
+                const whatsappUrl = buildWhatsappUrl(
+                  resident,
+                  LL.admin_packageWhatsappMessage({
+                    name: resident.resident_name,
+                    id: item.id,
+                    unit: item.department_address,
+                  }),
+                );
 
                 return (
                   <li key={resident.user_id} className="departmentContactItem">

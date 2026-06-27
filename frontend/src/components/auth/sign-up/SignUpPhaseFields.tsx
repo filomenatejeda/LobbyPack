@@ -3,7 +3,7 @@ import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Eye, EyeOff } from "lucide-react";
 import { geoapifyApiKey, Phase } from "./constants";
 import type { UseSignUpFormResult } from "./useSignUpForm";
-// import { getCommunityTypeOptions } from "@/pages/Settings/settingsConfig";
+import { getCommunityTypeLabel } from "../../../pages/Settings/settingsConfig";
 
 type SignUpPhaseFieldsProps = {
   form: UseSignUpFormResult;
@@ -40,7 +40,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
             >
               {communityTypeOptions.map((type) => (
                 <option key={type} value={type}>
-                  {type}
+                  {getCommunityTypeLabel(type, LL)}
                 </option>
               ))}
             </select>
@@ -92,8 +92,8 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               disabled={!form.communityCountry.trim()}
               placeholder={
                 form.communityCountry.trim()
-                  ? t("auth.cityPlaceholder")
-                  : t("auth.cityRequiredFirst")
+                  ? LL.auth_cityPlaceholder()
+                  : LL.auth_selectCountryFirst()
               }
               value={form.communityLocation}
               onBlur={() => window.setTimeout(() => form.setFocusedAutocomplete(null), 120)}
@@ -109,15 +109,13 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               }}
             />
             {!form.communityCountry.trim() && (
-              <p className="authFieldNote">
-                {t("auth.countryEnableCity")}
-              </p>
+              <p className="authFieldNote">{LL.auth_cityEnable()}</p>
             )}
             {form.focusedAutocomplete === "location" && form.communityCountry.trim() && (
               <div className="authSuggestions">
                 {!geoapifyApiKey && (
                   <div className="authSuggestionStatus">
-                    {t("auth.geoapifyCityMissing")}
+                    {LL.auth_geoapifyCityMissing()}
                   </div>
                 )}
                 {form.isLoadingLocations && (
@@ -142,7 +140,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                   form.communityLocation.trim().length >= 2 &&
                   form.locationSuggestions.length === 0 && (
                     <div className="authSuggestionStatus">
-                      {t("auth.noManualResultsCity")}
+                      {LL.auth_noManualResultsCity()}
                     </div>
                   )}
               </div>
@@ -160,8 +158,8 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               disabled={!form.communityCountry.trim() || !form.communityLocation.trim()}
               placeholder={
                 form.communityCountry.trim() && form.communityLocation.trim()
-                  ? t("auth.addressPlaceholder")
-                  : t("auth.addressRequiredFirst")
+                  ? LL.auth_addressPlaceholder()
+                  : LL.auth_addressRequiredFirst()
               }
               value={form.communityAddress}
               onBlur={() => window.setTimeout(() => form.setFocusedAutocomplete(null), 120)}
@@ -177,9 +175,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               }}
             />
             {(!form.communityCountry.trim() || !form.communityLocation.trim()) && (
-              <p className="authFieldNote">
-                {t("auth.communityAddressEnable")}
-              </p>
+              <p className="authFieldNote">{LL.auth_addressEnable()}</p>
             )}
             {form.focusedAutocomplete === "address" &&
             form.communityLocation.trim() &&
@@ -187,7 +183,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               <div className="authSuggestions">
                 {!geoapifyApiKey && (
                   <div className="authSuggestionStatus">
-                    {t("auth.geoapifyAddressMissing")}
+                    {LL.auth_geoapifyAddressMissing()}
                   </div>
                 )}
                 {form.isLoadingAddresses && (
@@ -212,7 +208,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                   form.communityAddress.trim().length >= 3 &&
                   form.addressSuggestions.length === 0 && (
                     <div className="authSuggestionStatus">
-                      {t("auth.noManualResultsAddress")}
+                      {LL.auth_noManualResultsAddress()}
                     </div>
                   )}
               </div>
@@ -263,7 +259,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               className="authTextButton"
               onClick={() => form.goToPreviousStep()}
             >
-              {t("auth.backToCommunity")}
+              {LL.auth_backToCommunity()}
             </button>
           </div>
         </>
@@ -308,14 +304,14 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
               className="authTextButton"
               onClick={() => void form.resendEmail()}
             >
-              {t("auth.resendCode")}
+              {LL.auth_resendCode()}
             </button>
             <button
               type="button"
               className="authTextButton"
               onClick={() => form.resetToEmailStep()}
             >
-              {t("auth.changeEmail")}
+              {LL.auth_changeEmail()}
             </button>
           </div>
         </>
@@ -330,11 +326,11 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
 
             <div className="authMfaInfo">
               <p className="authMfaText">
-                {t("auth.totpLink")}
+                {LL.auth_totpLink()}
               </p>
               {form.mfaSecret ? (
                 <p className="authMfaSecret">
-                  {t("auth.totpManual")} <strong>{form.mfaSecret}</strong>
+                  {LL.auth_totpManual()} <strong>{form.mfaSecret}</strong>
                 </p>
               ) : null}
             </div>
@@ -376,7 +372,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                 type="button"
                 className="authInputIconButton"
                 aria-label={
-                  form.showPassword ? t("auth.hidePassword") : t("auth.showPassword")
+                  form.showPassword ? LL.auth_hidePassword() : LL.auth_showPassword()
                 }
                 onClick={() => form.setShowPassword((current) => !current)}
               >
@@ -419,7 +415,7 @@ export default function SignUpPhaseFields({ form }: SignUpPhaseFieldsProps) {
                 type="button"
                 className="authInputIconButton"
                 aria-label={
-                  form.showRepeatPassword ? t("auth.hidePassword") : t("auth.showPassword")
+                  form.showRepeatPassword ? LL.auth_hidePassword() : LL.auth_showPassword()
                 }
                 onClick={() => form.setShowRepeatPassword((current) => !current)}
               >

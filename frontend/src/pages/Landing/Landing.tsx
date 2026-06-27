@@ -82,15 +82,15 @@ export default function Landing() {
                 </div>
                 <div className="landingMockupList">
                   <div className="landingMockupRow">
-                    <span>Torre B · 1204</span>
+                    <span>{LL.landing_mockUnit1()}</span>
                     <span className="landingMockupBadge landingMockupBadgePending">{LL.landing_pending()}</span>
                   </div>
                   <div className="landingMockupRow">
-                    <span>Condominio Norte · 302</span>
+                    <span>{LL.landing_mockUnit2()}</span>
                     <span className="landingMockupBadge landingMockupBadgeDone">{LL.landing_done()}</span>
                   </div>
                   <div className="landingMockupRow">
-                    <span>Edificio Central · 908</span>
+                    <span>{LL.landing_mockUnit3()}</span>
                     <span className="landingMockupBadge landingMockupBadgePending">{LL.landing_pending()}</span>
                   </div>
                 </div>

@@ -40,6 +40,21 @@ export const getCommunityTypeOptions = (language: AppLanguage) =>
     ? ["Building", "Condominium", "Residential community", "Other"]
     : ["Edificio", "Condominio", "Comunidad residencial", "Otro"];
 
+export const getCommunityTypeLabel = (
+  communityType: string,
+  LL: TranslationFunctions,
+) => {
+  const normalizedType = communityType
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  if (normalizedType.includes("condominio")) return LL.settings_condo();
+  if (normalizedType.includes("residencial")) return LL.settings_residentialCommunity();
+  if (normalizedType.includes("otro")) return LL.settings_otherCommunity();
+  return LL.settings_building();
+};
+
 export const getStructureLabels = (
   communityType: string,
   LL: TranslationFunctions,

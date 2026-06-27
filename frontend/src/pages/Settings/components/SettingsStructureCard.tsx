@@ -94,11 +94,11 @@ export default function SettingsStructureCard({canEdit,
       <div className="settingsStats">
         <div className="settingsStat">
           <strong>{towers.length}</strong>
-          <span>{labels.groupPlural} {t("settings.registered")}</span>
+          <span>{labels.groupPlural} {LL.settings_registered()}</span>
         </div>
         <div className="settingsStat">
           <strong>{totalFloors}</strong>
-          <span>{labels.levelPlural} {t("settings.total")}</span>
+          <span>{labels.levelPlural} {LL.settings_total()}</span>
         </div>
         <div className="settingsStat">
           <strong>{totalUnits}</strong>
@@ -111,10 +111,7 @@ export default function SettingsStructureCard({canEdit,
           <div className="settingsEmptyState">
             <strong>{LL.settings_emptyStructure()}</strong>
             <p>
-              {t("settings.emptyStructureText").replace(
-                "{groups}",
-                labels.groupPlural.toLowerCase(),
-              )}
+              {LL.settings_emptyStructureText({ groups: labels.groupPlural.toLowerCase() })}
             </p>
           </div>
         ) : null}
